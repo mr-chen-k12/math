@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Area of a Triangle Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .answer-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .answer-btn.correct {
+            background-color: #22c55e; /* green-500 */
+            border-color: #16a34a; /* green-600 */
+            color: white;
+        }
+        .answer-btn.incorrect {
+            background-color: #ef4444; /* red-500 */
+            border-color: #dc2626; /* red-600 */
+            color: white;
+            opacity: 0.7;
+        }
+        .feedback-line {
+            stroke-dasharray: 4;
+            animation: dash 0.5s linear forwards;
+            opacity: 0;
+        }
+        @keyframes dash {
+            to {
+                opacity: 1;
+            }
+        }
+        sup {
+            font-size: 0.6em;
+            vertical-align: super;
+        }
+        #progress-pointer {
+            transition: left 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
+
+    <div class="container mx-auto px-4 py-8">
+        <main class="bg-white p-6 md:p-8 rounded-xl shadow-2xl max-w-5xl mx-auto">
+            
+            <!-- Header -->
+            <header class="text-center mb-6">
+                <h1 class="text-3xl md:text-4xl font-bold text-blue-600">Find the Area of the Triangle</h1>
+                <p class="mt-2 text-md text-gray-500">Use the formula: Area = 1/2 × base × height</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Left Side: Quiz Area -->
+                <div id="quiz-area" class="md:col-span-2 text-center">
+                    <!-- Grid and Triangle SVG -->
+                    <div class="bg-white border border-gray-300 rounded-lg p-2 mb-4 overflow-hidden">
+                        <svg id="grid-svg" width="100%" height="300" viewBox="0 0 520 280">
+                            <defs>
+                                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#d1d5db" stroke-width="2"/>
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#grid)" />
+                            <g id="triangle-group"></g>
+                            <g id="feedback-group"></g>
+                        </svg>
+                    </div>
+
+                    <!-- Triangle Type Description -->
+                    <p id="triangle-type" class="text-lg font-semibold text-gray-700 mb-6 h-6"></p>
+
+                    <!-- Answer Choices -->
+                    <div id="answer-choices" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- Buttons will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Right Side: Scoreboard -->
+                <div id="scoreboard" class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Scoreboard</h2>
+                    <div class="space-y-4 text-center">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Streak</p>
+                            <p id="streak-el" class="text-4xl font-bold text-green-500">0</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Correct</p>
+                            <p id="percentage-el" class="text-3xl font-bold text-blue-500">0%</p>
+                            <p id="score-tally" class="text-xs text-gray-500">(0/0)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 pt-6 border-t">
+                         <h3 class="text-lg font-semibold text-center mb-4 text-gray-700">Progress</h3>
+                         <div class="relative w-full">
+                            <!-- Progress Bar -->
+                            <div class="h-3 bg-gradient-to-r from-green-300 via-yellow-300 to-red-400 rounded-full"></div>
+                            <!-- Pointer -->
+                            <div id="progress-pointer" class="absolute -bottom-2" style="left: 0%;">
+                                <svg class="h-4 w-4 text-yellow-500" viewBox="0 0 10 10">
+                                    <path d="M5 10L0 0L10 0Z" fill="currentColor"/>
+                                </svg>
+                            </div>
+                         </div>
+                         <!-- Labels -->
+                         <div class="flex justify-between text-xs font-bold text-gray-500 mt-2 px-1">
+                             <span>Nice Effort</span>
+                             <span>Amazing</span>
+                             <span class="text-red-500">LIT!</span>
+                         </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t text-center">
+                        <p class="text-sm text-gray-600">
+                            Submit your highest score to your teacher: 
+                            <a href="https://forms.gle/SesPjNXEbn5mMuQC9" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-600 hover:underline">
+                                Click Here
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const triangleGroup = document.getElementById('triangle-group');
+    const feedbackGroup = document.getElementById('feedback-group');
+    const answerChoicesContainer = document.getElementById('answer-choices');
+    const triangleTypeEl = document.getElementById('triangle-type');
+    
+    // Scoreboard elements
+    const streakEl = document.getElementById('streak-el');
+    const percentageEl = document.getElementById('percentage-el');
+    const scoreTallyEl = document.getElementById('score-tally');
+    const progressPointer = document.getElementById('progress-pointer');
+
+    const GRID_SPACING = 40;
+    const GRID_WIDTH_UNITS = 12;
+    const GRID_HEIGHT_UNITS = 6;
+    let quizLocked = false;
+
+    // State variables
+    let streak = 0;
+    let correctCount = 0;
+    let totalCount = 0;
+
+    function updateScoreboard() {
+        streakEl.textContent = streak;
+        const percentage = totalCount === 0 ? 0 : Math.round((correctCount / totalCount) * 100);
+        percentageEl.textContent = `${percentage}%`;
+        scoreTallyEl.textContent = `(${correctCount}/${totalCount})`;
+
+        // Update progress bar
+        const progress = Math.min(100, (correctCount / 50) * 100);
+        // Adjust position slightly so the pointer doesn't go off the edge
+        progressPointer.style.left = `calc(${progress}% - 8px)`;
+    }
+
+    function generateTriangle() {
+        const types = ['Right', 'Obtuse', 'Isosceles', 'Scalene'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        
+        const base = Math.floor(Math.random() * 5) + 1; // 1 to 5
+        const height = Math.floor(Math.random() * 5) + 1; // 1 to 5
+
+        const area = 0.5 * base * height;
+
+        const startXUnit = Math.floor(Math.random() * (GRID_WIDTH_UNITS - base - 1)) + 1;
+        const startYUnit = Math.floor(Math.random() * (GRID_HEIGHT_UNITS - height)) + height;
+
+        const p1 = { x: startXUnit * GRID_SPACING, y: startYUnit * GRID_SPACING };
+        const p2 = { x: (startXUnit + base) * GRID_SPACING, y: startYUnit * GRID_SPACING };
+        let p3;
+
+        switch (type) {
+            case 'Isosceles':
+                p3 = { x: (startXUnit + base / 2) * GRID_SPACING, y: (startYUnit - height) * GRID_SPACING };
+                break;
+            case 'Right':
+                p3 = { x: p1.x, y: (startYUnit - height) * GRID_SPACING };
+                break;
+            case 'Obtuse': {
+                const offset = Math.random() > 0.5 ? Math.floor(Math.random() * 3) + 1 : -(Math.floor(Math.random() * 3) + 1);
+                let topX = startXUnit + offset;
+                if (topX < 1) topX = 1;
+                if (topX > GRID_WIDTH_UNITS -1) topX = GRID_WIDTH_UNITS - 1;
+                p3 = { x: topX * GRID_SPACING, y: (startYUnit - height) * GRID_SPACING };
+                break;
+            }
+            case 'Scalene':
+            default: {
+                let topXOffset = Math.random() * base;
+                while (topXOffset === 0 || topXOffset === base || topXOffset === base/2) {
+                     topXOffset = Math.random() * base;
+                }
+                p3 = { x: (startXUnit + topXOffset) * GRID_SPACING, y: (startYUnit - height) * GRID_SPACING };
+                break;
+            }
+        }
+        
+        const points = `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`;
+
+        return { type, points, area, base, height, p1, p2, p3 };
+    }
+
+    function generateAnswers(correctArea) {
+        const answers = new Set([correctArea]);
+        while (answers.size < 4) {
+            let randomAnswer;
+            const deviation = Math.floor(Math.random() * 5) + 1;
+            if (Math.random() > 0.5) {
+                randomAnswer = Math.max(1, correctArea + deviation);
+            } else {
+                randomAnswer = Math.max(1, correctArea - deviation);
+            }
+             if(correctArea % 1 !== 0 && Math.random() > 0.5) {
+                randomAnswer = Math.floor(randomAnswer) + 0.5;
+            } else {
+                randomAnswer = Math.round(randomAnswer);
+            }
+
+            if (randomAnswer !== correctArea) {
+                answers.add(randomAnswer);
+            }
+        }
+        return Array.from(answers).sort(() => Math.random() - 0.5);
+    }
+
+    function showFeedback(triangle) {
+        let heightX;
+        if (triangle.type === 'Right') {
+            heightX = triangle.p1.x;
+        } else {
+            heightX = triangle.p3.x;
+        }
+        
+        const baseLine = `<line x1="${triangle.p1.x}" y1="${triangle.p1.y + 5}" x2="${triangle.p2.x}" y2="${triangle.p2.y + 5}" stroke="#2563eb" stroke-width="3" class="feedback-line" />
+                          <text x="${(triangle.p1.x + triangle.p2.x)/2}" y="${triangle.p1.y + 20}" fill="#2563eb" font-size="14" text-anchor="middle">base: ${triangle.base}</text>`;
+        
+        const heightLine = `<line x1="${heightX}" y1="${triangle.p1.y}" x2="${heightX}" y2="${triangle.p3.y}" stroke="#ef4444" stroke-width="3" class="feedback-line" />
+                            <text x="${heightX + 10}" y="${(triangle.p1.y + triangle.p3.y)/2}" fill="#ef4444" font-size="14" alignment-baseline="middle">height: ${triangle.height}</text>`;
+        
+        feedbackGroup.innerHTML = baseLine + heightLine;
+    }
+
+    function newQuestion() {
+        quizLocked = false;
+        triangleGroup.innerHTML = '';
+        feedbackGroup.innerHTML = '';
+        answerChoicesContainer.innerHTML = '';
+        
+        const triangle = generateTriangle();
+        const answers = generateAnswers(triangle.area);
+
+        triangleGroup.innerHTML = `<polygon points="${triangle.points}" fill="#60a5fa80" stroke="#2563eb" stroke-width="2" />`;
+        triangleTypeEl.textContent = `This is a ${triangle.type} triangle.`;
+        
+        answers.forEach(area => {
+            const button = document.createElement('button');
+            button.classList.add('answer-btn', 'p-4', 'font-bold', 'text-lg', 'rounded-lg', 'border-2', 'border-gray-300', 'bg-gray-100', 'hover:bg-gray-200');
+            button.innerHTML = `${area} units<sup>2</sup>`;
+            button.onclick = () => handleAnswer(area, triangle);
+            answerChoicesContainer.appendChild(button);
+        });
+    }
+
+    function handleAnswer(selectedArea, triangle) {
+        if (quizLocked) return;
+        quizLocked = true;
+        totalCount++;
+
+        const buttons = answerChoicesContainer.querySelectorAll('button');
+        let correctButton;
+
+        buttons.forEach(btn => {
+            const btnArea = parseFloat(btn.textContent);
+            if (btnArea === triangle.area) correctButton = btn;
+            if (btnArea === selectedArea) {
+                if (selectedArea === triangle.area) {
+                    btn.classList.add('correct');
+                } else {
+                    btn.classList.add('incorrect');
+                }
+            }
+            btn.disabled = true;
+        });
+        
+        if (selectedArea === triangle.area) {
+            correctCount++;
+            streak++;
+            showFeedback(triangle);
+        } else {
+            streak = 0;
+            correctButton.classList.add('correct');
+        }
+
+        updateScoreboard();
+        setTimeout(newQuestion, 2000);
+    }
+
+    // Initial load
+    updateScoreboard();
+    newQuestion();
+});
+</script>
+
+</body>
+</html>
+
+
