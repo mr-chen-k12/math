@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fold the Net! — 3D Shapes Game</title>
+  <style>
+    :root{
+      --bg:#f7f9fc; --ink:#1f2937; --muted:#64748b; --card:#ffffff; --accent:#2563eb;
+      --good:#34d399; --nice:#fbbf24; --lit:#f472b6; --wrong:#ef4444; --right:#10b981;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    header{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;border-bottom:1px solid #e5e7eb;background:#fff;position:sticky;top:0;z-index:5}
+    header h1{font-size:1.15rem;margin:0}
+    header .pill{margin-left:auto;display:flex;gap:.5rem;align-items:center}
+    .pill .stat{background:#f1f5f9;border-radius:999px;padding:.35rem .65rem;font-weight:600;font-size:.9rem}
+    .stat .icon{margin-right:.25rem}
+
+    main{max-width:1100px;margin:0 auto;padding:1rem}
+
+    /* Score bar */
+    .score-wrap{margin:.75rem 0 1rem;background:var(--card);border:1px solid #e5e7eb;border-radius:14px;padding:1rem}
+    .scorebar{position:relative;height:22px;border-radius:999px;background:linear-gradient(90deg,var(--good), var(--nice), var(--lit));box-shadow:inset 0 0 0 2px rgba(0,0,0,.05)}
+    .scorebar .pointer{position:absolute;top:-10px;translate:-50% 0;}
+    .scorebar .pointer svg{display:block}
+    .score-labels{display:flex;justify-content:space-between;font-size:.8rem;color:#111827;margin-top:.35rem}
+    .score-labels span{opacity:.9}
+
+    /* Layout */
+    .game{display:grid;grid-template-columns:1.15fr .85fr;gap:1rem}
+    @media (max-width:900px){.game{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border:1px solid #e5e7eb;border-radius:16px;padding:1rem}
+    .canvas-wrap{display:flex;flex-direction:column;gap:.5rem}
+    canvas{width:100%;height:420px;background:#fff;border:1px solid #e5e7eb;border-radius:12px}
+
+    .choices{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+    @media (min-width:520px){.choices{grid-template-columns:repeat(3,1fr)}}
+
+    .choice{cursor:pointer;border:2px solid #e5e7eb;border-radius:14px;background:#fff;padding:.6rem;display:flex;flex-direction:column;align-items:center;gap:.35rem;transition:.15s box-shadow,.15s transform}
+    .choice:hover{box-shadow:0 6px 14px rgba(0,0,0,.07);transform:translateY(-2px)}
+    .choice.selected{outline:3px solid var(--accent)}
+    .choice.correct{border-color:var(--right)}
+    .choice.wrong{border-color:var(--wrong)}
+    .choice svg{width:58px;height:58px}
+    .choice .label{font-weight:700;font-size:.95rem;text-align:center}
+
+    .actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
+    button{appearance:none;border:none;border-radius:12px;padding:.7rem 1rem;font-weight:700;cursor:pointer}
+    .primary{background:var(--accent);color:#fff}
+    .ghost{background:#f1f5f9}
+    .linkish{background:transparent;color:var(--accent);text-decoration:underline}
+
+    .feedback{margin-top:.5rem;font-weight:700}
+    .hint{font-size:.9rem;color:var(--muted)}
+
+    footer{max-width:1100px;margin:1rem auto 2rem;color:var(--muted);font-size:.9rem;padding:0 1rem}
+    .submit-wrap{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🧩 Fold the Net! — Match the Net to the 3D Shape</h1>
+    <div class="pill">
+      <div class="stat" id="streak"><span class="icon">🔥</span>Streak: 0</div>
+      <div class="stat" id="best"><span class="icon">💪</span>Best: 0</div>
+      <div class="stat" id="correct"><span class="icon">🏆</span>Correct: 0</div>
+      <div class="stat" id="percent"><span class="icon">✅</span>0% correct</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="score-wrap" aria-label="Score bar">
+      <div class="scorebar" id="scorebar">
+        <!-- triangle pointer -->
+        <div class="pointer" id="pointer" aria-hidden="true">
+          <svg width="24" height="22" viewBox="0 0 24 22" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="12,0 24,22 0,22" fill="#111827"/>
+          </svg>
+        </div>
+      </div>
+      <div class="score-labels" aria-hidden="true">
+        <span>Good effort</span>
+        <span>Nice work</span>
+        <span>Lit 🔥</span>
+      </div>
+    </section>
+
+    <section class="game">
+      <div class="card canvas-wrap">
+        <div style="display:flex;align-items:center;gap:.5rem;justify-content:space-between">
+          <div>
+            <div style="font-weight:800">✨ Which 3D shape folds from this net?</div>
+            <div class="hint" id="roundHint">Tip: Count faces and look for matching sides.</div>
+          </div>
+          <div class="actions">
+            <button class="ghost" id="btnNew">🔄 New Net</button>
+            <button class="ghost" id="btnHint">💡 Hint</button>
+          </div>
+        </div>
+        <canvas id="net" width="700" height="420" aria-label="Net drawing area"></canvas>
+        <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+        <div class="submit-wrap">
+          <button class="ghost" id="btnSnap">📸 Save Screenshot</button>
+          <a class="primary" id="btnSubmit" href="https://forms.gle/SesPjNXEbn5mMuQC9" target="_blank" rel="noopener">📨 Submit Highest Score</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:800;margin-bottom:.5rem">Choose the matching shape</div>
+        <div class="choices" id="choices" role="group" aria-label="Shape choices"></div>
+        <div class="actions">
+          <button class="primary" id="btnCheck">Check ✅</button>
+          <button class="linkish" id="btnReset">Reset Score</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Made for curious kids 👧🏽🧒🏻🧑🏾 — no ads, no tracking. All drawings are generated live with Canvas & SVG.
+    <br>Tip: After you click <strong>📸 Save Screenshot</strong>, upload it using the Google Form link.
+  </footer>
+
+  <script>
+    // ---- Game State ----
+    const state = { correct:0, total:0, streak:0, best:0, selection:null, current:null };
+
+    // ---- Utility helpers ----
+    const $ = sel => document.querySelector(sel);
+    const rand = (n) => Math.floor(Math.random()*n);
+    const shuffle = (arr) => arr.sort(()=>Math.random()-.5);
+
+    // ---- Shape bank ----
+    // Each entry defines: name, key, icon (SVG string), drawNet(ctx)
+    const SHAPES = [
+      {
+        key:'cube', name:'Cube',
+        icon:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <polygon points="20,45 50,30 80,45 50,60" fill="#e5f2ff" stroke="#1f2937"/>
+          <polygon points="20,45 50,60 50,90 20,75" fill="#dbeafe" stroke="#1f2937"/>
+          <polygon points="80,45 50,60 50,90 80,75" fill="#bfdbfe" stroke="#1f2937"/>
+        </svg>`,
+        drawNet: (ctx)=>drawCubeNet(ctx)
+      },
+      {
+        key:'rect_prism', name:'Rectangular Prism',
+        icon:`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <polygon points="15,50 65,30 105,48 55,68" fill="#e5f2ff" stroke="#1f2937"/>
+          <polygon points="15,50 55,68 55,92 15,74" fill="#dbeafe" stroke="#1f2937"/>
+          <polygon points="105,48 55,68 55,92 105,72" fill="#bfdbfe" stroke="#1f2937"/>
+        </svg>`,
+        drawNet: (ctx)=>drawRectPrismNet(ctx)
+      },
+      {
+        key:'sq_pyramid', name:'Square Pyramid',
+        icon:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <polygon points="20,70 50,35 80,70" fill="#fde68a" stroke="#1f2937"/>
+          <polygon points="20,70 80,70 60,80 40,80" fill="#fcd34d" stroke="#1f2937"/>
+        </svg>`,
+        drawNet: (ctx)=>drawSquarePyramidNet(ctx)
+      },
+      { 
+        key:'tri_prism', name:'Triangular Prism',
+        icon:`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- back triangle -->
+          <polygon points="78,60 98,48 98,78" fill="#c4b5fd" stroke="#1f2937"/>
+          <!-- front triangle -->
+          <polygon points="25,70 55,55 55,85" fill="#e9d5ff" stroke="#1f2937"/>
+          <!-- top rectangular face (appears as a quad) -->
+          <polygon points="55,55 78,60 98,48 55,55" fill="#ddd6fe" stroke="#1f2937"/>
+          <!-- long side face -->
+          <polygon points="55,55 55,85 98,78 78,60" fill="#d6ccff" stroke="#1f2937"/>
+        </svg>`,
+        drawNet: (ctx)=>drawTriPrismNet(ctx)
+      },
+      {
+        key:'cylinder', name:'Cylinder',
+        icon:`<svg viewBox="0 0 110 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="55" cy="28" rx="30" ry="10" fill="#bae6fd" stroke="#1f2937"/>
+          <rect x="25" y="28" width="60" height="44" fill="#7dd3fc" stroke="#1f2937"/>
+          <ellipse cx="55" cy="72" rx="30" ry="10" fill="#38bdf8" stroke="#1f2937"/>
+        </svg>`,
+        drawNet: (ctx)=>drawCylinderNet(ctx)
+      }
+    ];
+
+    // ---- Canvas drawing primitives ----
+    function clearCanvas(ctx){ ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height); }
+    function rect(ctx,x,y,w,h,color='#fff'){ ctx.fillStyle=color; ctx.fillRect(x,y,w,h); ctx.strokeStyle='#111827'; ctx.lineWidth=2; ctx.strokeRect(x,y,w,h);} 
+    function square(ctx,x,y,s,color='#fff'){ rect(ctx,x,y,s,s,color);} 
+    function tri(ctx,pts,color='#fff'){ ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]); for(let i=1;i<pts.length;i++){ctx.lineTo(pts[i][0],pts[i][1]);} ctx.closePath(); ctx.fillStyle=color; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#111827'; ctx.stroke(); }
+    function circle(ctx,x,y,r,color='#fff'){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.closePath(); ctx.fillStyle=color; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#111827'; ctx.stroke(); }
+
+    // Nets: simple, bold, clean
+    function drawCubeNet(ctx){
+      clearCanvas(ctx);
+      const s=60; const cx=ctx.canvas.width/2; const cy=200; // cross net (T shape)
+      const startX=cx - s/2; const startY=cy - s*2;
+      const c='#fef9c3';
+      // vertical spine 4 squares
+      for(let i=0;i<4;i++) square(ctx,startX,startY+i*s,s,c);
+      // left and right arms on second square
+      square(ctx,startX-s,startY+s,s,c);
+      square(ctx,startX+s,startY+s,s,c);
+      drawGlueTabs(ctx);
+    }
+
+    function drawRectPrismNet(ctx){
+      clearCanvas(ctx);
+      const w=80,h=50; const cx=ctx.canvas.width/2; const cy=190; const x=cx - w/2; const y=cy - h*2;
+      const c='#e0f2fe';
+      // spine 4 rectangles
+      for(let i=0;i<4;i++) rect(ctx,x,y+i*h,w,h,c);
+      // arms on second rectangle
+      rect(ctx,x-w,y+h,w,h,c);
+      rect(ctx,x+w,y+h,w,h,c);
+      drawGlueTabs(ctx);
+    }
+
+    function drawSquarePyramidNet(ctx){
+      clearCanvas(ctx);
+      const s=90; const cx=ctx.canvas.width/2; const cy=210; const x=cx - s/2; const y=cy - s/2;
+      const c='#fde68a';
+      // base square
+      square(ctx,x,y,s,c);
+      // four triangles around
+      const h = s*0.75; // triangle height
+      tri(ctx, [[x, y],[x+s, y],[x+s/2, y-h]], c);
+      tri(ctx, [[x, y+s],[x+s, y+s],[x+s/2, y+s+h]], c);
+      tri(ctx, [[x, y],[x, y+s],[x-h, y+s/2]], c);
+      tri(ctx, [[x+s, y],[x+s, y+s],[x+s+h, y+s/2]], c);
+      drawGlueTabs(ctx);
+    }
+
+    function drawTriPrismNet(ctx){
+      clearCanvas(ctx);
+      const w=80, h=60; const cx=ctx.canvas.width/2; const cy=200; const x=cx - w/2; const y=cy - h*1.5;
+      const c='#ede9fe';
+      // three rectangles in a row (lateral faces)
+      for(let i=0;i<3;i++) rect(ctx,x+i*w,y,w,h,c);
+      // triangles on top of first and third
+      const tH=60; const midY=y; // top
+      tri(ctx, [[x,midY],[x+w,midY],[x+w/2,midY - tH]], c);
+      tri(ctx, [[x+2*w,midY],[x+3*w,midY],[x+2.5*w,midY - tH]], c);
+      // triangles on bottom of middle
+      tri(ctx, [[x+w,y+h],[x+2*w,y+h],[x+1.5*w,y+h+tH]], c);
+      drawGlueTabs(ctx);
+    }
+
+    function drawCylinderNet(ctx){
+      clearCanvas(ctx);
+      const cx=ctx.canvas.width/2; const cy=200; const w=320; const h=100; const x=cx - w/2; const y=cy - h/2;
+      const c='#bae6fd';
+      rect(ctx,x,y,w,h,'#e0f2fe');
+      circle(ctx,x-55,y+h/2,45,c);
+      circle(ctx,x+w+55,y+h/2,45,c);
+      drawGlueTabs(ctx);
+    }
+
+    function drawGlueTabs(ctx){
+      // cute zigzag tabs on a couple of edges to suggest folding
+      ctx.setLineDash([6,6]);
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2;
+      // borders hint
+      ctx.strokeRect(20,20,ctx.canvas.width-40,ctx.canvas.height-40);
+      ctx.setLineDash([]);
+      // small arrows
+      ctx.fillStyle = '#94a3b8';
+      for(let i=0;i<6;i++){
+        const ax = 60 + i*90; const ay = 50 + (i%2)*260;
+        ctx.beginPath();
+        ctx.moveTo(ax,ay); ctx.lineTo(ax+18,ay); ctx.lineTo(ax+12,ay-8); ctx.fill();
+      }
+    }
+
+    // ---- Round generation ----
+    function newRound(){
+      const target = SHAPES[rand(SHAPES.length)];
+      const distractors = shuffle(SHAPES.filter(s=>s.key!==target.key)).slice(0,2);
+      const options = shuffle([target, ...distractors]);
+      state.current = { target, options };
+      state.selection = null;
+      renderRound();
+    }
+
+    function renderRound(){
+      const ctx = $('#net').getContext('2d');
+      state.current.target.drawNet(ctx);
+      const choices = $('#choices');
+      choices.innerHTML = '';
+      state.current.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.setAttribute('aria-pressed','false');
+        btn.innerHTML = `${opt.icon}<div class="label">${opt.name}</div>`;
+        btn.addEventListener('click', () => selectChoice(opt.key, btn));
+        choices.appendChild(btn);
+      });
+      $('#feedback').textContent='';
+      $('#roundHint').textContent = 'Tip: Count faces and match special pieces (like triangles or circles).';
+      updateHeader();
+    }
+
+    function selectChoice(key, el){
+      state.selection = key;
+      [...document.querySelectorAll('.choice')].forEach(c=>c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function check(){
+      if(!state.selection){
+        $('#feedback').textContent = 'Pick an answer first 🙂';
+        return;
+      }
+      const correctPick = state.selection === state.current.target.key;
+      state.total++;
+      if(correctPick){ state.correct++; state.streak++; if(state.streak>state.best) state.best = state.streak; }
+      else { state.streak = 0; }
+
+      document.querySelectorAll('.choice').forEach((el)=>{
+        const label = el.querySelector('.label').textContent.trim();
+        const found = SHAPES.find(s=>s.name===label);
+        el.classList.remove('selected');
+        if(found.key === state.current.target.key) el.classList.add('correct');
+        if(found.key === state.selection && found.key !== state.current.target.key) el.classList.add('wrong');
+        el.disabled = true;
+      });
+
+      $('#feedback').textContent = correctPick ? '✅ Nailed it! This net folds to the '+state.current.target.name+'.' : '❌ Not quite. This net makes a '+state.current.target.name+'.';
+      updateHeader();
+      setTimeout(()=>{ newRound(); }, 900);
+    }
+
+    function updateHeader(){
+      const pct = state.total ? Math.round((state.correct/state.total)*100) : 0;
+      $('#streak').innerHTML = '<span class="icon">🔥</span>Streak: '+state.streak;
+      $('#best').innerHTML = '<span class="icon">💪</span>Best: '+state.best;
+      $('#correct').innerHTML = '<span class="icon">🏆</span>Correct: '+state.correct;
+      $('#percent').innerHTML = '<span class="icon">✅</span>'+pct+'% correct';
+      const pointer = $('#pointer');
+      const left = Math.max(0, Math.min(100, pct));
+      pointer.style.left = left + '%';
+      pointer.title = pct + '%';
+    }
+
+    function resetScore(){ state.correct=0; state.total=0; state.streak=0; state.best=0; updateHeader(); }
+
+    function showHint(){
+      const k = state.current.target.key;
+      const hints = {
+        cube:'6 equal squares make a cube. Look for a “T” or cross of squares.',
+        rect_prism:'A box has rectangles for faces. The net looks like long rectangles in a row with two on the sides.',
+        sq_pyramid:'One square base with 4 triangles around it folds to a square pyramid.',
+        tri_prism:'3 rectangles in a row with 2–3 triangles attached make a triangular prism.',
+        cylinder:'A rectangle with two circles for the top and bottom makes a cylinder.'
+      };
+      $('#roundHint').textContent = 'Hint: ' + (hints[k]||'Study the faces and how edges meet.');
+    }
+
+    // ---- Screenshot helper (saves PNG with stats) ----
+    async function saveScreenshot(){
+      const src = $('#net');
+      const out = document.createElement('canvas');
+      const W = 900, H = 520; out.width=W; out.height=H;
+      const c = out.getContext('2d');
+      // bg
+      c.fillStyle = '#ffffff'; c.fillRect(0,0,W,H);
+      // draw net canvas centered
+      const scale = Math.min(820/src.width, 380/src.height);
+      const dw = src.width*scale, dh = src.height*scale;
+      const dx = (W-dw)/2, dy = 40;
+      c.drawImage(src, dx, dy, dw, dh);
+      // text stats
+      c.fillStyle = '#111827';
+      c.font = 'bold 24px system-ui, -apple-system, Segoe UI, Roboto';
+      c.fillText('Fold the Net! — My Score', 24, 32);
+      c.font = '600 20px system-ui, -apple-system, Segoe UI, Roboto';
+      const pct = state.total ? Math.round((state.correct/state.total)*100) : 0;
+      c.fillText('Correct: '+state.correct+' / '+state.total+'  ('+pct+'%)', 24, 460);
+      c.fillText('Streak: '+state.streak+'   Best: '+state.best, 24, 490);
+      c.fillStyle = '#6b7280'; c.font='16px system-ui';
+      c.fillText('Tip: Upload this image to the Google Form ➜', 560, 488);
+
+      const dataURL = out.toDataURL('image/png');
+      // try clipboard first
+      try{
+        if(navigator.clipboard && window.ClipboardItem){
+          const blob = await (await fetch(dataURL)).blob();
+          await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+        }
+      }catch(e){ /* ignore */ }
+      // download
+      const a = document.createElement('a');
+      const now = new Date();
+      a.href = dataURL;
+      a.download = `fold-the-net_score-${pct}pct_streak-${state.streak}_best-${state.best}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+
+    // ---- Wire up buttons ----
+    $('#btnCheck').addEventListener('click', check);
+    $('#btnNew').addEventListener('click', newRound);
+    $('#btnReset').addEventListener('click', resetScore);
+    $('#btnHint').addEventListener('click', showHint);
+    $('#btnSnap').addEventListener('click', saveScreenshot);
+
+    // Kick off
+    newRound();
+  </script>
+</body>
+</html>
