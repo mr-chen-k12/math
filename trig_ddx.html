@@ -1,82 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Trig Derivatives — Flashcards</title>
 
 <!-- MathJax -->
 <script>
 window.MathJax = {
-  tex: { inlineMath: [['\\(','\\)'], ['$', '$']], displayMath: [['\\[','\\]']] },
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[', '\\]']]
+  },
   svg: { fontCache: 'global' }
 };
 </script>
-<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 <style>
-  body {
-    margin: 0;
-    height: 100vh;
-    background: #0b0b0f;
-    color: white;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  h1 {
-    font-size: 1.2rem;
-    color: #ccc;
-    margin-bottom: 10px;
-  }
-  .card {
-    background: #13151a;
-    border: 1px solid #2a2f3a;
-    border-radius: 12px;
-    padding: 30px;
-    min-width: 300px;
-    min-height: 180px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2rem;
-    text-align: center;
-    user-select: none;
-    cursor: pointer;
-  }
-  .controls {
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  button {
-    background: #1a1d24;
-    color: white;
-    border: 1px solid #2a2f3a;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 14px;
-    cursor: pointer;
-  }
-  button:hover { background: #242935; }
-  .status {
-    margin-top: 10px;
-    color: #999;
-    font-size: 14px;
-  }
-  .kbd {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    background: #0f1220;
-    padding: 2px 6px;
-    border-radius: 6px;
-    border: 1px solid #2a2f3a;
-    font-size: 12px;
-    color: #9aa0a6;
-  }
+body {
+  margin: 0;
+  height: 100vh;
+  background: #0b0b0f;
+  color: #fff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+h1 {
+  font-size: 1.2rem;
+  color: #ccc;
+  margin-bottom: 10px;
+}
+.card {
+  background: #13151a;
+  border: 1px solid #2a2f3a;
+  border-radius: 12px;
+  padding: 30px;
+  min-width: 300px;
+  min-height: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  text-align: center;
+  user-select: none;
+  cursor: pointer;
+}
+.controls {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+button {
+  background: #1a1d24;
+  color: #fff;
+  border: 1px solid #2a2f3a;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+button:hover { background: #242935; }
+.status {
+  margin-top: 10px;
+  color: #999;
+  font-size: 14px;
+}
+.kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: #0f1220;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid #2a2f3a;
+  font-size: 12px;
+  color: #9aa0a6;
+}
 </style>
 </head>
 <body>
@@ -140,9 +144,11 @@ function shuffleDeck() {
 
 function update() {
   const item = deck[index];
-  const text = showingFront ? `\$begin:math:text$${item.f}\\$end:math:text$` : `\$begin:math:text$${item.g}\\$end:math:text$`;
-  card.textContent = text;
-  MathJax.typesetPromise([card]);
+  const latex = showingFront ? item.f : item.g;
+  card.innerHTML = `\$begin:math:text$${latex}\\$end:math:text$`;
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise([card]);
+  }
   status.textContent = `Card ${index + 1} / ${deck.length}`;
 }
 
@@ -175,13 +181,23 @@ window.addEventListener('keydown', e => {
   else if (k === 'arrowright') { index = (index + 1) % deck.length; showingFront = true; update(); }
   else if (k === 'arrowleft') { index = (index - 1 + deck.length) % deck.length; showingFront = true; update(); }
   else if (k === 'r') { shuffleDeck(); }
-  else if (k === 'i') { includeInverse = !includeInverse; document.getElementById('invBtn').textContent = `Inverse Trig: ${includeInverse ? 'On' : 'Off'}`; rebuildDeck(); }
+  else if (k === 'i') {
+    includeInverse = !includeInverse;
+    document.getElementById('invBtn').textContent = `Inverse Trig: ${includeInverse ? 'On' : 'Off'}`;
+    rebuildDeck();
+  }
 });
 
 card.onclick = flip;
 
-// Initialize
-update();
+// Wait until MathJax loads
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.MathJax) {
+    MathJax.startup.promise.then(update);
+  } else {
+    update();
+  }
+});
 </script>
 </body>
 </html>
