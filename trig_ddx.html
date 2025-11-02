@@ -20,32 +20,36 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 h1 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #ccc;
-  margin-bottom: 10px;
+  margin: 6px 0 8px;
+  text-align: center;
 }
 .card {
   background: #13151a;
   border: 1px solid #2a2f3a;
   border-radius: 12px;
-  padding: 30px;
-  min-width: 300px;
+  padding: 20px;
+  width: 80vw;
+  max-width: 420px;
   min-height: 180px;
   display: none;
   justify-content: center;
   align-items: center;
-  font-size: 2rem;
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
   text-align: center;
   user-select: none;
+  touch-action: none;
 }
 .card.active { display: flex; }
 .controls {
-  margin-top: 20px;
+  margin-top: 16px;
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 8px;
   justify-content: center;
 }
 button {
@@ -59,9 +63,13 @@ button {
 }
 button:hover { background: #242935; }
 .status {
-  margin-top: 10px;
+  margin-top: 8px;
   color: #999;
   font-size: 14px;
+}
+@media (max-width:600px){
+  .controls{flex-direction:column;align-items:center;}
+  button{width:80%;font-size:16px;}
 }
 </style>
 </head>
@@ -69,7 +77,7 @@ button:hover { background: #242935; }
 
 <h1>Trig Derivatives — Flashcards</h1>
 
-<!-- ======== BASIC TRIG FUNCTIONS ======== -->
+<!-- BASIC TRIG -->
 <div class="card active" data-group="basic" data-side="front">\( \frac{d}{dx}\sin x \)</div>
 <div class="card" data-group="basic" data-side="back">\( \cos x \)</div>
 
@@ -88,7 +96,7 @@ button:hover { background: #242935; }
 <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\csc x \)</div>
 <div class="card" data-group="basic" data-side="back">\( -\csc x \cot x \)</div>
 
-<!-- ======== INVERSE TRIG FUNCTIONS ======== -->
+<!-- INVERSE TRIG -->
 <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arcsin x \)</div>
 <div class="card" data-group="inverse" data-side="back">\( \frac{1}{\sqrt{1-x^2}} \)</div>
 
@@ -109,7 +117,7 @@ button:hover { background: #242935; }
 
 <div class="controls">
   <button id="prevBtn">← Prev</button>
-  <button id="flipBtn">Flip (↑/↓)</button>
+  <button id="flipBtn">Flip (↑/↓ Swipe Up/Down)</button>
   <button id="nextBtn">Next →</button>
   <button id="shuffleBtn">Shuffle</button>
   <button id="invBtn">Inverse Trig: Off</button>
@@ -118,58 +126,53 @@ button:hover { background: #242935; }
 <div class="status" id="status">Card 1 / 6</div>
 
 <script>
-const cards = [...document.querySelectorAll('.card')];
-let includeInverse = false;
-let index = 0;
-let showingFront = true;
-
-function visibleCards() {
-  return cards.filter(c => c.dataset.group === (includeInverse ? 'inverse' : 'basic'));
+const cards=[...document.querySelectorAll('.card')];
+let includeInverse=false,index=0,showingFront=true;
+function visible(){return cards.filter(c=>c.dataset.group=== (includeInverse?'inverse':'basic'))}
+function total(){return visible().length/2}
+function show(i,side='front'){
+  cards.forEach(c=>c.classList.remove('active'));
+  const set=visible().filter(c=>c.dataset.side===side);
+  if(set[i]) set[i].classList.add('active');
+  document.getElementById('status').textContent=`Card ${i+1} / ${total()}`;
 }
-
-function totalPairs() {
-  return visibleCards().length / 2;
-}
-
-function showCard(i, side = 'front') {
-  cards.forEach(c => c.classList.remove('active'));
-  const set = visibleCards();
-  const pair = set.filter(c => c.dataset.side === side);
-  if (pair[i]) pair[i].classList.add('active');
-  document.getElementById('status').textContent = `Card ${i + 1} / ${totalPairs()}`;
-}
-
-function flip() {
-  showingFront = !showingFront;
-  showCard(index, showingFront ? 'front' : 'back');
-}
-
-document.getElementById('flipBtn').onclick = flip;
-document.getElementById('nextBtn').onclick = () => { index = (index + 1) % totalPairs(); showingFront = true; showCard(index); };
-document.getElementById('prevBtn').onclick = () => { index = (index - 1 + totalPairs()) % totalPairs(); showingFront = true; showCard(index); };
-document.getElementById('shuffleBtn').onclick = () => { index = Math.floor(Math.random() * totalPairs()); showingFront = true; showCard(index); };
-document.getElementById('invBtn').onclick = e => {
-  includeInverse = !includeInverse;
-  e.target.textContent = `Inverse Trig: ${includeInverse ? 'On' : 'Off'}`;
-  index = 0;
-  showingFront = true;
-  showCard(index);
+function flip(){showingFront=!showingFront;show(index,showingFront?'front':'back');}
+document.getElementById('flipBtn').onclick=flip;
+document.getElementById('nextBtn').onclick=()=>{index=(index+1)%total();showingFront=true;show(index)};
+document.getElementById('prevBtn').onclick=()=>{index=(index-1+total())%total();showingFront=true;show(index)};
+document.getElementById('shuffleBtn').onclick=()=>{index=Math.floor(Math.random()*total());showingFront=true;show(index)};
+document.getElementById('invBtn').onclick=e=>{
+  includeInverse=!includeInverse;
+  e.target.textContent=`Inverse Trig: ${includeInverse?'On':'Off'}`;
+  index=0;showingFront=true;show(index);
 };
+window.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if([' ','enter','arrowup','arrowdown'].includes(k)){e.preventDefault();flip();}
+  else if(k==='arrowright'){index=(index+1)%total();showingFront=true;show(index);}
+  else if(k==='arrowleft'){index=(index-1+total())%total();showingFront=true;show(index);}
+});
+show(0);
 
-window.addEventListener('keydown', e => {
-  const k = e.key.toLowerCase();
-  if ([' ', 'enter', 'arrowup', 'arrowdown'].includes(k)) { e.preventDefault(); flip(); }
-  else if (k === 'arrowright') { index = (index + 1) % totalPairs(); showingFront = true; showCard(index); }
-  else if (k === 'arrowleft') { index = (index - 1 + totalPairs()) % totalPairs(); showingFront = true; showCard(index); }
-  else if (k === 'r') { index = Math.floor(Math.random() * totalPairs()); showingFront = true; showCard(index); }
-  else if (k === 'i') {
-    includeInverse = !includeInverse;
-    document.getElementById('invBtn').textContent = `Inverse Trig: ${includeInverse ? 'On' : 'Off'}`;
-    index = 0; showingFront = true; showCard(index);
+/* ----- Touch swipe gestures ----- */
+let startX=0,startY=0;
+document.body.addEventListener('touchstart',e=>{
+  const t=e.touches[0];
+  startX=t.clientX;startY=t.clientY;
+});
+document.body.addEventListener('touchend',e=>{
+  const t=e.changedTouches[0];
+  const dx=t.clientX-startX;
+  const dy=t.clientY-startY;
+  const absX=Math.abs(dx),absY=Math.abs(dy);
+  const threshold=40; // min distance
+  if(absX>absY && absX>threshold){
+    if(dx>0){index=(index-1+total())%total();showingFront=true;show(index);} // swipe right → prev
+    else {index=(index+1)%total();showingFront=true;show(index);}             // swipe left → next
+  }else if(absY>absX && absY>threshold){
+    flip(); // swipe up or down → flip
   }
 });
-
-showCard(0);
 </script>
 </body>
 </html>
