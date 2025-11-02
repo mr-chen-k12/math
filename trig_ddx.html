@@ -5,24 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Trig Derivatives — Flashcards</title>
 
-<!-- ✅ Load MathJax from secure CDN -->
+<!-- MathJax -->
 <script id="MathJax-script" async
   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-<script>
-window.MathJax = {
-  tex: {
-    inlineMath: [['\\(', '\\)']],
-    displayMath: [['\\[','\\]']]
-  },
-  chtml: { scale: 1.0 },
-  startup: {
-    ready: () => {
-      MathJax.startup.defaultReady();
-      window.mathjaxReady = true;
-    }
-  }
-};
-</script>
 
 <style>
 body {
@@ -48,14 +33,14 @@ h1 {
   padding: 30px;
   min-width: 300px;
   min-height: 180px;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   font-size: 2rem;
   text-align: center;
   user-select: none;
-  cursor: pointer;
 }
+.card.active { display: flex; }
 .controls {
   margin-top: 20px;
   display: flex;
@@ -84,7 +69,43 @@ button:hover { background: #242935; }
 
 <h1>Trig Derivatives — Flashcards</h1>
 
-<div id="card" class="card" tabindex="0">Loading MathJax …</div>
+<!-- ======== BASIC TRIG FUNCTIONS ======== -->
+<div class="card active" data-group="basic" data-side="front">\( \frac{d}{dx}\sin x \)</div>
+<div class="card" data-group="basic" data-side="back">\( \cos x \)</div>
+
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cos x \)</div>
+<div class="card" data-group="basic" data-side="back">\( -\sin x \)</div>
+
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\tan x \)</div>
+<div class="card" data-group="basic" data-side="back">\( \sec^2 x \)</div>
+
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cot x \)</div>
+<div class="card" data-group="basic" data-side="back">\( -\csc^2 x \)</div>
+
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\sec x \)</div>
+<div class="card" data-group="basic" data-side="back">\( \sec x \tan x \)</div>
+
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\csc x \)</div>
+<div class="card" data-group="basic" data-side="back">\( -\csc x \cot x \)</div>
+
+<!-- ======== INVERSE TRIG FUNCTIONS ======== -->
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arcsin x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( \frac{1}{\sqrt{1-x^2}} \)</div>
+
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arccos x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( -\frac{1}{\sqrt{1-x^2}} \)</div>
+
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arctan x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( \frac{1}{1+x^2} \)</div>
+
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccot} x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( -\frac{1}{1+x^2} \)</div>
+
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arcsec} x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( \frac{1}{|x|\sqrt{x^2-1}} \)</div>
+
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccsc} x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( -\frac{1}{|x|\sqrt{x^2-1}} \)</div>
 
 <div class="controls">
   <button id="prevBtn">← Prev</button>
@@ -97,99 +118,58 @@ button:hover { background: #242935; }
 <div class="status" id="status">Card 1 / 6</div>
 
 <script>
-const basicTrig = [
-  { f: '\\frac{d}{dx}\\sin x', g: '\\cos x' },
-  { f: '\\frac{d}{dx}\\cos x', g: '-\\sin x' },
-  { f: '\\frac{d}{dx}\\tan x', g: '\\sec^{2}x' },
-  { f: '\\frac{d}{dx}\\cot x', g: '-\\csc^{2}x' },
-  { f: '\\frac{d}{dx}\\sec x', g: '\\sec x\\tan x' },
-  { f: '\\frac{d}{dx}\\csc x', g: '-\\csc x\\cot x' },
-];
-
-const inverseTrig = [
-  { f: '\\frac{d}{dx}\\arcsin x', g: '\\frac{1}{\\sqrt{1-x^{2}}}' },
-  { f: '\\frac{d}{dx}\\arccos x', g: '-\\frac{1}{\\sqrt{1-x^{2}}}' },
-  { f: '\\frac{d}{dx}\\arctan x', g: '\\frac{1}{1+x^{2}}' },
-  { f: '\\frac{d}{dx}\\operatorname{arccot} x', g: '-\\frac{1}{1+x^{2}}' },
-  { f: '\\frac{d}{dx}\\operatorname{arcsec} x', g: '\\frac{1}{|x|\\sqrt{x^{2}-1}}' },
-  { f: '\\frac{d}{dx}\\operatorname{arccsc} x', g: '-\\frac{1}{|x|\\sqrt{x^{2}-1}}' },
-];
-
+const cards = [...document.querySelectorAll('.card')];
 let includeInverse = false;
-let deck = [...basicTrig];
 let index = 0;
 let showingFront = true;
 
-const card = document.getElementById('card');
-const status = document.getElementById('status');
-
-function rebuildDeck() {
-  deck = includeInverse ? [...basicTrig, ...inverseTrig] : [...basicTrig];
-  index = 0;
-  update();
+function visibleCards() {
+  return cards.filter(c => c.dataset.group === (includeInverse ? 'inverse' : 'basic'));
 }
 
-function shuffleDeck() {
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [deck[i], deck[j]] = [deck[j], deck[i]];
-  }
-  index = 0;
-  showingFront = true;
-  update();
+function totalPairs() {
+  return visibleCards().length / 2;
 }
 
-async function renderLatex(latex) {
-  card.innerHTML = `\$begin:math:text$${latex}\\$end:math:text$`;
-  if (window.mathjaxReady && window.MathJax) {
-    await MathJax.typesetClear([card]);
-    await MathJax.typesetPromise([card]);
-  }
+function showCard(i, side = 'front') {
+  cards.forEach(c => c.classList.remove('active'));
+  const set = visibleCards();
+  const pair = set.filter(c => c.dataset.side === side);
+  if (pair[i]) pair[i].classList.add('active');
+  document.getElementById('status').textContent = `Card ${i + 1} / ${totalPairs()}`;
 }
 
-function update() {
-  const item = deck[index];
-  const latex = showingFront ? item.f : item.g;
-  renderLatex(latex);
-  status.textContent = `Card ${index + 1} / ${deck.length}`;
+function flip() {
+  showingFront = !showingFront;
+  showCard(index, showingFront ? 'front' : 'back');
 }
-
-function flip() { showingFront = !showingFront; update(); }
 
 document.getElementById('flipBtn').onclick = flip;
-document.getElementById('nextBtn').onclick = () => { index = (index + 1) % deck.length; showingFront = true; update(); };
-document.getElementById('prevBtn').onclick = () => { index = (index - 1 + deck.length) % deck.length; showingFront = true; update(); };
-document.getElementById('shuffleBtn').onclick = shuffleDeck;
+document.getElementById('nextBtn').onclick = () => { index = (index + 1) % totalPairs(); showingFront = true; showCard(index); };
+document.getElementById('prevBtn').onclick = () => { index = (index - 1 + totalPairs()) % totalPairs(); showingFront = true; showCard(index); };
+document.getElementById('shuffleBtn').onclick = () => { index = Math.floor(Math.random() * totalPairs()); showingFront = true; showCard(index); };
 document.getElementById('invBtn').onclick = e => {
   includeInverse = !includeInverse;
   e.target.textContent = `Inverse Trig: ${includeInverse ? 'On' : 'Off'}`;
-  rebuildDeck();
+  index = 0;
+  showingFront = true;
+  showCard(index);
 };
 
 window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if ([' ', 'enter', 'arrowup', 'arrowdown'].includes(k)) { e.preventDefault(); flip(); }
-  else if (k === 'arrowright') { index = (index + 1) % deck.length; showingFront = true; update(); }
-  else if (k === 'arrowleft') { index = (index - 1 + deck.length) % deck.length; showingFront = true; update(); }
-  else if (k === 'r') { shuffleDeck(); }
+  else if (k === 'arrowright') { index = (index + 1) % totalPairs(); showingFront = true; showCard(index); }
+  else if (k === 'arrowleft') { index = (index - 1 + totalPairs()) % totalPairs(); showingFront = true; showCard(index); }
+  else if (k === 'r') { index = Math.floor(Math.random() * totalPairs()); showingFront = true; showCard(index); }
   else if (k === 'i') {
     includeInverse = !includeInverse;
     document.getElementById('invBtn').textContent = `Inverse Trig: ${includeInverse ? 'On' : 'Off'}`;
-    rebuildDeck();
+    index = 0; showingFront = true; showCard(index);
   }
 });
 
-card.onclick = flip;
-
-// Wait until MathJax loads before starting
-document.addEventListener("DOMContentLoaded", () => {
-  const waitForMathJax = setInterval(() => {
-    if (window.mathjaxReady) {
-      clearInterval(waitForMathJax);
-      update();
-    }
-  }, 200);
-});
+showCard(0);
 </script>
 </body>
 </html>
