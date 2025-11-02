@@ -5,15 +5,24 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Trig Derivatives — Flashcards</title>
 
-<!-- MathJax -->
+<!-- ✅ Load MathJax from secure CDN -->
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 <script>
 window.MathJax = {
-  tex: { inlineMath: [['\\(', '\\)'], ['$', '$']] },
-  svg: { fontCache: 'global' }
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[','\\]']]
+  },
+  chtml: { scale: 1.0 },
+  startup: {
+    ready: () => {
+      MathJax.startup.defaultReady();
+      window.mathjaxReady = true;
+    }
+  }
 };
 </script>
-<script id="MathJax-script" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 <style>
 body {
@@ -75,7 +84,7 @@ button:hover { background: #242935; }
 
 <h1>Trig Derivatives — Flashcards</h1>
 
-<div id="card" class="card" tabindex="0">\( \frac{d}{dx}\sin x \)</div>
+<div id="card" class="card" tabindex="0">Loading MathJax …</div>
 
 <div class="controls">
   <button id="prevBtn">← Prev</button>
@@ -130,12 +139,11 @@ function shuffleDeck() {
   update();
 }
 
-function renderLatex(latex) {
+async function renderLatex(latex) {
   card.innerHTML = `\$begin:math:text$${latex}\\$end:math:text$`;
-  // Ensure MathJax re-typesets each time
-  if (window.MathJax && MathJax.typesetClear && MathJax.typesetPromise) {
-    MathJax.typesetClear([card]);
-    MathJax.typesetPromise([card]);
+  if (window.mathjaxReady && window.MathJax) {
+    await MathJax.typesetClear([card]);
+    await MathJax.typesetPromise([card]);
   }
 }
 
@@ -173,13 +181,14 @@ window.addEventListener('keydown', e => {
 
 card.onclick = flip;
 
-// Initialize after MathJax loads
+// Wait until MathJax loads before starting
 document.addEventListener("DOMContentLoaded", () => {
-  if (window.MathJax) {
-    MathJax.startup.promise.then(update);
-  } else {
-    update();
-  }
+  const waitForMathJax = setInterval(() => {
+    if (window.mathjaxReady) {
+      clearInterval(waitForMathJax);
+      update();
+    }
+  }, 200);
 });
 </script>
 </body>
