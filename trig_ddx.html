@@ -21,14 +21,8 @@ body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  transition: background 0.5s ease;
 }
-h1 {
-  font-size: 1.1rem;
-  color: #ccc;
-  margin: 6px 0 8px;
-  text-align: center;
-}
+
 .card {
   background: #13151a;
   border: 1px solid #2a2f3a;
@@ -46,11 +40,40 @@ h1 {
   touch-action: none;
 }
 .card.active { display: flex; }
+
+/* ===== MENU DISH ===== */
+#menuDish {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: rgba(19,21,26,0.95);
+  border: 1px solid #2a2f3a;
+  border-radius: 16px;
+  padding: 16px;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#menuDish.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px);
+}
+
+h1 {
+  font-size: 1.1rem;
+  color: #ccc;
+  margin: 0;
+}
+
 .controls {
-  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
 }
 button {
@@ -58,22 +81,19 @@ button {
   color: #fff;
   border: 1px solid #2a2f3a;
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 8px 12px;
   font-size: 14px;
   cursor: pointer;
 }
 button:hover { background: #242935; }
+
 .status {
-  margin-top: 8px;
+  margin-top: 4px;
   color: #999;
   font-size: 14px;
 }
-@media (max-width:600px){
-  .controls{flex-direction:column;align-items:center;}
-  button{width:80%;font-size:16px;}
-}
 
-/* Floating dots button */
+/* Floating menu button */
 #menuToggle {
   position: fixed;
   bottom: 20px;
@@ -91,70 +111,59 @@ button:hover { background: #242935; }
   cursor: pointer;
   z-index: 10;
 }
-.hidden-ui {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.5s ease;
-}
-.visible-ui {
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 0.5s ease;
-}
 </style>
 </head>
 <body>
 
-<div id="ui">
-  <h1>Trig Derivatives — Flashcards</h1>
+<!-- FLASHCARDS -->
+<div class="card active" data-group="basic" data-side="front">\( \frac{d}{dx}\sin x \)</div>
+<div class="card" data-group="basic" data-side="back">\( \cos x \)</div>
 
-  <!-- BASIC TRIG -->
-  <div class="card active" data-group="basic" data-side="front">\( \frac{d}{dx}\sin x \)</div>
-  <div class="card" data-group="basic" data-side="back">\( \cos x \)</div>
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cos x \)</div>
+<div class="card" data-group="basic" data-side="back">\( -\sin x \)</div>
 
-  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cos x \)</div>
-  <div class="card" data-group="basic" data-side="back">\( -\sin x \)</div>
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\tan x \)</div>
+<div class="card" data-group="basic" data-side="back">\( \sec^2 x \)</div>
 
-  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\tan x \)</div>
-  <div class="card" data-group="basic" data-side="back">\( \sec^2 x \)</div>
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cot x \)</div>
+<div class="card" data-group="basic" data-side="back">\( -\csc^2 x \)</div>
 
-  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cot x \)</div>
-  <div class="card" data-group="basic" data-side="back">\( -\csc^2 x \)</div>
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\sec x \)</div>
+<div class="card" data-group="basic" data-side="back">\( \sec x \tan x \)</div>
 
-  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\sec x \)</div>
-  <div class="card" data-group="basic" data-side="back">\( \sec x \tan x \)</div>
+<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\csc x \)</div>
+<div class="card" data-group="basic" data-side="back">\( -\csc x \cot x \)</div>
 
-  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\csc x \)</div>
-  <div class="card" data-group="basic" data-side="back">\( -\csc x \cot x \)</div>
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arcsin x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( \frac{1}{\sqrt{1-x^2}} \)</div>
 
-  <!-- INVERSE TRIG -->
-  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arcsin x \)</div>
-  <div class="card" data-group="inverse" data-side="back">\( \frac{1}{\sqrt{1-x^2}} \)</div>
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arccos x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( -\frac{1}{\sqrt{1-x^2}} \)</div>
 
-  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arccos x \)</div>
-  <div class="card" data-group="inverse" data-side="back">\( -\frac{1}{\sqrt{1-x^2}} \)</div>
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arctan x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( \frac{1}{1+x^2} \)</div>
 
-  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arctan x \)</div>
-  <div class="card" data-group="inverse" data-side="back">\( \frac{1}{1+x^2} \)</div>
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccot} x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( -\frac{1}{1+x^2} \)</div>
 
-  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccot} x \)</div>
-  <div class="card" data-group="inverse" data-side="back">\( -\frac{1}{1+x^2} \)</div>
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arcsec} x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( \frac{1}{|x|\sqrt{x^2-1}} \)</div>
 
-  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arcsec} x \)</div>
-  <div class="card" data-group="inverse" data-side="back">\( \frac{1}{|x|\sqrt{x^2-1}} \)</div>
+<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccsc} x \)</div>
+<div class="card" data-group="inverse" data-side="back">\( -\frac{1}{|x|\sqrt{x^2-1}} \)</div>
 
-  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccsc} x \)</div>
-  <div class="card" data-group="inverse" data-side="back">\( -\frac{1}{|x|\sqrt{x^2-1}} \)</div>
-
+<!-- ===== MENU DISH ===== -->
+<div id="menuDish" class="hidden">
+  <h1>Trig Derivatives</h1>
   <div class="controls">
     <button id="prevBtn">← Prev</button>
-    <button id="flipBtn">Flip (↑/↓ Swipe Up/Down)</button>
+    <button id="flipBtn">Flip</button>
     <button id="nextBtn">Next →</button>
     <button id="shuffleBtn">Shuffle</button>
-    <button id="invBtn">Inverse Trig: Off</button>
+    <button id="invBtn">Inverse: Off</button>
   </div>
-
   <div class="status" id="status">Card 1 / 6</div>
+  <button id="hideMenuBtn">Hide Menu</button>
 </div>
 
 <div id="menuToggle">⋮</div>
@@ -162,8 +171,11 @@ button:hover { background: #242935; }
 <script>
 const cards=[...document.querySelectorAll('.card')];
 let includeInverse=false,index=0,showingFront=true;
+const menu=document.getElementById('menuDish');
+const menuBtn=document.getElementById('menuToggle');
+const hideBtn=document.getElementById('hideMenuBtn');
 
-function visible(){return cards.filter(c=>c.dataset.group=== (includeInverse?'inverse':'basic'))}
+function visible(){return cards.filter(c=>c.dataset.group===(includeInverse?'inverse':'basic'))}
 function total(){return visible().length/2}
 function show(i,side='front'){
   cards.forEach(c=>c.classList.remove('active'));
@@ -172,15 +184,17 @@ function show(i,side='front'){
   document.getElementById('status').textContent=`Card ${i+1} / ${total()}`;
 }
 function flip(){showingFront=!showingFront;show(index,showingFront?'front':'back');}
+
 document.getElementById('flipBtn').onclick=flip;
 document.getElementById('nextBtn').onclick=()=>{index=(index+1)%total();showingFront=true;show(index)};
 document.getElementById('prevBtn').onclick=()=>{index=(index-1+total())%total();showingFront=true;show(index)};
 document.getElementById('shuffleBtn').onclick=()=>{index=Math.floor(Math.random()*total());showingFront=true;show(index)};
 document.getElementById('invBtn').onclick=e=>{
   includeInverse=!includeInverse;
-  e.target.textContent=`Inverse Trig: ${includeInverse?'On':'Off'}`;
+  e.target.textContent=`Inverse: ${includeInverse?'On':'Off'}`;
   index=0;showingFront=true;show(index);
 };
+
 window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   if([' ','enter','arrowup','arrowdown'].includes(k)){e.preventDefault();flip();}
@@ -189,41 +203,25 @@ window.addEventListener('keydown',e=>{
 });
 show(0);
 
-/* ----- Touch swipe gestures ----- */
-let startX=0,startY=0;
+/* --- Swipe gestures --- */
+let sx=0,sy=0;
 document.body.addEventListener('touchstart',e=>{
-  const t=e.touches[0];
-  startX=t.clientX;startY=t.clientY;
+  const t=e.touches[0];sx=t.clientX;sy=t.clientY;
 });
 document.body.addEventListener('touchend',e=>{
   const t=e.changedTouches[0];
-  const dx=t.clientX-startX;
-  const dy=t.clientY-startY;
-  const absX=Math.abs(dx),absY=Math.abs(dy);
-  const threshold=40;
-  if(absX>absY && absX>threshold){
+  const dx=t.clientX-sx, dy=t.clientY-sy;
+  const ax=Math.abs(dx), ay=Math.abs(dy);
+  const thresh=40;
+  if(ax>ay && ax>thresh){
     if(dx>0){index=(index-1+total())%total();showingFront=true;show(index);}
-    else {index=(index+1)%total();showingFront=true;show(index);}
-  }else if(absY>absX && absY>threshold){
-    flip();
-  }
+    else{index=(index+1)%total();showingFront=true;show(index);}
+  } else if(ay>ax && ay>thresh){ flip(); }
 });
 
-/* ----- Auto-hide UI after 5 seconds ----- */
-const ui=document.getElementById('ui');
-setTimeout(()=>ui.classList.add('hidden-ui'),5000);
-
-/* ----- Floating dots button toggle ----- */
-const menuToggle=document.getElementById('menuToggle');
-menuToggle.onclick=()=>{
-  if(ui.classList.contains('hidden-ui')){
-    ui.classList.remove('hidden-ui');
-    ui.classList.add('visible-ui');
-  }else{
-    ui.classList.remove('visible-ui');
-    ui.classList.add('hidden-ui');
-  }
-};
+/* --- Menu toggle logic --- */
+menuBtn.onclick=()=>{menu.classList.remove('hidden');menuBtn.style.display='none';};
+hideBtn.onclick=()=>{menu.classList.add('hidden');menuBtn.style.display='flex';};
 </script>
 </body>
 </html>
