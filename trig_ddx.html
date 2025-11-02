@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Trig Derivatives — Flashcards</title>
 
 <!-- MathJax -->
 <script>
 window.MathJax = {
-  tex: {
-    inlineMath: [['\\(', '\\)']],
-    displayMath: [['\\[', '\\]']]
-  },
+  tex: { inlineMath: [['\\(', '\\)'], ['$', '$']] },
   svg: { fontCache: 'global' }
 };
 </script>
@@ -71,15 +68,6 @@ button:hover { background: #242935; }
   margin-top: 10px;
   color: #999;
   font-size: 14px;
-}
-.kbd {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  background: #0f1220;
-  padding: 2px 6px;
-  border-radius: 6px;
-  border: 1px solid #2a2f3a;
-  font-size: 12px;
-  color: #9aa0a6;
 }
 </style>
 </head>
@@ -142,32 +130,27 @@ function shuffleDeck() {
   update();
 }
 
+function renderLatex(latex) {
+  card.innerHTML = `\$begin:math:text$${latex}\\$end:math:text$`;
+  // Ensure MathJax re-typesets each time
+  if (window.MathJax && MathJax.typesetClear && MathJax.typesetPromise) {
+    MathJax.typesetClear([card]);
+    MathJax.typesetPromise([card]);
+  }
+}
+
 function update() {
   const item = deck[index];
   const latex = showingFront ? item.f : item.g;
-  card.innerHTML = `\$begin:math:text$${latex}\\$end:math:text$`;
-  if (window.MathJax && MathJax.typesetPromise) {
-    MathJax.typesetPromise([card]);
-  }
+  renderLatex(latex);
   status.textContent = `Card ${index + 1} / ${deck.length}`;
 }
 
-function flip() {
-  showingFront = !showingFront;
-  update();
-}
+function flip() { showingFront = !showingFront; update(); }
 
 document.getElementById('flipBtn').onclick = flip;
-document.getElementById('nextBtn').onclick = () => {
-  index = (index + 1) % deck.length;
-  showingFront = true;
-  update();
-};
-document.getElementById('prevBtn').onclick = () => {
-  index = (index - 1 + deck.length) % deck.length;
-  showingFront = true;
-  update();
-};
+document.getElementById('nextBtn').onclick = () => { index = (index + 1) % deck.length; showingFront = true; update(); };
+document.getElementById('prevBtn').onclick = () => { index = (index - 1 + deck.length) % deck.length; showingFront = true; update(); };
 document.getElementById('shuffleBtn').onclick = shuffleDeck;
 document.getElementById('invBtn').onclick = e => {
   includeInverse = !includeInverse;
@@ -190,7 +173,7 @@ window.addEventListener('keydown', e => {
 
 card.onclick = flip;
 
-// Wait until MathJax loads
+// Initialize after MathJax loads
 document.addEventListener("DOMContentLoaded", () => {
   if (window.MathJax) {
     MathJax.startup.promise.then(update);
