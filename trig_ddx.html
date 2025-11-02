@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trig Derivatives — Flashcards</title>
+
+<!-- MathJax -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)'], ['$', '$']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background: #0b0b0f;
+    color: white;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  h1 {
+    font-size: 1.2rem;
+    color: #ccc;
+    margin-bottom: 10px;
+  }
+  .card {
+    background: #13151a;
+    border: 1px solid #2a2f3a;
+    border-radius: 12px;
+    padding: 30px;
+    min-width: 300px;
+    min-height: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+  }
+  .controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  button {
+    background: #1a1d24;
+    color: white;
+    border: 1px solid #2a2f3a;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:hover { background: #242935; }
+  .status {
+    margin-top: 10px;
+    color: #999;
+    font-size: 14px;
+  }
+  .kbd {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: #0f1220;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid #2a2f3a;
+    font-size: 12px;
+    color: #9aa0a6;
+  }
+</style>
+</head>
+<body>
+
+<h1>Trig Derivatives — Flashcards</h1>
+
+<div id="card" class="card" tabindex="0">\( \frac{d}{dx}\sin x \)</div>
+
+<div class="controls">
+  <button id="prevBtn">← Prev</button>
+  <button id="flipBtn">Flip (↑/↓)</button>
+  <button id="nextBtn">Next →</button>
+  <button id="shuffleBtn">Shuffle</button>
+  <button id="invBtn">Inverse Trig: Off</button>
+</div>
+
+<div class="status" id="status">Card 1 / 6</div>
+
+<script>
+const basicTrig = [
+  { f: '\\frac{d}{dx}\\sin x', g: '\\cos x' },
+  { f: '\\frac{d}{dx}\\cos x', g: '-\\sin x' },
+  { f: '\\frac{d}{dx}\\tan x', g: '\\sec^{2}x' },
+  { f: '\\frac{d}{dx}\\cot x', g: '-\\csc^{2}x' },
+  { f: '\\frac{d}{dx}\\sec x', g: '\\sec x\\tan x' },
+  { f: '\\frac{d}{dx}\\csc x', g: '-\\csc x\\cot x' },
+];
+
+const inverseTrig = [
+  { f: '\\frac{d}{dx}\\arcsin x', g: '\\frac{1}{\\sqrt{1-x^{2}}}' },
+  { f: '\\frac{d}{dx}\\arccos x', g: '-\\frac{1}{\\sqrt{1-x^{2}}}' },
+  { f: '\\frac{d}{dx}\\arctan x', g: '\\frac{1}{1+x^{2}}' },
+  { f: '\\frac{d}{dx}\\operatorname{arccot} x', g: '-\\frac{1}{1+x^{2}}' },
+  { f: '\\frac{d}{dx}\\operatorname{arcsec} x', g: '\\frac{1}{|x|\\sqrt{x^{2}-1}}' },
+  { f: '\\frac{d}{dx}\\operatorname{arccsc} x', g: '-\\frac{1}{|x|\\sqrt{x^{2}-1}}' },
+];
+
+let includeInverse = false;
+let deck = [...basicTrig];
+let index = 0;
+let showingFront = true;
+
+const card = document.getElementById('card');
+const status = document.getElementById('status');
+
+function rebuildDeck() {
+  deck = includeInverse ? [...basicTrig, ...inverseTrig] : [...basicTrig];
+  index = 0;
+  update();
+}
+
+function shuffleDeck() {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  index = 0;
+  showingFront = true;
+  update();
+}
+
+function update() {
+  const item = deck[index];
+  const text = showingFront ? `\$begin:math:text$${item.f}\\$end:math:text$` : `\$begin:math:text$${item.g}\\$end:math:text$`;
+  card.textContent = text;
+  MathJax.typesetPromise([card]);
+  status.textContent = `Card ${index + 1} / ${deck.length}`;
+}
+
+function flip() {
+  showingFront = !showingFront;
+  update();
+}
+
+document.getElementById('flipBtn').onclick = flip;
+document.getElementById('nextBtn').onclick = () => {
+  index = (index + 1) % deck.length;
+  showingFront = true;
+  update();
+};
+document.getElementById('prevBtn').onclick = () => {
+  index = (index - 1 + deck.length) % deck.length;
+  showingFront = true;
+  update();
+};
+document.getElementById('shuffleBtn').onclick = shuffleDeck;
+document.getElementById('invBtn').onclick = e => {
+  includeInverse = !includeInverse;
+  e.target.textContent = `Inverse Trig: ${includeInverse ? 'On' : 'Off'}`;
+  rebuildDeck();
+};
+
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if ([' ', 'enter', 'arrowup', 'arrowdown'].includes(k)) { e.preventDefault(); flip(); }
+  else if (k === 'arrowright') { index = (index + 1) % deck.length; showingFront = true; update(); }
+  else if (k === 'arrowleft') { index = (index - 1 + deck.length) % deck.length; showingFront = true; update(); }
+  else if (k === 'r') { shuffleDeck(); }
+  else if (k === 'i') { includeInverse = !includeInverse; document.getElementById('invBtn').textContent = `Inverse Trig: ${includeInverse ? 'On' : 'Off'}`; rebuildDeck(); }
+});
+
+card.onclick = flip;
+
+// Initialize
+update();
+</script>
+</body>
+</html>
