@@ -21,6 +21,7 @@ body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  transition: background 0.5s ease;
 }
 h1 {
   font-size: 1.1rem;
@@ -71,63 +72,97 @@ button:hover { background: #242935; }
   .controls{flex-direction:column;align-items:center;}
   button{width:80%;font-size:16px;}
 }
+
+/* Floating dots button */
+#menuToggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  color: #ccc;
+  cursor: pointer;
+  z-index: 10;
+}
+.hidden-ui {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.visible-ui {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.5s ease;
+}
 </style>
 </head>
 <body>
 
-<h1>Trig Derivatives — Flashcards</h1>
+<div id="ui">
+  <h1>Trig Derivatives — Flashcards</h1>
 
-<!-- BASIC TRIG -->
-<div class="card active" data-group="basic" data-side="front">\( \frac{d}{dx}\sin x \)</div>
-<div class="card" data-group="basic" data-side="back">\( \cos x \)</div>
+  <!-- BASIC TRIG -->
+  <div class="card active" data-group="basic" data-side="front">\( \frac{d}{dx}\sin x \)</div>
+  <div class="card" data-group="basic" data-side="back">\( \cos x \)</div>
 
-<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cos x \)</div>
-<div class="card" data-group="basic" data-side="back">\( -\sin x \)</div>
+  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cos x \)</div>
+  <div class="card" data-group="basic" data-side="back">\( -\sin x \)</div>
 
-<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\tan x \)</div>
-<div class="card" data-group="basic" data-side="back">\( \sec^2 x \)</div>
+  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\tan x \)</div>
+  <div class="card" data-group="basic" data-side="back">\( \sec^2 x \)</div>
 
-<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cot x \)</div>
-<div class="card" data-group="basic" data-side="back">\( -\csc^2 x \)</div>
+  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\cot x \)</div>
+  <div class="card" data-group="basic" data-side="back">\( -\csc^2 x \)</div>
 
-<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\sec x \)</div>
-<div class="card" data-group="basic" data-side="back">\( \sec x \tan x \)</div>
+  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\sec x \)</div>
+  <div class="card" data-group="basic" data-side="back">\( \sec x \tan x \)</div>
 
-<div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\csc x \)</div>
-<div class="card" data-group="basic" data-side="back">\( -\csc x \cot x \)</div>
+  <div class="card" data-group="basic" data-side="front">\( \frac{d}{dx}\csc x \)</div>
+  <div class="card" data-group="basic" data-side="back">\( -\csc x \cot x \)</div>
 
-<!-- INVERSE TRIG -->
-<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arcsin x \)</div>
-<div class="card" data-group="inverse" data-side="back">\( \frac{1}{\sqrt{1-x^2}} \)</div>
+  <!-- INVERSE TRIG -->
+  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arcsin x \)</div>
+  <div class="card" data-group="inverse" data-side="back">\( \frac{1}{\sqrt{1-x^2}} \)</div>
 
-<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arccos x \)</div>
-<div class="card" data-group="inverse" data-side="back">\( -\frac{1}{\sqrt{1-x^2}} \)</div>
+  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arccos x \)</div>
+  <div class="card" data-group="inverse" data-side="back">\( -\frac{1}{\sqrt{1-x^2}} \)</div>
 
-<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arctan x \)</div>
-<div class="card" data-group="inverse" data-side="back">\( \frac{1}{1+x^2} \)</div>
+  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\arctan x \)</div>
+  <div class="card" data-group="inverse" data-side="back">\( \frac{1}{1+x^2} \)</div>
 
-<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccot} x \)</div>
-<div class="card" data-group="inverse" data-side="back">\( -\frac{1}{1+x^2} \)</div>
+  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccot} x \)</div>
+  <div class="card" data-group="inverse" data-side="back">\( -\frac{1}{1+x^2} \)</div>
 
-<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arcsec} x \)</div>
-<div class="card" data-group="inverse" data-side="back">\( \frac{1}{|x|\sqrt{x^2-1}} \)</div>
+  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arcsec} x \)</div>
+  <div class="card" data-group="inverse" data-side="back">\( \frac{1}{|x|\sqrt{x^2-1}} \)</div>
 
-<div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccsc} x \)</div>
-<div class="card" data-group="inverse" data-side="back">\( -\frac{1}{|x|\sqrt{x^2-1}} \)</div>
+  <div class="card" data-group="inverse" data-side="front">\( \frac{d}{dx}\operatorname{arccsc} x \)</div>
+  <div class="card" data-group="inverse" data-side="back">\( -\frac{1}{|x|\sqrt{x^2-1}} \)</div>
 
-<div class="controls">
-  <button id="prevBtn">← Prev</button>
-  <button id="flipBtn">Flip (↑/↓ Swipe Up/Down)</button>
-  <button id="nextBtn">Next →</button>
-  <button id="shuffleBtn">Shuffle</button>
-  <button id="invBtn">Inverse Trig: Off</button>
+  <div class="controls">
+    <button id="prevBtn">← Prev</button>
+    <button id="flipBtn">Flip (↑/↓ Swipe Up/Down)</button>
+    <button id="nextBtn">Next →</button>
+    <button id="shuffleBtn">Shuffle</button>
+    <button id="invBtn">Inverse Trig: Off</button>
+  </div>
+
+  <div class="status" id="status">Card 1 / 6</div>
 </div>
 
-<div class="status" id="status">Card 1 / 6</div>
+<div id="menuToggle">⋮</div>
 
 <script>
 const cards=[...document.querySelectorAll('.card')];
 let includeInverse=false,index=0,showingFront=true;
+
 function visible(){return cards.filter(c=>c.dataset.group=== (includeInverse?'inverse':'basic'))}
 function total(){return visible().length/2}
 function show(i,side='front'){
@@ -165,14 +200,30 @@ document.body.addEventListener('touchend',e=>{
   const dx=t.clientX-startX;
   const dy=t.clientY-startY;
   const absX=Math.abs(dx),absY=Math.abs(dy);
-  const threshold=40; // min distance
+  const threshold=40;
   if(absX>absY && absX>threshold){
-    if(dx>0){index=(index-1+total())%total();showingFront=true;show(index);} // swipe right → prev
-    else {index=(index+1)%total();showingFront=true;show(index);}             // swipe left → next
+    if(dx>0){index=(index-1+total())%total();showingFront=true;show(index);}
+    else {index=(index+1)%total();showingFront=true;show(index);}
   }else if(absY>absX && absY>threshold){
-    flip(); // swipe up or down → flip
+    flip();
   }
 });
+
+/* ----- Auto-hide UI after 5 seconds ----- */
+const ui=document.getElementById('ui');
+setTimeout(()=>ui.classList.add('hidden-ui'),5000);
+
+/* ----- Floating dots button toggle ----- */
+const menuToggle=document.getElementById('menuToggle');
+menuToggle.onclick=()=>{
+  if(ui.classList.contains('hidden-ui')){
+    ui.classList.remove('hidden-ui');
+    ui.classList.add('visible-ui');
+  }else{
+    ui.classList.remove('visible-ui');
+    ui.classList.add('hidden-ui');
+  }
+};
 </script>
 </body>
 </html>
