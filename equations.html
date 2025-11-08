@@ -110,6 +110,20 @@ button:hover { background: #242935; }
   cursor: pointer;
   z-index: 10;
 }
+
+.card[data-side="back"] {
+  flex-direction: column;
+  gap: 0.5em;
+  line-height: 1.5em;
+}
+
+.card[data-side="back"] br {
+  content: "";
+  display: block;
+  margin-bottom: 0.4em;
+}
+
+
 </style>
 </head>
 <body>
