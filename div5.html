@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decimal Divisor Studio</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --primary-color: #4a90e2;
+            --accent-color: #d9534f;
+            --text-color: #333;
+            --cell-size: 24px;
+            --font-size: 18px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            margin: 0;
+        }
+
+        h1 { font-size: 1.5rem; margin: 10px 0; text-align: center; }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button:hover { background-color: #357abd; }
+        button.secondary { background-color: #7f8c8d; }
+        button.reveal { background-color: #27ae60; }
+
+        /* CARD CONTAINER */
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 95%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .card { flex-direction: row; align-items: flex-start; }
+        }
+
+        /* MATH AREA */
+        .problem-area {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .horizontal-display {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding: 15px;
+            background: #eef;
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid #dde;
+        }
+
+        .hint-text {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeeba;
+            display: none; /* Hidden until check */
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* GRID CONTAINER */
+        .grid-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .long-division-grid {
+            display: grid;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: var(--font-size);
+            font-weight: bold;
+            line-height: var(--cell-size);
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* COLORS */
+        .txt-q { color: #2980b9; } /* Quotient Blue */
+        .txt-sub { color: #c0392b; } /* Subtraction Red */
+        .txt-std { color: #333; }    /* Standard Black */
+        .txt-faint { color: #bbb; }  /* Faint zero */
+
+        /* BORDERS */
+        .border-right { border-right: 2px solid #333; }
+        .border-top { border-top: 2px solid #333; }
+        .border-bottom { border-bottom: 1px solid #333; }
+
+        /* HELPER TABLE */
+        .helper-area {
+            flex: 1;
+            border-top: 1px dashed #ccc;
+            padding-top: 20px;
+            display: none;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .helper-area { border-top: none; border-left: 1px dashed #ccc; padding-top: 0; padding-left: 20px; width: auto;}
+        }
+        .helper-area.visible { display: block; }
+
+        .multiples-table {
+            width: 100%;
+            font-family: monospace;
+            font-size: 14px;
+            border-collapse: collapse;
+        }
+        .multiples-table td { padding: 4px; border-bottom: 1px solid #eee; }
+
+    </style>
+</head>
+<body>
+
+    <h1>Decimal Division Studio</h1>
+    
+    <div class="controls">
+        <button onclick="newProblem()">New Problem</button>
+        <button class="secondary" onclick="toggleHelper()">Toggle Helper</button>
+        <button class="reveal" onclick="showAnswer()">Check Answer</button>
+    </div>
+
+    <div class="card">
+        <div class="problem-area">
+            <div id="mathDisplay" class="horizontal-display">Start &rarr;</div>
+            
+            <div id="rewriteHint" class="hint-text"></div>
+
+            <div class="grid-wrapper">
+                <div id="grid" class="long-division-grid"></div>
+            </div>
+        </div>
+
+        <div id="helperArea" class="helper-area">
+            <strong>Multiples of <span id="helperNum">?</span></strong>
+            <table id="helperTable" class="multiples-table"></table>
+        </div>
+    </div>
+
+    <script>
+        let state = { 
+            displayDivisor: 0, displayDividend: 0, // The Question (e.g., 1.2)
+            gridDivisor: 0, gridDividendString: "" // The Solution (e.g., 12)
+        };
+
+        // --- INIT ---
+        window.onload = newProblem;
+
+        function toggleHelper() {
+            document.getElementById('helperArea').classList.toggle('visible');
+        }
+
+        function newProblem() {
+            // Clear UI
+            document.getElementById('grid').innerHTML = '';
+            document.getElementById('rewriteHint').style.display = 'none';
+            
+            // 1. Create a "Clean" Integer Problem first (The Grid Version)
+            // Divisor: Integer 3 to 15
+            const gDivisor = Math.floor(Math.random() * 13) + 3;
+            
+            // Quotient: Terminating decimal (e.g., 4.25, 12.5)
+            const base = Math.floor(Math.random() * 200) + 20;
+            const scale = [1, 2, 4, 5, 8, 10][Math.floor(Math.random() * 6)];
+            const quotient = base / scale;
+            
+            // Calculate Grid Dividend (must be precise)
+            const gDividend = parseFloat((quotient * gDivisor).toFixed(4));
+
+            // 2. Determine Decimal Shift (Create the "Problem" Version)
+            // We want the student to practice moving decimals.
+            // Shift 1 or 2 places
+            const shift = Math.floor(Math.random() * 2) + 1; // 1 or 2
+            const denominator = Math.pow(10, shift);
+
+            // Create the display numbers (e.g., 1.2 instead of 12)
+            // We use toFixed to avoid floating point funkiness (e.g. 1.200000001)
+            let dDivisor = parseFloat((gDivisor / denominator).toFixed(shift));
+            let dDividend = parseFloat((gDividend / denominator).toFixed(shift + 3)); // allow extra precision
+
+            // 3. Format the Grid Dividend String
+            // If quotient is 4.25, we need the grid dividend to be "17.00", not "17"
+            // so the algorithm knows to keep going.
+            let sQuot = quotient.toString();
+            let qDecimals = sQuot.includes('.') ? sQuot.split('.')[1].length : 0;
+            let sGridDividend = gDividend.toFixed(qDecimals);
+
+            // Store State
+            state.displayDivisor = dDivisor;
+            state.displayDividend = dDividend;
+            state.gridDivisor = gDivisor;
+            state.gridDividendString = sGridDividend;
+
+            // Update UI
+            document.getElementById('mathDisplay').innerHTML = `${dDividend} &div; ${dDivisor} = ?`;
+            
+            // Update Helper Table (Show multiples of the Grid Divisor, since that's what they use)
+            document.getElementById('helperNum').innerText = gDivisor;
+            let html = '';
+            for(let i=1; i<=9; i++) {
+                html += `<tr><td>${gDivisor}</td><td>x${i}</td><td>=</td><td><b>${parseFloat((gDivisor*i).toFixed(2))}</b></td></tr>`;
+            }
+            document.getElementById('helperTable').innerHTML = html;
+        }
+
+        function showAnswer() {
+            // Show Hint
+            const hint = document.getElementById('rewriteHint');
+            hint.innerText = `Rewrite: Move decimal right. ${state.displayDividend} ÷ ${state.displayDivisor} becomes ${state.gridDividendString} ÷ ${state.gridDivisor}`;
+            hint.style.display = 'block';
+
+            renderSolution(state.gridDivisor, state.gridDividendString);
+        }
+
+        // --- RENDERING ENGINE (Requires Integer Divisor) ---
+        function renderSolution(divisor, sDend) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            const sDiv = divisor.toString();
+            
+            // Map Dividend Characters to Grid Columns
+            let colMap = [];
+            let divStartCol = sDiv.length + 1; // Divisor + Bracket
+            
+            for(let i=0; i<sDend.length; i++) {
+                colMap.push(divStartCol + i);
+            }
+            
+            let totalCols = divStartCol + sDend.length;
+            grid.style.gridTemplateColumns = `repeat(${totalCols}, var(--cell-size))`;
+
+            let vGrid = {}; 
+
+            function plot(r, c, text, cls, bdr='') {
+                vGrid[`${r},${c}`] = { text, cls, bdr };
+            }
+
+            // --- ROW 1: SETUP ---
+            for(let i=0; i<sDiv.length; i++) plot(1, i, sDiv[i], 'txt-std');
+            plot(1, sDiv.length, '', '', 'border-right'); 
+            
+            for(let i=0; i<sDend.length; i++) {
+                plot(1, colMap[i], sDend[i], 'txt-std', 'border-top');
+            }
+
+            // --- CALCULATE STEPS ---
+            let rawDend = sDend.replace('.', '');
+            let mathIndices = []; 
+            for(let i=0; i<sDend.length; i++) {
+                if(sDend[i] !== '.') mathIndices.push(colMap[i]);
+            }
+
+            // Decimal in Quotient
+            let dotCol = sDend.indexOf('.') !== -1 ? colMap[sDend.indexOf('.')] : -1;
+            if(dotCol !== -1) plot(0, dotCol, '.', 'txt-q');
+
+            let workingVal = 0;
+            let row = 2;
+            let leadingZeros = true;
+
+            for(let i=0; i<rawDend.length; i++) {
+                let digit = parseInt(rawDend[i]);
+                workingVal = (workingVal * 10) + digit;
+                
+                let q = Math.floor(workingVal / divisor);
+                
+                // 1. Plot Quotient
+                let qCol = mathIndices[i];
+                if (q > 0 || !leadingZeros || i === rawDend.length - 1) {
+                    leadingZeros = false;
+                    plot(0, qCol, q, 'txt-q');
+                }
+
+                // 2. Subtract (If not leading zeros)
+                if (!leadingZeros) {
+                    let product = q * divisor;
+                    let rem = workingVal - product;
+                    
+                    // Plot Product
+                    let sProd = product.toString();
+                    for(let p=0; p<sProd.length; p++) {
+                        let pDigit = sProd[sProd.length - 1 - p];
+                        let mIdx = i - p;
+                        if(mIdx >= 0) {
+                            let vCol = mathIndices[mIdx];
+                            plot(row, vCol, pDigit, 'txt-sub', 'border-bottom');
+                        }
+                    }
+                    row++;
+
+                    // Plot Remainder (Only if we continue)
+                    let sRem = rem.toString();
+                    for(let r=0; r<sRem.length; r++) {
+                        let rDigit = sRem[sRem.length - 1 - r];
+                        let mIdx = i - r; 
+                        if (mIdx >= 0) {
+                            if (sRem !== "0" || i === rawDend.length - 1) {
+                                plot(row, vCol = mathIndices[mIdx], rDigit, 'txt-std');
+                            }
+                        }
+                    }
+
+                    // Bring Down Next Digit
+                    if (i < rawDend.length - 1) {
+                        let nextVal = rawDend[i+1];
+                        let nextCol = mathIndices[i+1];
+                        plot(row, nextCol, nextVal, 'txt-std');
+                        row++; 
+                    }
+                    
+                    workingVal = rem;
+                }
+            }
+
+            // --- RENDER DOM ---
+            let maxR = row;
+            for(let r=0; r<=maxR; r++) {
+                for(let c=0; c<totalCols; c++) {
+                    let cellData = vGrid[`${r},${c}`];
+                    let div = document.createElement('div');
+                    div.className = 'cell';
+                    div.style.gridRow = r + 1;
+                    div.style.gridColumn = c + 1;
+                    if(cellData) {
+                        div.innerText = cellData.text;
+                        div.className += ` ${cellData.cls} ${cellData.bdr}`;
+                    }
+                    grid.appendChild(div);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
