@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6th Grade Division Studio</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --primary-color: #4a90e2;
+            --accent-color: #d9534f;
+            --text-color: #333;
+            --cell-size: 24px; /* Much smaller for compact fit */
+            --font-size: 18px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            margin: 0;
+        }
+
+        h1 { font-size: 1.5rem; margin: 10px 0; text-align: center; }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button:hover { background-color: #357abd; }
+        button.secondary { background-color: #7f8c8d; }
+        button.reveal { background-color: #27ae60; }
+
+        /* CARD CONTAINER */
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 95%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column; /* Stack vertically on mobile by default */
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .card { flex-direction: row; align-items: flex-start; }
+        }
+
+        /* MATH AREA */
+        .problem-area {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            overflow: hidden; /* Prevent card blowout */
+        }
+
+        .horizontal-display {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #eef;
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* GRID CONTAINER - SCROLLABLE */
+        .grid-wrapper {
+            width: 100%;
+            overflow-x: auto; /* Allows scrolling if math gets too wide */
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .long-division-grid {
+            display: grid;
+            /* Columns defined in JS */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: var(--font-size);
+            font-weight: bold;
+            line-height: var(--cell-size);
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* COLORS */
+        .txt-q { color: #2980b9; } /* Quotient Blue */
+        .txt-sub { color: #c0392b; } /* Subtraction Red */
+        .txt-std { color: #333; }    /* Standard Black */
+
+        /* BORDERS */
+        .border-bottom { border-bottom: 1px solid #333; }
+        .border-right { border-right: 2px solid #333; }
+        .border-top { border-top: 2px solid #333; }
+
+        /* HELPER TABLE */
+        .helper-area {
+            flex: 1;
+            border-top: 1px dashed #ccc;
+            padding-top: 20px;
+            display: none;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .helper-area { border-top: none; border-left: 1px dashed #ccc; padding-top: 0; padding-left: 20px; width: auto;}
+        }
+        .helper-area.visible { display: block; }
+
+        .multiples-table {
+            width: 100%;
+            font-family: monospace;
+            font-size: 14px;
+            border-collapse: collapse;
+        }
+        .multiples-table td { padding: 4px; border-bottom: 1px solid #eee; }
+
+    </style>
+</head>
+<body>
+
+    <h1>6th Grade Division Studio</h1>
+    
+    <div class="controls">
+        <button onclick="newProblem()">New Problem</button>
+        <button class="secondary" onclick="toggleHelper()">Toggle Helper</button>
+        <button class="reveal" onclick="showAnswer()">Check Answer</button>
+    </div>
+
+    <div class="card">
+        <div class="problem-area">
+            <div id="mathDisplay" class="horizontal-display">Start &rarr;</div>
+            <div class="grid-wrapper">
+                <div id="grid" class="long-division-grid"></div>
+            </div>
+        </div>
+
+        <div id="helperArea" class="helper-area">
+            <strong>Multiples of <span id="helperNum">?</span></strong>
+            <table id="helperTable" class="multiples-table"></table>
+        </div>
+    </div>
+
+    <script>
+        let state = { divisor: 0, dividend: 0 };
+
+        // --- INIT ---
+        window.onload = newProblem;
+
+        function toggleHelper() {
+            document.getElementById('helperArea').classList.toggle('visible');
+        }
+
+        function newProblem() {
+            // Clear Grid
+            document.getElementById('grid').innerHTML = '';
+            
+            // Generate Numbers
+            // Divisor: 3 to 12
+            const div = Math.floor(Math.random() * 10) + 3;
+            
+            // Quotient: Ensure it terminates (e.g. divide by 2, 4, 5, 8)
+            const base = Math.floor(Math.random() * 200) + 20;
+            const scale = [2, 4, 5, 8][Math.floor(Math.random() * 4)];
+            
+            let quot = base / scale;
+            let dend = parseFloat((quot * div).toFixed(3));
+            
+            // Force decimal if it came out whole
+            if (Number.isInteger(dend)) { dend += 0.5; }
+
+            state.divisor = div;
+            state.dividend = dend;
+            
+            document.getElementById('mathDisplay').innerHTML = `${dend} &div; ${div} = ?`;
+            document.getElementById('helperNum').innerText = div;
+            
+            // Build Helper
+            let html = '';
+            for(let i=1; i<=9; i++) {
+                html += `<tr><td>${div}</td><td>x${i}</td><td>=</td><td><b>${parseFloat((div*i).toFixed(2))}</b></td></tr>`;
+            }
+            document.getElementById('helperTable').innerHTML = html;
+        }
+
+        function showAnswer() {
+            renderSolution(state.divisor, state.dividend);
+        }
+
+        // --- THE ROBUST RENDERING ENGINE ---
+        function renderSolution(divisor, dividend) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            // 1. Prepare Strings
+            const sDiv = divisor.toString();
+            const sDend = dividend.toString();
+            
+            // 2. Map Dividend Characters to Grid Columns
+            // Structure: [Divisor Digits] [Spacer] [Dividend Digits]
+            // We map every char of dividend (including dot) to a specific col index.
+            let colMap = [];
+            let divStartCol = sDiv.length + 1;
+            
+            for(let i=0; i<sDend.length; i++) {
+                colMap.push(divStartCol + i);
+            }
+            
+            let totalCols = divStartCol + sDend.length;
+            grid.style.gridTemplateColumns = `repeat(${totalCols}, var(--cell-size))`;
+
+            // 3. Create a Virtual 2D Grid (Map)
+            // We will plot everything here first, then render to DOM.
+            let vGrid = {}; // Key: "row,col", Value: {text, class, border}
+
+            function plot(r, c, text, cls, bdr='') {
+                vGrid[`${r},${c}`] = { text, cls, bdr };
+            }
+
+            // --- DRAW HEADER (Divisor | Dividend) ---
+            // Row 1 is the problem line
+            
+            // Plot Divisor
+            for(let i=0; i<sDiv.length; i++) plot(1, i, sDiv[i], 'txt-std');
+            
+            // Plot Bracket
+            plot(1, sDiv.length, '', '', 'border-right'); // The vertical line
+            
+            // Plot Dividend
+            for(let i=0; i<sDend.length; i++) {
+                // Use border-top on the digit itself to make the roof
+                plot(1, colMap[i], sDend[i], 'txt-std', 'border-top');
+            }
+
+            // --- CALCULATE STEPS ---
+            // Remove dot for math, keep track for visual
+            let rawDend = sDend.replace('.', '');
+            let mathIndices = []; // maps math index 0,1,2 to visual col index
+            for(let i=0; i<sDend.length; i++) {
+                if(sDend[i] !== '.') mathIndices.push(colMap[i]);
+            }
+
+            // Dot Logic for Quotient
+            let dotCol = sDend.indexOf('.') !== -1 ? colMap[sDend.indexOf('.')] : -1;
+            if(dotCol !== -1) plot(0, dotCol, '.', 'txt-q');
+
+            let workingVal = 0;
+            let row = 2;
+            let leadingZeros = true;
+
+            // Loop through raw digits
+            for(let i=0; i<rawDend.length; i++) {
+                let digit = parseInt(rawDend[i]);
+                workingVal = (workingVal * 10) + digit;
+                
+                let q = Math.floor(workingVal / divisor);
+                
+                // 1. Plot Quotient
+                let qCol = mathIndices[i];
+                if (q > 0 || !leadingZeros || i === rawDend.length - 1) {
+                    leadingZeros = false;
+                    plot(0, qCol, q, 'txt-q');
+                }
+
+                // 2. Subtraction Logic
+                // Only subtract if we have a value or it's the final cleanup
+                if (!leadingZeros) {
+                    let product = q * divisor;
+                    let rem = workingVal - product;
+                    
+                    // Plot Product (Red)
+                    // Aligned RIGHT to the current qCol
+                    let sProd = product.toString();
+                    for(let p=0; p<sProd.length; p++) {
+                        let pDigit = sProd[sProd.length - 1 - p]; // iterate backwards
+                        // Find visual column: math index i minus p
+                        let mIdx = i - p;
+                        if(mIdx >= 0) {
+                            let vCol = mathIndices[mIdx];
+                            plot(row, vCol, pDigit, 'txt-sub', 'border-bottom');
+                        }
+                    }
+                    row++;
+
+                    // Plot Remainder / New Working Value
+                    // In standard long division, we write the remainder, 
+                    // then the next digit "falls" down next to it.
+                    // Visual: 
+                    //   15
+                    //  -12
+                    //  ---
+                    //    3  <-- Remainder (at row+1)
+                    //    38 <-- Next working val (at row+1, next loop)
+                    
+                    // To keep it simple and aligned:
+                    // We print the remainder NOW.
+                    let sRem = rem.toString();
+                    for(let r=0; r<sRem.length; r++) {
+                        let rDigit = sRem[sRem.length - 1 - r];
+                        let mIdx = i - r; 
+                        if (mIdx >= 0) {
+                            let vCol = mathIndices[mIdx];
+                            // Optimization: Don't print '0' if it's a leading zero of the remainder
+                            // unless the remainder is literally 0 and it's the end.
+                            if (sRem !== "0" || i === rawDend.length - 1) {
+                                plot(row, vCol, rDigit, 'txt-std');
+                            }
+                        }
+                    }
+
+                    // Bring Down Digit (if exists)
+                    if (i < rawDend.length - 1) {
+                        let nextVal = rawDend[i+1];
+                        let nextCol = mathIndices[i+1];
+                        plot(row, nextCol, nextVal, 'txt-std');
+                        
+                        // Since we formed a new number on this row, 
+                        // the NEXT subtraction must happen below it.
+                        row++; 
+                    }
+                    
+                    workingVal = rem;
+                }
+            }
+
+            // --- RENDER TO DOM ---
+            // Find max Row/Col to ensure grid size
+            let maxR = row;
+            
+            for(let r=0; r<=maxR; r++) {
+                for(let c=0; c<totalCols; c++) {
+                    let cellKey = `${r},${c}`;
+                    let cellData = vGrid[cellKey];
+                    
+                    let div = document.createElement('div');
+                    div.className = 'cell';
+                    div.style.gridRow = r + 1;
+                    div.style.gridColumn = c + 1;
+                    
+                    if(cellData) {
+                        div.innerText = cellData.text;
+                        div.className += ` ${cellData.cls}`;
+                        if(cellData.bdr) div.className += ` ${cellData.bdr}`;
+                    }
+                    grid.appendChild(div);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
