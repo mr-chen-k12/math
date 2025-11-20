@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6th Grade Division Studio</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-color: #ffffff;
+            --primary-color: #4a90e2;
+            --accent-color: #d9534f;
+            --text-color: #333;
+            --grid-cell-size: 30px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 { margin-bottom: 10px; }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: #357abd; }
+        button.secondary { background-color: #6c757d; }
+        button.reveal { background-color: #28a745; }
+
+        /* The Problem Card */
+        .card {
+            background: var(--card-color);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 900px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .problem-area {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center the grid */
+        }
+
+        .helper-area {
+            flex: 1;
+            border-left: 2px dashed #dee2e6;
+            padding-left: 20px;
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .horizontal-problem {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            padding: 20px 40px;
+            background: #e9ecef;
+            border-radius: 12px;
+            text-align: center;
+            letter-spacing: 2px;
+            color: #495057;
+        }
+
+        /* LONG DIVISION GRID SYSTEM */
+        .long-division-container {
+            display: grid;
+            /* We will set explicit columns/rows in JS */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 28px;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+
+        .cell {
+            width: var(--grid-cell-size);
+            height: var(--grid-cell-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative; /* For absolute lines if needed */
+        }
+
+        .quotient { color: var(--primary-color); }
+        .subtraction { color: var(--accent-color); }
+        .remainder { color: #333; }
+
+        /* Visual Elements */
+        .border-bottom { 
+            border-bottom: 2px solid black; 
+        }
+        
+        .house-wall { 
+            border-right: 2px solid black; 
+            border-radius: 0 0 0 0; /* Straight line is safer for alignment */
+        } 
+
+        /* Helper Table Styling */
+        .multiples-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .multiples-table td {
+            padding: 8px 5px;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 18px;
+        }
+        .multiples-header {
+            font-weight: bold;
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>6th Grade Division Studio</h1>
+    <p>Write the problem on your paper. Use the tools to check your work.</p>
+
+    <div class="controls">
+        <button onclick="generateNewProblem()">New Problem</button>
+        <button class="secondary" onclick="toggleHelper()">Toggle Helper Column</button>
+        <button class="reveal" onclick="revealSolution()">Check Answer</button>
+    </div>
+
+    <div class="card">
+        
+        <div class="problem-area">
+            <div id="horizontalDisplay" class="horizontal-problem">
+                Press "New Problem"
+            </div>
+            
+            <div id="solutionContainer" style="display:none;">
+                <div id="grid" class="long-division-container"></div>
+            </div>
+        </div>
+
+        <div id="helperArea" class="helper-area">
+            <div class="multiples-header">Multiples of <span id="helperDivisor">X</span></div>
+            <table class="multiples-table" id="multiplesTable">
+                </table>
+        </div>
+
+    </div>
+
+    <script>
+        let currentDivisor = 0;
+        let currentDividend = 0;
+
+        window.onload = generateNewProblem;
+
+        function toggleHelper() {
+            const area = document.getElementById('helperArea');
+            area.style.display = area.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function generateNewProblem() {
+            document.getElementById('solutionContainer').style.display = 'none';
+            
+            currentDivisor = Math.floor(Math.random() * 11) + 2;
+            let base = Math.floor(Math.random() * 400) + 50;
+            let scale = [2, 4, 5, 8, 10][Math.floor(Math.random() * 5)];
+            let currentQuotient = base / scale; 
+            currentDividend = parseFloat((currentQuotient * currentDivisor).toFixed(3));
+
+            // Force decimal for practice
+            if (Number.isInteger(currentDividend)) {
+                currentDividend += 0.5;
+            }
+            // Recalculate to ensure math works cleanly for display
+            // (We just shift the dividend, quotient will technically change but we display the logic)
+            
+            document.getElementById('horizontalDisplay').innerHTML = 
+                `${currentDividend} &div; ${currentDivisor} = ?`;
+            
+            buildHelperTable(currentDivisor);
+            document.getElementById('helperDivisor').innerText = currentDivisor;
+        }
+
+        function buildHelperTable(divisor) {
+            let html = '';
+            for(let i=1; i<=9; i++) {
+                html += `<tr><td>${divisor} x ${i}</td><td>=</td><td><strong>${parseFloat((divisor * i).toFixed(2))}</strong></td></tr>`;
+            }
+            document.getElementById('multiplesTable').innerHTML = html;
+        }
+
+        function revealSolution() {
+            document.getElementById('solutionContainer').style.display = 'block';
+            renderLongDivision(currentDivisor, currentDividend);
+        }
+
+        function renderLongDivision(divisor, dividend) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            // --- 1. PREPARE DATA STRINGS ---
+            let sDivisor = divisor.toString();
+            let sDividend = dividend.toString();
+            let sQuotient = (dividend / divisor).toFixed(4); // get enough precision
+            // Trim trailing zeros from quotient for display
+            sQuotient = parseFloat(sQuotient).toString();
+            
+            // Calculate Dimensions
+            // Columns: Divisor + 1 (Bracket) + Dividend
+            let colOffset = sDivisor.length + 1; 
+            let totalCols = colOffset + sDividend.length;
+            
+            grid.style.gridTemplateColumns = `repeat(${totalCols}, var(--grid-cell-size))`;
+
+            // Helper to place item at EXACT coordinates
+            function place(row, col, text, type, border='') {
+                const div = document.createElement('div');
+                div.className = `cell ${type} ${border}`;
+                div.innerText = text;
+                div.style.gridColumn = col + 1; // CSS Grid is 1-based
+                div.style.gridRow = row + 1;
+                grid.appendChild(div);
+            }
+
+            // --- 2. RENDER THE SETUP (Top 3 Rows usually) ---
+            
+            // Row 2: The Problem Line
+            // Place Divisor
+            for(let i=0; i<sDivisor.length; i++) {
+                place(1, i, sDivisor[i], '');
+            }
+            // Place Bracket Wall
+            place(1, sDivisor.length, ')', 'house-wall');
+            
+            // Place Dividend
+            for(let i=0; i<sDividend.length; i++) {
+                place(1, colOffset + i, sDividend[i], '');
+                // Add the roof (border bottom of row above)
+                place(0, colOffset + i, '', '', 'border-bottom'); 
+            }
+
+            // --- 3. RUN ALGORITHM & RENDER STEPS ---
+            
+            let tempDividendStr = sDividend.replace('.', '');
+            // Map: Index in tempDividendStr -> Index in sDividend (handling the dot)
+            let visualIndices = []; 
+            let c = 0;
+            for(let i=0; i<sDividend.length; i++) {
+                if(sDividend[i] !== '.') {
+                    visualIndices.push(i);
+                }
+            }
+
+            let workingVal = 0;
+            let currentRow = 2; 
+            let hasStarted = false;
+            let remainder = 0;
+
+            // Loop through digits of the dividend (ignoring dot for math, using map for placement)
+            for(let i=0; i<tempDividendStr.length; i++) {
+                let digit = parseInt(tempDividendStr[i]);
+                workingVal = (workingVal * 10) + digit;
+                
+                let quotientDigit = Math.floor(workingVal / divisor);
+                
+                // Determine Visual Column for this digit
+                let visualCol = colOffset + visualIndices[i];
+
+                // 1. Place Quotient Digit
+                // If it's the very first digit and it's 0, usually skip unless it's 0.something
+                if (quotientDigit > 0 || hasStarted || (i === tempDividendStr.length -1 && !hasStarted)) {
+                    hasStarted = true;
+                    place(0, visualCol, quotientDigit, 'quotient');
+                }
+
+                // 2. Handle Decimal in Quotient
+                // If the NEXT character in dividend is a dot, place a dot in quotient
+                if (i < tempDividendStr.length - 1) {
+                    let nextVisualIndex = visualIndices[i+1];
+                    if (sDividend[nextVisualIndex - 1] === '.') {
+                        place(0, visualCol + 1, '.', 'quotient');
+                    }
+                }
+
+                // 3. Subtraction Steps
+                // Only show subtraction if we actually did math (quotient > 0) OR if we carried a value
+                if (quotientDigit > 0 || workingVal >= divisor) {
+                    let product = quotientDigit * divisor;
+                    let sProduct = product.toString();
+                    remainder = workingVal - product;
+
+                    // Render Product (Red)
+                    // It aligns ending at 'visualCol'
+                    for(let p=0; p<sProduct.length; p++) {
+                        // Calculate column for this digit of the product
+                        // end is visualCol. 
+                        let pCol = visualCol - (sProduct.length - 1) + p;
+                        place(currentRow, pCol, sProduct[p], 'subtraction', 'border-bottom');
+                    }
+                    currentRow++;
+
+                    // Render Remainder (Black) - Only if not the very last step (results look cleaner)
+                    // We display the remainder combined with the bring-down in the logic flow usually,
+                    // but visually we often write the remainder result on the next line.
+                    let sRem = remainder.toString();
+                    
+                    // In standard US long division, we write the subtraction result, 
+                    // then "bring down" the next number next to it.
+                    // So we don't render the remainder alone here, we wait for next loop to "bring down"
+                    // UNLESS it's the last step or the remainder is non-zero
+                    
+                    // To simplify visual complexity for 6th grade web tool:
+                    // We just printed the product. The "workingVal" of the NEXT iteration 
+                    // represents (Remainder + NextDigit).
+                    // We only need to print the explicit remainder if the loop continues.
+                    
+                    // Let's calculate the 'result of subtraction' string to print
+                    let subResult = (workingVal - product).toString();
+                    
+                    // If we are NOT at the end, we will see this number "joined" by the next digit in the next loop 
+                    // visually. But we need to print the result of the subtraction now.
+                    
+                    // Check alignment for remainder
+                    // It should align right under the product
+                    for(let r=0; r<subResult.length; r++) {
+                        let rCol = visualCol - (subResult.length -1) + r;
+                        // Only print if it's not 0, OR if it is 0 and it's the final answer
+                        if (subResult !== "0" || (i === tempDividendStr.length -1)) {
+                             place(currentRow, rCol, subResult[r], 'remainder');
+                        }
+                    }
+                    
+                    // Note: "Bringing down" happens visually because the next digit of dividend 
+                    // is already sitting in the row above.
+                    // But strictly speaking, usually you re-write the next digit next to the remainder.
+                    // For this script, let's stick to the "explicit bring down" visualization?
+                    // No, standard compact form is easier for CSS: Just show subtraction result.
+                    // The student looks up to the dividend for the next number.
+                    
+                    // HOWEVER, to make it look like your screenshot (standard way):
+                    // We need to write the 'bring down' digit next to the remainder.
+                    if (i < tempDividendStr.length - 1) {
+                        // We are bringing down the digit at indices[i+1]
+                        let bringDownDigit = tempDividendStr[i+1];
+                        let bringDownCol = colOffset + visualIndices[i+1];
+                        
+                        // If there was a decimal skipped, we skip a column? 
+                        // The visualIndices map handles the skipping of the dot column.
+                        place(currentRow, bringDownCol, bringDownDigit, 'remainder');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
