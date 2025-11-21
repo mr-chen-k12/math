@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Decimal Division Practice — 6th Grade</title>
+
+<!-- MathJax for LaTeX rendering -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root {
+    --border: #444;
+  }
+
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 25px;
+    margin-top: 30px;
+    padding: 20px;
+  }
+
+  .problem-box {
+    border: 2px solid var(--border);
+    padding: 20px;
+    height: 300px;
+    font-size: 1.7rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  button {
+    padding: 10px 22px;
+    font-size: 1rem;
+    margin: 5px;
+    cursor: pointer;
+  }
+
+  #solutionPage {
+    margin-top: 40px;
+    border-top: 3px solid black;
+    padding-top: 20px;
+  }
+
+  .solution {
+    margin-bottom: 25px;
+    font-size: 1.3rem;
+  }
+
+  /* Print settings */
+  @page {
+    size: 8.5in 11in;
+    margin: 0.7in;
+  }
+</style>
+</head>
+<body>
+
+<h1>6th Grade Decimal Division Practice</h1>
+
+<div class="btn-container">
+  <button onclick="generateProblems()">Generate New Problems</button>
+  <button onclick="toggleSolutions()">Show / Hide Solutions</button>
+</div>
+
+<div class="problem-grid" id="problemGrid"></div>
+
+<div id="solutionPage" style="display:none;">
+  <h1>Solutions</h1>
+  <div id="solutions"></div>
+</div>
+
+<script>
+let problems = [];
+
+function randomDecimalDivision() {
+  const divisor = (Math.random() * 9 + 1).toFixed(1);
+  const quotient = (Math.random() * 9 + 1).toFixed(2);
+  const dividend = (divisor * quotient).toFixed(2);
+  return { dividend, divisor, quotient };
+}
+
+function generateProblems() {
+  const grid = document.getElementById("problemGrid");
+  const solBox = document.getElementById("solutions");
+
+  grid.innerHTML = "";
+  solBox.innerHTML = "";
+  problems = [];
+
+  for (let i = 0; i < 6; i++) {
+    let p = randomDecimalDivision();
+    problems.push(p);
+
+    grid.innerHTML += `
+      <div class="problem-box">
+        ${p.dividend} ÷ ${p.divisor} = ______
+      </div>
+    `;
+
+    solBox.innerHTML += `
+      <div class="solution">
+        <b>Problem ${i+1}:</b><br>
+        \$begin:math:display$
+        \$\{p\.dividend\} \\\\div \$\{p\.divisor\} \= \$\{p\.quotient\}
+        \\$end:math:display$
+        <br>
+        Long division:<br>
+        \$begin:math:display$
+        \\\\require\{enclose\}
+        \\\\begin\{array\}\{r\}
+        \\\\enclose\{longdiv\}\{\$\{p\.dividend\}\} \\\\\, \$\{p\.divisor\}
+        \\\\end\{array\}
+        \\$end:math:display$
+      </div>
+    `;
+  }
+
+  MathJax.typeset();
+}
+
+function toggleSolutions() {
+  const sol = document.getElementById("solutionPage");
+  sol.style.display = sol.style.display === "none" ? "block" : "none";
+}
+</script>
+
+</body>
+</html>
