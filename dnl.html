@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6th Grade Ratio Racer!</title>
+    <style>
+        /* --- CSS Styling --- */
+        :root {
+            --primary-color: #4CAF50; /* Green */
+            --secondary-color: #2196F3; /* Blue */
+            --accent-color: #FF9800; /* Orange */
+            --bg-color: #f0f8ff; /* AliceBlue */
+            --font-family: 'Comic Neue', cursive, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            text-shadow: 2px 2px 0px #ddd;
+            margin-bottom: 10px;
+        }
+
+        /* --- Scoreboard & Slider Area --- */
+        .top-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+
+        .scoreboard {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .score-count { color: var(--primary-color); font-size: 1.5em; }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+            height: 60px;
+        }
+
+        .slider-bar {
+            height: 25px;
+            width: 100%;
+            background: linear-gradient(to right, #ffcccc, #ffe066, #99ff99, #66ccff);
+            border-radius: 12.5px;
+            border: 2px solid #555;
+            position: relative;
+            top: 20px;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .slider-arrow {
+            position: absolute;
+            top: 5px; /* Sits above the bar */
+            left: 0%; /* Starting position */
+            font-size: 30px;
+            color: var(--primary-color);
+            text-shadow: 1px 1px 2px black;
+            transition: left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
+            transform: translateX(-50%); /* Center the arrow tip on the percentage point */
+        }
+
+        /* --- Game Area --- */
+        .game-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .problem-context {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        /* --- Double Number Line Visualization Styling --- */
+        .dnl-wrapper {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 30px;
+            overflow-x: auto; /* Allow scrolling on small screens */
+            padding: 20px 0;
+        }
+
+        .dnl-row {
+            display: flex;
+            align-items: center;
+            position: relative;
+            height: 70px;
+        }
+
+        .dnl-label {
+            width: 150px;
+            text-align: right;
+            padding-right: 15px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .dnl-line-container {
+            display: flex;
+            flex-grow: 1;
+            position: relative;
+            align-items: flex-start; /* Align tick marks to the top line */
+            padding-top: 20px; /* Space for numbers above line */
+        }
+
+        /* The horizontal line itself */
+        .dnl-line-container::after {
+            content: '';
+            position: absolute;
+            top: 20px; /* Aligns with tick top */
+            left: 0;
+            right: 20px; /* Stop before the arrow */
+            height: 4px;
+            background-color: #555;
+            z-index: 0;
+        }
+        
+        .dnl-arrow-tip {
+             position: absolute;
+             right: 0;
+             top: 12px;
+             width: 0; 
+             height: 0; 
+             border-top: 10px solid transparent;
+             border-bottom: 10px solid transparent;
+             border-left: 20px solid #555;
+        }
+
+        .tick-group {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .tick-mark {
+            width: 4px;
+            height: 20px;
+            background-color: #333;
+            margin-bottom: 5px;
+        }
+
+        .tick-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            min-height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Inputs and Buttons --- */
+        .dnl-input {
+            width: 70px;
+            font-size: 1em;
+            padding: 5px;
+            text-align: center;
+            border: 3px solid var(--accent-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        
+        /* Remove spinner controls for number inputs */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        .check-btn {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.3em;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px #2e7d32;
+            transition: transform 0.1s;
+        }
+
+        .check-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        
+        .check-btn:disabled {
+            background-color: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .feedback-message {
+            height: 30px;
+            margin: 15px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .correct { color: var(--primary-color); }
+        .incorrect { color: #d32f2f; }
+
+        /* --- Submission Section --- */
+        .submission-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #ccc;
+            text-align: center;
+        }
+        .screenshot-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .screenshot-instructions {
+            display: none; /* Hidden by default */
+            background: #e3f2fd;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        /* Import a fun font */
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+    </style>
+</head>
+<body>
+
+    <h1>Ratio Racer! (Unit 2 Ratios)</h1>
+
+    <div class="top-panel">
+        <div class="scoreboard">
+            Problems Solved correctly: <span class="score-count" id="score">0</span>
+        </div>
+
+        <div class="slider-container">
+            <div class="slider-labels">
+                <span>Nice Try</span>
+                <span>Keep Going!</span>
+                <span>Almost There!</span>
+                <span>LIT! (On Fire!)</span>
+            </div>
+            <div class="slider-bar"></div>
+            <div class="slider-arrow" id="progressArrow">⬇️</div>
+        </div>
+    </div>
+
+
+    <div class="game-container">
+        <div class="problem-context" id="contextLabel">
+            Loading problem...
+        </div>
+
+        <div class="dnl-wrapper" id="dnlArea">
+            </div>
+
+        <div class="feedback-message" id="feedback"></div>
+
+        <button class="check-btn" id="checkBtn" onclick="checkAnswer()">Check My Answers!</button>
+    </div>
+
+
+    <div class="submission-section">
+        <p>Did you reach "LIT"? Show your teacher!</p>
+        <button class="screenshot-btn" onclick="toggleInstructions()">How to submit my success</button>
+        <div class="screenshot-instructions" id="screenshotInst">
+            <p><strong>How to capture your success:</strong></p>
+            <ol>
+                <li>Make sure the slider above shows your best score!</li>
+                <li><strong>Chromebook/Windows:</strong> Press `Ctrl + Show Windows` (the rectangle key with two lines) OR use the "Snipping Tool".</li>
+                <li><strong>Mac:</strong> Press `Shift + Command + 4` and select the area.</li>
+                <li><strong>iPad/Tablet:</strong> Press the Power button and Volume Up button at the same time.</li>
+                <li>The image is saved on your computer. Upload it to your class assignment page!</li>
+            </ol>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Game State ---
+        let score = 0;
+        let currentProblem = {};
+        const targetScoreForLit = 10; // How many correct answers to reach the end
+
+        // --- DOM Elements ---
+        const scoreDisplay = document.getElementById('score');
+        const progressArrow = document.getElementById('progressArrow');
+        const contextLabel = document.getElementById('contextLabel');
+        const dnlArea = document.getElementById('dnlArea');
+        const feedbackArea = document.getElementById('feedback');
+        const checkBtn = document.getElementById('checkBtn');
+
+        // --- Data: Friendly 6th Grade Content ---
+        const contexts = [
+            { top: "Cups of Flour", bottom: "Eggs", ratio: [2, 3] },
+            { top: "Miles Run", bottom: "Minutes", ratio: [1, 8] },
+            { top: "Red Beads", bottom: "Blue Beads", ratio: [3, 4] },
+            { top: "Cost ($)", bottom: "Pounds of Apples", ratio: [2.5, 1] }, // Simple decimal
+            { top: "Liters of Water", bottom: "Lemons", ratio: [1.5, 2] }  // Simple decimal
+        ];
+
+        const friendlyMultipliers = [0, 1, 2, 3, 4, 5, 10, 0.5, 1.5];
+
+        // --- Game Logic Functions ---
+
+        function initGame() {
+            score = 0;
+            updateScoreboard();
+            generateNewProblem();
+        }
+
+        function generateNewProblem() {
+            // 1. Pick a random context/base ratio
+            const context = contexts[Math.floor(Math.random() * contexts.length)];
+            
+            // 2. Pick 4 unique, sorted multipliers to create tick marks
+            let chosenMultipliers = [];
+            // Always include 0 and 1 for grounding
+            chosenMultipliers.push(0);
+            chosenMultipliers.push(1);
+            
+            while(chosenMultipliers.length < 4) {
+                let m = friendlyMultipliers[Math.floor(Math.random() * friendlyMultipliers.length)];
+                if(!chosenMultipliers.includes(m) && m > 0) {
+                    chosenMultipliers.push(m);
+                }
+            }
+            chosenMultipliers.sort((a, b) => a - b);
+
+            // 3. Calculate the data points
+            let points = chosenMultipliers.map(m => {
+                // Calculate value and round to avoid floating point weirdness (e.g., 3 * 0.1 = 0.3000000004)
+                let topVal = Math.round((context.ratio[0] * m) * 100) / 100;
+                let bottomVal = Math.round((context.ratio[1] * m) * 100) / 100;
+                return { m: m, top: topVal, bottom: bottomVal };
+            });
+
+            // 4. Decide which spots are missing. 
+            // We need one missing on top, one on bottom, but NOT at index 0 (the zero mark) and NOT in the same column.
+            let availableIndices = [1, 2, 3]; // Indices excluding 0
+            
+            // Pick index for missing top
+            let missingTopIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+            
+            // Pick index for missing bottom (ensure it's different from top index)
+            let remainingIndices = availableIndices.filter(idx => idx !== missingTopIndex);
+            let missingBottomIndex = remainingIndices[Math.floor(Math.random() * remainingIndices.length)];
+
+            currentProblem = {
+                context: context,
+                points: points,
+                missingTopIdx: missingTopIndex,
+                missingBottomIdx: missingBottomIndex,
+                correctTopAnswer: points[missingTopIndex].top,
+                correctBottomAnswer: points[missingBottomIndex].bottom
+            };
+
+            renderProblem();
+        }
+
+        function renderProblem() {
+            contextLabel.textContent = `Ratio: ${currentProblem.context.top} to ${currentProblem.context.bottom}`;
+            feedbackArea.textContent = "";
+            feedbackArea.className = "feedback-message";
+            checkBtn.disabled = false;
+            dnlArea.innerHTML = ''; // Clear previous
+
+            // --- Create Top Row ---
+            let topRow = document.createElement('div');
+            topRow.className = 'dnl-row';
+            topRow.innerHTML = `<div class="dnl-label">${currentProblem.context.top}</div>`;
+            let topLineCont = document.createElement('div');
+            topLineCont.className = 'dnl-line-container';
+
+            currentProblem.points.forEach((point, index) => {
+                let tickGroup = document.createElement('div');
+                tickGroup.className = 'tick-group';
+                
+                let tickValue = document.createElement('div');
+                tickValue.className = 'tick-value';
+
+                if (index === currentProblem.missingTopIdx) {
+                    // Insert Input Field
+                    let input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'dnl-input';
+                    input.id = 'topInput';
+                    input.placeholder = '?';
+                    // Allow decimals
+                    input.step = "any";
+                    tickValue.appendChild(input);
+                } else {
+                    // Just show number
+                    tickValue.textContent = point.top;
+                }
+
+                tickGroup.appendChild(tickValue);
+                tickGroup.appendChild(document.createElement('div')).className = 'tick-mark';
+                topLineCont.appendChild(tickGroup);
+            });
+            topLineCont.innerHTML += '<div class="dnl-arrow-tip"></div>';
+            topRow.appendChild(topLineCont);
+
+
+            // --- Create Bottom Row ---
+            let bottomRow = document.createElement('div');
+            bottomRow.className = 'dnl-row';
+            bottomRow.innerHTML = `<div class="dnl-label">${currentProblem.context.bottom}</div>`;
+            let bottomLineCont = document.createElement('div');
+            bottomLineCont.className = 'dnl-line-container';
+
+            currentProblem.points.forEach((point, index) => {
+                let tickGroup = document.createElement('div');
+                tickGroup.className = 'tick-group';
+                
+                let tickValue = document.createElement('div');
+                tickValue.className = 'tick-value';
+
+                if (index === currentProblem.missingBottomIdx) {
+                    // Insert Input Field
+                    let input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'dnl-input';
+                    input.id = 'bottomInput';
+                    input.placeholder = '?';
+                    input.step = "any";
+                    tickValue.appendChild(input);
+                } else {
+                    // Just show number
+                    tickValue.textContent = point.bottom;
+                }
+
+                tickGroup.appendChild(tickValue);
+                tickGroup.appendChild(document.createElement('div')).className = 'tick-mark';
+                bottomLineCont.appendChild(tickGroup);
+            });
+            bottomLineCont.innerHTML += '<div class="dnl-arrow-tip"></div>';
+            bottomRow.appendChild(bottomLineCont);
+
+
+            // Add rows to main wrapper
+            dnlArea.appendChild(topRow);
+            dnlArea.appendChild(bottomRow);
+        }
+
+        function checkAnswer() {
+            const topInput = document.getElementById('topInput');
+            const bottomInput = document.getElementById('bottomInput');
+            
+            // Get user values and convert to float (handle empty inputs gracefully)
+            const userTop = parseFloat(topInput.value);
+            const userBottom = parseFloat(bottomInput.value);
+
+            if (isNaN(userTop) || isNaN(userBottom)) {
+                feedbackArea.textContent = "Please fill in both missing numbers!";
+                feedbackArea.className = "feedback-message incorrect";
+                return;
+            }
+
+            // Compare with tolerance for floating point arithmetic safety, though rounding in generation helps
+            const epsilon = 0.001;
+            const topCorrect = Math.abs(userTop - currentProblem.correctTopAnswer) < epsilon;
+            const bottomCorrect = Math.abs(userBottom - currentProblem.correctBottomAnswer) < epsilon;
+
+            checkBtn.disabled = true; // Prevent double submission
+
+            if (topCorrect && bottomCorrect) {
+                // Success!
+                feedbackArea.textContent = "Great Job! That's correct!";
+                feedbackArea.className = "feedback-message correct";
+                score++;
+                updateScoreboard();
+                
+                // Wait 2 seconds then load next problem
+                setTimeout(() => {
+                    generateNewProblem();
+                }, 2000);
+
+            } else {
+                // Incorrect
+                feedbackArea.textContent = "Not quite. Look at the patterns and try again!";
+                feedbackArea.className = "feedback-message incorrect";
+                
+                // Mark incorrect inputs red temporarily
+                if (!topCorrect) topInput.style.borderColor = 'red';
+                if (!bottomCorrect) bottomInput.style.borderColor = 'red';
+
+                // Allow retry after 2 seconds
+                setTimeout(() => {
+                    checkBtn.disabled = false;
+                    feedbackArea.textContent = "";
+                    topInput.style.borderColor = 'var(--accent-color)';
+                    bottomInput.style.borderColor = 'var(--accent-color)';
+                }, 2500);
+            }
+        }
+
+        function updateScoreboard() {
+            scoreDisplay.textContent = score;
+            
+            // Calculate percentage towards the target "LIT" score
+            let percentage = (score / targetScoreForLit) * 100;
+            if (percentage > 100) percentage = 100; // Cap at 100%
+
+            // Move the arrow. 
+            // 0% score = left side. 100% score = right side.
+            progressArrow.style.left = percentage + "%";
+        }
+
+        // Toggle instructions visibility
+        function toggleInstructions() {
+            const inst = document.getElementById('screenshotInst');
+            inst.style.display = inst.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // --- Start Game ---
+        initGame();
+
+    </script>
+</body>
+</html>
