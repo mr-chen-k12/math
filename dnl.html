@@ -12,6 +12,10 @@
             --accent-color: #FF9800; /* Orange */
             --bg-color: #f0f8ff; /* AliceBlue */
             --font-family: 'Arial', sans-serif;
+            --line-thickness: 4px;
+            --tick-height: 20px;
+            --arrow-width: 20px;
+            --arrow-height: 10px; /* Half total height */
         }
 
         body {
@@ -104,7 +108,7 @@
             font-weight: bold;
         }
 
-        /* --- Double Number Line Visualization Styling (CSS Grid based) --- */
+        /* --- Double Number Line Visualization Styling --- */
         .dnl-wrapper {
             display: flex;
             flex-direction: column; /* Stack number lines vertically */
@@ -115,9 +119,10 @@
 
         .dnl-line-group { /* Wrapper for a single number line: label + its grid layout */
             display: flex;
-            align-items: flex-start;
+            align-items: center; /* Center labels vertically with the line itself */
             margin-bottom: 30px; /* Space between the two DNL groups */
             min-width: 600px; /* Ensure enough space for content */
+            height: 110px; /* Fixed height for the entire line, including values and ticks */
         }
 
         .dnl-label {
@@ -126,65 +131,68 @@
             padding-right: 15px;
             font-weight: bold;
             font-size: 1.1em;
-            line-height: 1; /* Reset for grid alignment */
-            padding-top: 5px; /* Align with the top content of its grid */
             flex-shrink: 0;
         }
 
-        .dnl-grid-container { /* This is the specific grid for EACH number line */
+        .dnl-line-elements { /* This is the main container for values, ticks, line, arrow */
             flex-grow: 1;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4 columns for 4 tick positions */
-            grid-template-rows: auto 20px 4px; /* Row 1: Input/Value, Row 2: Tick, Row 3: Horizontal Line */
-            align-items: center; /* Center items vertically within their rows */
-            justify-items: center; /* Center items horizontally within their cells */
+            display: flex; /* Use flexbox to distribute tick groups */
+            justify-content: space-between;
             position: relative;
-            padding-bottom: 15px; /* Space under the line/ticks */
+            height: 100%; /* Take full height of dnl-line-group minus label adjust */
+            padding-right: var(--arrow-width); /* Make space for the arrow */
         }
 
-        /* Specific grid items for the actual number line visuals */
-        .grid-value, .grid-input-wrapper {
-            grid-row: 1; /* First row for values/inputs */
-            min-height: 40px; /* Ensure consistent height */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .grid-tick {
-            grid-row: 2; /* Second row for tick marks */
-            width: 4px;
-            height: 20px;
-            background-color: #333;
-            align-self: start; /* Align to top of its cell */
-            z-index: 1; /* Above the line */
-        }
-
-        .grid-line {
-            grid-row: 3; /* Third row for the horizontal line */
-            grid-column: 1 / -1; /* Span all columns */
-            width: 100%; /* Take full width */
-            height: 4px;
-            background-color: #555;
-            align-self: center; /* Center within its row */
-            position: absolute; /* Position the line absolutely within its container */
-            top: calc(40px + 20px - 2px); /* Calc position: value_row_height + tick_row_height - half_line_height */
+        /* The horizontal line itself (pseudo-element on line-elements) */
+        .dnl-line-elements::before {
+            content: '';
+            position: absolute;
+            bottom: var(--tick-height); /* Position it above the bottom of the ticks */
             left: 0;
+            right: 0;
+            height: var(--line-thickness);
+            background-color: #555;
             z-index: 0;
         }
 
-        .grid-arrow-tip {
+        .dnl-arrow-tip {
             position: absolute;
-            top: calc(40px + 20px - 2px - 8px); /* Align with the line's center, adjust for arrow height */
-            right: -20px; /* Arrow's width */
+            bottom: calc(var(--tick-height) - var(--arrow-height) + (var(--line-thickness) / 2)); /* Align with line center */
+            right: calc(-1 * var(--arrow-width)); /* Position outside the line-elements */
             width: 0;
             height: 0;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-            border-left: 20px solid #555;
+            border-top: var(--arrow-height) solid transparent;
+            border-bottom: var(--arrow-height) solid transparent;
+            border-left: var(--arrow-width) solid #555;
             z-index: 1;
         }
 
+        .tick-group { /* Each tick group contains the value/input and its tick mark */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end; /* Align tick marks and line at the bottom */
+            height: 100%; /* Take full height of dnl-line-elements */
+            position: relative; /* For z-index of tick over line */
+            z-index: 1;
+        }
+
+        .tick-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            min-height: 40px; /* Consistent space for numbers/inputs */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1; /* Allow values to take up available space at the top */
+        }
+
+        .tick-mark {
+            width: var(--line-thickness);
+            height: var(--tick-height);
+            background-color: #333;
+            flex-shrink: 0; /* Don't let it shrink */
+        }
 
         /* --- Inputs and Buttons --- */
         .dnl-input {
@@ -412,24 +420,16 @@
                 dnlGroup.className = 'dnl-line-group';
                 dnlGroup.innerHTML = `<div class="dnl-label">${labelText}</div>`;
                 
-                let gridContainer = document.createElement('div');
-                gridContainer.className = 'dnl-grid-container';
-
-                // Add the static horizontal line and arrow before the individual grid items
-                let lineElement = document.createElement('div');
-                lineElement.className = 'grid-line';
-                gridContainer.appendChild(lineElement);
-
-                let arrowElement = document.createElement('div');
-                arrowElement.className = 'grid-arrow-tip';
-                gridContainer.appendChild(arrowElement);
-
+                let lineElementsContainer = document.createElement('div');
+                lineElementsContainer.className = 'dnl-line-elements';
 
                 points.forEach((point, index) => {
+                    let tickGroup = document.createElement('div');
+                    tickGroup.className = 'tick-group';
+
                     // Value/Input element
-                    let valueCell = document.createElement('div');
-                    valueCell.className = 'grid-value';
-                    valueCell.style.gridColumn = (index + 1); // Assign to its column
+                    let tickValue = document.createElement('div');
+                    tickValue.className = 'tick-value';
 
                     if (index === missingIndex) {
                         let input = document.createElement('input');
@@ -438,20 +438,26 @@
                         input.id = isTopLine ? 'topInput' : 'bottomInput';
                         input.placeholder = '?';
                         input.step = "any"; // Allow decimals
-                        valueCell.appendChild(input);
+                        tickValue.appendChild(input);
                     } else {
-                        valueCell.textContent = isTopLine ? point.top : point.bottom;
+                        tickValue.textContent = isTopLine ? point.top : point.bottom;
                     }
-                    gridContainer.appendChild(valueCell);
+                    tickGroup.appendChild(tickValue);
 
                     // Tick mark element
-                    let tickCell = document.createElement('div');
-                    tickCell.className = 'grid-tick';
-                    tickCell.style.gridColumn = (index + 1); // Assign to its column
-                    gridContainer.appendChild(tickCell);
+                    let tickMark = document.createElement('div');
+                    tickMark.className = 'tick-mark';
+                    tickGroup.appendChild(tickMark);
+
+                    lineElementsContainer.appendChild(tickGroup);
                 });
                 
-                dnlGroup.appendChild(gridContainer);
+                // Add the arrow to the end of the line elements container
+                let arrowElement = document.createElement('div');
+                arrowElement.className = 'dnl-arrow-tip';
+                lineElementsContainer.appendChild(arrowElement);
+
+                dnlGroup.appendChild(lineElementsContainer);
                 return dnlGroup;
             }
 
