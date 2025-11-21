@@ -11,7 +11,7 @@
             --secondary-color: #2196F3; /* Blue */
             --accent-color: #FF9800; /* Orange */
             --bg-color: #f0f8ff; /* AliceBlue */
-            --font-family: 'Comic Neue', cursive, sans-serif;
+            --font-family: 'Arial', sans-serif; /* Changed to Arial for readability */
         }
 
         body {
@@ -106,40 +106,42 @@
         /* --- Double Number Line Visualization Styling --- */
         .dnl-wrapper {
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Stack number lines vertically */
             margin-bottom: 30px;
             overflow-x: auto; /* Allow scrolling on small screens */
-            padding: 20px 0;
+            padding: 0 0 20px 0; /* Adjust padding */
         }
 
-        .dnl-row {
+        .dnl-line-row { /* New container for each number line */
+            margin-bottom: 30px; /* Space between the two number lines */
             display: flex;
-            align-items: center;
-            position: relative;
-            height: 70px;
+            align-items: flex-start; /* Align label and line */
         }
 
         .dnl-label {
-            width: 150px;
+            width: 150px; /* Fixed width for labels */
             text-align: right;
             padding-right: 15px;
             font-weight: bold;
+            font-size: 1.1em;
+            line-height: 80px; /* Vertically center with line */
             flex-shrink: 0;
         }
 
-        .dnl-line-container {
-            display: flex;
+        .dnl-line-elements { /* Contains the values, line, ticks, and arrow */
             flex-grow: 1;
             position: relative;
-            align-items: flex-start; /* Align tick marks to the top line */
-            padding-top: 20px; /* Space for numbers above line */
+            display: flex;
+            justify-content: space-between; /* Distribute tick groups */
+            align-items: flex-start; /* Align numbers/inputs at the top */
+            min-width: 500px; /* Ensure enough space for ticks */
         }
 
         /* The horizontal line itself */
-        .dnl-line-container::after {
+        .dnl-line-elements::after {
             content: '';
             position: absolute;
-            top: 20px; /* Aligns with tick top */
+            top: 70px; /* Position below numbers, above ticks */
             left: 0;
             right: 20px; /* Stop before the arrow */
             height: 4px;
@@ -150,7 +152,7 @@
         .dnl-arrow-tip {
              position: absolute;
              right: 0;
-             top: 12px;
+             top: 62px; /* Align with the main line */
              width: 0; 
              height: 0; 
              border-top: 10px solid transparent;
@@ -159,28 +161,29 @@
         }
 
         .tick-group {
-            flex: 1;
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 1;
+            z-index: 1; /* Above the horizontal line */
+            height: 100px; /* Give enough height for number, line, tick */
+        }
+
+        .tick-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            min-height: 35px; /* Space for numbers */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px; /* Space between number and line */
         }
 
         .tick-mark {
             width: 4px;
             height: 20px;
             background-color: #333;
-            margin-bottom: 5px;
-        }
-
-        .tick-value {
-            font-size: 1.2em;
-            font-weight: bold;
-            min-height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin-top: 0; /* No margin here, as value is above */
         }
 
         /* --- Inputs and Buttons --- */
@@ -260,8 +263,6 @@
             font-size: 0.9em;
         }
 
-        /* Import a fun font */
-        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
     </style>
 </head>
 <body>
@@ -339,7 +340,7 @@
             { top: "Liters of Water", bottom: "Lemons", ratio: [1.5, 2] }  // Simple decimal
         ];
 
-        const friendlyMultipliers = [0, 1, 2, 3, 4, 5, 10, 0.5, 1.5];
+        const friendlyMultipliers = [0, 1, 2, 3, 4, 5, 10, 0.5, 1.5]; // Ensure 0 is always there for the start
 
         // --- Game Logic Functions ---
 
@@ -354,21 +355,19 @@
             const context = contexts[Math.floor(Math.random() * contexts.length)];
             
             // 2. Pick 4 unique, sorted multipliers to create tick marks
-            let chosenMultipliers = [];
-            // Always include 0 and 1 for grounding
-            chosenMultipliers.push(0);
-            chosenMultipliers.push(1);
+            let chosenMultipliers = new Set();
+            chosenMultipliers.add(0); // Always start with 0
             
-            while(chosenMultipliers.length < 4) {
+            while(chosenMultipliers.size < 4) {
                 let m = friendlyMultipliers[Math.floor(Math.random() * friendlyMultipliers.length)];
-                if(!chosenMultipliers.includes(m) && m > 0) {
-                    chosenMultipliers.push(m);
+                if (m > 0 || (m === 0 && !chosenMultipliers.has(0))) { // Ensure 0 is added only once if not already there
+                    chosenMultipliers.add(m);
                 }
             }
-            chosenMultipliers.sort((a, b) => a - b);
+            let sortedMultipliers = Array.from(chosenMultipliers).sort((a, b) => a - b);
 
             // 3. Calculate the data points
-            let points = chosenMultipliers.map(m => {
+            let points = sortedMultipliers.map(m => {
                 // Calculate value and round to avoid floating point weirdness (e.g., 3 * 0.1 = 0.3000000004)
                 let topVal = Math.round((context.ratio[0] * m) * 100) / 100;
                 let bottomVal = Math.round((context.ratio[1] * m) * 100) / 100;
@@ -377,7 +376,7 @@
 
             // 4. Decide which spots are missing. 
             // We need one missing on top, one on bottom, but NOT at index 0 (the zero mark) and NOT in the same column.
-            let availableIndices = [1, 2, 3]; // Indices excluding 0
+            let availableIndices = [1, 2, 3]; // Indices excluding 0 (assuming 4 points total, 0, 1, 2, 3)
             
             // Pick index for missing top
             let missingTopIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
@@ -405,12 +404,13 @@
             checkBtn.disabled = false;
             dnlArea.innerHTML = ''; // Clear previous
 
-            // --- Create Top Row ---
-            let topRow = document.createElement('div');
-            topRow.className = 'dnl-row';
-            topRow.innerHTML = `<div class="dnl-label">${currentProblem.context.top}</div>`;
-            let topLineCont = document.createElement('div');
-            topLineCont.className = 'dnl-line-container';
+            // --- Create Top Number Line ---
+            let topDnlRow = document.createElement('div');
+            topDnlRow.className = 'dnl-line-row';
+            topDnlRow.innerHTML = `<div class="dnl-label">${currentProblem.context.top}</div>`;
+            
+            let topLineElements = document.createElement('div');
+            topLineElements.className = 'dnl-line-elements';
 
             currentProblem.points.forEach((point, index) => {
                 let tickGroup = document.createElement('div');
@@ -420,34 +420,33 @@
                 tickValue.className = 'tick-value';
 
                 if (index === currentProblem.missingTopIdx) {
-                    // Insert Input Field
                     let input = document.createElement('input');
                     input.type = 'number';
                     input.className = 'dnl-input';
                     input.id = 'topInput';
                     input.placeholder = '?';
-                    // Allow decimals
-                    input.step = "any";
+                    input.step = "any"; // Allow decimals
                     tickValue.appendChild(input);
                 } else {
-                    // Just show number
                     tickValue.textContent = point.top;
                 }
 
                 tickGroup.appendChild(tickValue);
                 tickGroup.appendChild(document.createElement('div')).className = 'tick-mark';
-                topLineCont.appendChild(tickGroup);
+                topLineElements.appendChild(tickGroup);
             });
-            topLineCont.innerHTML += '<div class="dnl-arrow-tip"></div>';
-            topRow.appendChild(topLineCont);
+            topLineElements.innerHTML += '<div class="dnl-arrow-tip"></div>';
+            topDnlRow.appendChild(topLineElements);
+            dnlArea.appendChild(topDnlRow); // Add top line to wrapper
 
 
-            // --- Create Bottom Row ---
-            let bottomRow = document.createElement('div');
-            bottomRow.className = 'dnl-row';
-            bottomRow.innerHTML = `<div class="dnl-label">${currentProblem.context.bottom}</div>`;
-            let bottomLineCont = document.createElement('div');
-            bottomLineCont.className = 'dnl-line-container';
+            // --- Create Bottom Number Line ---
+            let bottomDnlRow = document.createElement('div');
+            bottomDnlRow.className = 'dnl-line-row';
+            bottomDnlRow.innerHTML = `<div class="dnl-label">${currentProblem.context.bottom}</div>`;
+            
+            let bottomLineElements = document.createElement('div');
+            bottomLineElements.className = 'dnl-line-elements';
 
             currentProblem.points.forEach((point, index) => {
                 let tickGroup = document.createElement('div');
@@ -457,30 +456,24 @@
                 tickValue.className = 'tick-value';
 
                 if (index === currentProblem.missingBottomIdx) {
-                    // Insert Input Field
                     let input = document.createElement('input');
                     input.type = 'number';
                     input.className = 'dnl-input';
                     input.id = 'bottomInput';
                     input.placeholder = '?';
-                    input.step = "any";
+                    input.step = "any"; // Allow decimals
                     tickValue.appendChild(input);
                 } else {
-                    // Just show number
                     tickValue.textContent = point.bottom;
                 }
 
                 tickGroup.appendChild(tickValue);
                 tickGroup.appendChild(document.createElement('div')).className = 'tick-mark';
-                bottomLineCont.appendChild(tickGroup);
+                bottomLineElements.appendChild(tickGroup);
             });
-            bottomLineCont.innerHTML += '<div class="dnl-arrow-tip"></div>';
-            bottomRow.appendChild(bottomLineCont);
-
-
-            // Add rows to main wrapper
-            dnlArea.appendChild(topRow);
-            dnlArea.appendChild(bottomRow);
+            bottomLineElements.innerHTML += '<div class="dnl-arrow-tip"></div>';
+            bottomDnlRow.appendChild(bottomLineElements);
+            dnlArea.appendChild(bottomDnlRow); // Add bottom line to wrapper
         }
 
         function checkAnswer() {
@@ -498,7 +491,7 @@
             }
 
             // Compare with tolerance for floating point arithmetic safety, though rounding in generation helps
-            const epsilon = 0.001;
+            const epsilon = 0.001; // Small tolerance for decimals
             const topCorrect = Math.abs(userTop - currentProblem.correctTopAnswer) < epsilon;
             const bottomCorrect = Math.abs(userBottom - currentProblem.correctBottomAnswer) < epsilon;
 
@@ -525,7 +518,7 @@
                 if (!topCorrect) topInput.style.borderColor = 'red';
                 if (!bottomCorrect) bottomInput.style.borderColor = 'red';
 
-                // Allow retry after 2 seconds
+                // Allow retry after 2.5 seconds
                 setTimeout(() => {
                     checkBtn.disabled = false;
                     feedbackArea.textContent = "";
