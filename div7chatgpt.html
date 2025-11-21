@@ -1,72 +1,102 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Decimal Division Practice — 6th Grade</title>
-
-<!-- MathJax for LaTeX rendering -->
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
+<meta charset="UTF-8" />
+<title>Decimal Division – 6th Grade Worksheet</title>
 <style>
   :root {
-    --border: #444;
+    --border: #333;
   }
 
   body {
     margin: 0;
-    padding: 20px;
-    font-family: "Segoe UI", sans-serif;
+    padding: 24px;
+    font-family: "Segoe UI", system-ui, sans-serif;
   }
 
   h1 {
     text-align: center;
-    margin-bottom: 0.5rem;
+    margin: 0;
   }
 
+  .subtitle {
+    text-align: center;
+    margin-top: 6px;
+    font-size: 0.9rem;
+  }
+
+  .controls {
+    text-align: center;
+    margin-top: 16px;
+  }
+
+  button {
+    padding: 8px 18px;
+    margin: 0 4px;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  /* Problem grid: 2 rows x 3 columns */
   .problem-grid {
+    margin-top: 24px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 25px;
-    margin-top: 30px;
-    padding: 20px;
+    gap: 20px;
   }
 
   .problem-box {
     border: 2px solid var(--border);
-    padding: 20px;
-    height: 300px;
-    font-size: 1.7rem;
-    text-align: center;
+    border-radius: 6px;
+    padding: 16px;
+    min-height: 260px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
+    font-size: 1.8rem;
   }
 
-  .btn-container {
+  .problem-label {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
+
+  .problem-expression {
     text-align: center;
     margin-top: 20px;
   }
 
-  button {
-    padding: 10px 22px;
-    font-size: 1rem;
-    margin: 5px;
-    cursor: pointer;
+  .workspace {
+    margin-top: 20px;
+    border-top: 1px dashed #aaa;
+    flex-grow: 1;
   }
 
-  #solutionPage {
-    margin-top: 40px;
+  .workspace-lines {
+    margin-top: 10px;
+    height: 140px;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
+    background-size: 100% 20px;
+  }
+
+  /* Solutions section */
+  #solutionsSection {
+    margin-top: 36px;
     border-top: 3px solid black;
     padding-top: 20px;
+    display: none; /* hidden by default */
   }
 
-  .solution {
-    margin-bottom: 25px;
-    font-size: 1.3rem;
+  .solution-item {
+    margin-bottom: 18px;
+    font-size: 1rem;
+    font-family: "Consolas", "Courier New", monospace;
+    white-space: pre-wrap; /* preserve formatting */
   }
 
-  /* Print settings */
   @page {
     size: 8.5in 11in;
     margin: 0.7in;
@@ -75,73 +105,163 @@
 </head>
 <body>
 
-<h1>6th Grade Decimal Division Practice</h1>
+<h1>Decimal Division Practice</h1>
+<div class="subtitle">Name: _________________________ &nbsp;&nbsp;&nbsp; Date: _____________</div>
 
-<div class="btn-container">
+<div class="controls">
   <button onclick="generateProblems()">Generate New Problems</button>
   <button onclick="toggleSolutions()">Show / Hide Solutions</button>
 </div>
 
-<div class="problem-grid" id="problemGrid"></div>
+<div id="problemGrid" class="problem-grid"></div>
 
-<div id="solutionPage" style="display:none;">
-  <h1>Solutions</h1>
+<div id="solutionsSection">
+  <h2>Answer Key</h2>
   <div id="solutions"></div>
 </div>
 
 <script>
-let problems = [];
+/*
+  We’ll generate problems like:
+    dividend (with 1 or 2 decimal places) ÷ divisor (whole number or 1 decimal)
 
-function randomDecimalDivision() {
-  const divisor = (Math.random() * 9 + 1).toFixed(1);
-  const quotient = (Math.random() * 9 + 1).toFixed(2);
-  const dividend = (divisor * quotient).toFixed(2);
-  return { dividend, divisor, quotient };
+  We construct them so the quotient is “nice” (1 or 2 decimal places),
+  by starting with an integer quotient and scaling.
+*/
+
+let currentProblems = [];
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Create one “clean” decimal division problem
+function createDecimalDivisionProblem() {
+  // Choose a base integer divisor and quotient
+  const baseDivisor = randomInt(2, 12);     // 2–12
+  const baseQuotient = randomInt(2, 40);    // 2–40
+
+  // Choose how many decimal places we want in the dividend (1 or 2)
+  const decimalPlaces = randomInt(1, 2);    // 1 or 2
+  const scale = Math.pow(10, decimalPlaces);
+
+  // Build dividend as decimal
+  const integerDividend = baseDivisor * baseQuotient; // exact integer division
+  const decimalDividend = (integerDividend / scale).toFixed(decimalPlaces);
+
+  // Decide if divisor should be a decimal or a whole
+  const divisorIsDecimal = Math.random() < 0.5; // 50% chance
+
+  let divisor, displayedDividend, displayedDivisor;
+
+  if (!divisorIsDecimal) {
+    // Whole-number divisor; dividend is decimal
+    divisor = baseDivisor;
+    displayedDividend = decimalDividend;
+    displayedDivisor = divisor.toString();
+  } else {
+    // Make both numbers decimals but keep quotient nice:
+    // e.g., 73.5 ÷ 2.5 = 29.4 (we can scale both)
+    const extraScale = 10; // shift 1 more decimal place
+    divisor = (baseDivisor / 10).toFixed(1); // one decimal place
+    const dividendScaled = (integerDividend / extraScale).toFixed(1);
+    displayedDividend = dividendScaled;
+    displayedDivisor = divisor;
+  }
+
+  // Compute actual quotient numerically and trim to 2 decimal places
+  const quotientValue = (parseFloat(displayedDividend) / parseFloat(displayedDivisor));
+  const quotient = quotientValue.toFixed(2); // nice for key
+
+  return {
+    dividend: displayedDividend,
+    divisor: displayedDivisor,
+    quotient: quotient
+  };
 }
 
 function generateProblems() {
   const grid = document.getElementById("problemGrid");
-  const solBox = document.getElementById("solutions");
+  const solutionsDiv = document.getElementById("solutions");
 
   grid.innerHTML = "";
-  solBox.innerHTML = "";
-  problems = [];
+  solutionsDiv.innerHTML = "";
+  currentProblems = [];
 
   for (let i = 0; i < 6; i++) {
-    let p = randomDecimalDivision();
-    problems.push(p);
+    const p = createDecimalDivisionProblem();
+    currentProblems.push(p);
 
-    grid.innerHTML += `
+    // Add problem box
+    const problemHTML = `
       <div class="problem-box">
-        ${p.dividend} ÷ ${p.divisor} = ______
+        <div class="problem-label">Problem ${i + 1}</div>
+        <div class="problem-expression">
+          ${p.dividend} ÷ ${p.divisor} = ______
+        </div>
+        <div class="workspace">
+          <div class="workspace-lines"></div>
+        </div>
       </div>
     `;
+    grid.insertAdjacentHTML("beforeend", problemHTML);
 
-    solBox.innerHTML += `
-      <div class="solution">
-        <b>Problem ${i+1}:</b><br>
-        \$begin:math:display$
-        \$\{p\.dividend\} \\\\div \$\{p\.divisor\} \= \$\{p\.quotient\}
-        \\$end:math:display$
-        <br>
-        Long division:<br>
-        \$begin:math:display$
-        \\\\require\{enclose\}
-        \\\\begin\{array\}\{r\}
-        \\\\enclose\{longdiv\}\{\$\{p\.dividend\}\} \\\\\, \$\{p\.divisor\}
-        \\\\end\{array\}
-        \\$end:math:display$
-      </div>
+    // Build solution text with a simple “remove decimals” explanation
+    const solutionText = buildSolutionExplanation(i + 1, p);
+    const solutionItemHTML = `
+      <div class="solution-item">${solutionText}</div>
     `;
+    solutionsDiv.insertAdjacentHTML("beforeend", solutionItemHTML);
+  }
+}
+
+function buildSolutionExplanation(index, prob) {
+  const dividend = prob.dividend;
+  const divisor = prob.divisor;
+  const quotient = prob.quotient;
+
+  const decPlacesDividend = countDecimals(dividend);
+  const decPlacesDivisor = countDecimals(divisor);
+  const maxDecPlaces = Math.max(decPlacesDividend, decPlacesDivisor);
+  const scale = Math.pow(10, maxDecPlaces);
+
+  const scaledDividend = Math.round(parseFloat(dividend) * scale);
+  const scaledDivisor = Math.round(parseFloat(divisor) * scale);
+
+  let explanation = "";
+
+  explanation += `Problem ${index}\n`;
+  explanation += `  Original:   ${dividend} ÷ ${divisor}\n`;
+
+  if (maxDecPlaces > 0) {
+    explanation += `  Step 1: Move the decimal point ${maxDecPlaces} place(s) in both numbers\n`;
+    explanation += `          so we can divide whole numbers instead.\n`;
+    explanation += `          This gives: ${scaledDividend} ÷ ${scaledDivisor}\n`;
+  } else {
+    explanation += `  Step 1: Both numbers are whole, so divide normally.\n`;
+    explanation += `          ${scaledDividend} ÷ ${scaledDivisor}\n`;
   }
 
-  MathJax.typeset();
+  explanation += `  Step 2: Divide to find the quotient.\n`;
+  explanation += `          ${dividend} ÷ ${divisor} = ${quotient}\n`;
+  explanation += `  (Students can check this on a calculator.)`;
+
+  return explanation;
+}
+
+function countDecimals(strNumber) {
+  const s = String(strNumber);
+  if (!s.includes(".")) return 0;
+  return s.length - s.indexOf(".") - 1;
 }
 
 function toggleSolutions() {
-  const sol = document.getElementById("solutionPage");
-  sol.style.display = sol.style.display === "none" ? "block" : "none";
+  const section = document.getElementById("solutionsSection");
+  section.style.display = section.style.display === "none" ? "block" : "none";
 }
+
+// Generate an initial set on load
+generateProblems();
 </script>
 
 </body>
