@@ -149,7 +149,7 @@
             content: '';
             grid-column: 1 / -1; /* Span all columns */
             grid-row: 2; /* Position in the second row */
-            width: calc(100% - 20px); /* Adjust for arrow tip */
+            width: 100%; /* Take full width of the grid container */
             height: 4px;
             background-color: #555;
             align-self: center; /* Vertically center in its row */
@@ -158,8 +158,9 @@
         
         .dnl-arrow-tip {
              position: absolute;
-             right: 0;
-             top: 45px; /* Adjust to align with grid row 2 line */
+             /* Position at the very end of the line, adjusted for its own width */
+             right: -20px; /* Adjust based on arrow's own width (20px) */
+             top: 45px; /* Aligns with the middle of grid row 2 line (10px height + 40px offset) */
              width: 0; 
              height: 0; 
              border-top: 10px solid transparent;
