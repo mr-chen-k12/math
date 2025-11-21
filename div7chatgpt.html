@@ -1,207 +1,456 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Decimal Division Studio – Kid Friendly</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<title>Decimal Division Studio</title>
 <style>
-    body {
-        font-family: "Comic Sans MS", "Segoe UI", sans-serif;
-        background: #fafafa;
-        margin: 0;
-        padding: 20px;
-        text-align: center;
-    }
+  :root {
+    --blue: #2b74ff;
+    --green: #23a45a;
+    --gray: #6c757d;
+    --bg: #f3f6fb;
+    --card: #ffffff;
+    --accent: #ffe8b3;
+    --error: #e74c3c;
+  }
 
-    h1 { margin-top: 10px; }
+  * {
+    box-sizing: border-box;
+  }
 
-    #problemBox {
-        font-size: 2rem;
-        background: #eef;
-        padding: 15px;
-        border-radius: 10px;
-        margin-top: 20px;
-    }
+  body {
+    margin: 0;
+    padding: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+  }
 
-    .btn {
-        padding: 10px 20px;
-        border: none;
-        color: white;
-        border-radius: 8px;
-        margin: 8px;
-        font-size: 1rem;
-    }
-    .blue { background: #3b82f6; }
-    .gray { background: #6b7280; }
-    .green { background: #10b981; }
+  .app {
+    width: 100%;
+    max-width: 820px;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px 18px 24px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
 
-    #stepBox {
-        max-width: 420px;
-        margin: 20px auto;
-        background: #fff8dc;
-        padding: 15px;
-        border-radius: 10px;
-        font-size: 1.1rem;
-        display: none;
-    }
+  h1 {
+    margin: 0 0 4px;
+    text-align: center;
+    font-size: 1.7rem;
+  }
 
-    /* Long division visual */
-    #work {
-        margin-top: 25px;
-        font-size: 1.4rem;
-        text-align: left;
-        display: inline-block;
-        line-height: 1.6;
-        white-space: pre;
-        font-family: monospace;
-    }
+  .subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 14px;
+  }
 
-    .hiddenStep {
-        opacity: 0.15;
-        transition: 0.2s;
-    }
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
 
-    .visibleStep {
-        opacity: 1;
+  button {
+    border-radius: 999px;
+    border: none;
+    padding: 9px 20px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: #fff;
+    transition: transform 0.07s ease, box-shadow 0.07s ease, opacity 0.15s;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  }
+
+  button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    opacity: 0.9;
+  }
+
+  .btn-primary   { background: var(--blue); }
+  .btn-secondary { background: var(--gray); }
+  .btn-check     { background: var(--green); }
+
+  .problem-card {
+    background: #eef2ff;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .problem-text {
+    font-size: 2.1rem;
+    font-weight: 600;
+  }
+
+  .answer-row {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .answer-row label {
+    font-size: 0.95rem;
+  }
+
+  .answer-row input {
+    width: 120px;
+    padding: 8px 10px;
+    font-size: 1.1rem;
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid #aaa;
+  }
+
+  .feedback {
+    text-align: center;
+    margin-top: 8px;
+    min-height: 1.3rem;
+    font-weight: 600;
+  }
+
+  .feedback.ok {
+    color: var(--green);
+  }
+
+  .feedback.bad {
+    color: var(--error);
+  }
+
+  .helper-card {
+    margin-top: 18px;
+    background: #fff8df;
+    border-radius: 12px;
+    padding: 14px 14px 16px;
+    border: 1px solid #f1d28b;
+    display: none; /* toggled on/off in JS */
+  }
+
+  .helper-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .step-text {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+
+  .step-number {
+    font-weight: 700;
+    color: #b06b00;
+  }
+
+  .long-division-block {
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid #ddd;
+  }
+
+  .mono {
+    font-family: "SF Mono", "Consolas", "Courier New", monospace;
+    white-space: pre;
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .hint {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 600px) {
+    .problem-text {
+      font-size: 1.7rem;
     }
+    .app {
+      padding: 16px 12px 20px;
+    }
+  }
 </style>
 </head>
 <body>
 
-<h1>Decimal Division Studio</h1>
+<div class="app">
+  <h1>Decimal Division Studio</h1>
+  <div class="subtitle">Practice long division with decimals, step by step.</div>
 
-<button class="btn blue" onclick="newProblem()">New Problem</button>
-<button class="btn gray" onclick="toggleHelper()">Toggle Helper</button>
-<button class="btn green" onclick="revealNext()">Reveal Next Step</button>
+  <div class="btn-row">
+    <button class="btn-primary"   id="newProblemBtn">New Problem</button>
+    <button class="btn-secondary" id="toggleHelperBtn">Toggle Helper</button>
+    <button class="btn-check"     id="checkAnswerBtn">Check Answer</button>
+  </div>
 
-<div id="problemBox"></div>
+  <div class="problem-card">
+    <div class="problem-text" id="problemDisplay">0.0 ÷ 0 = ?</div>
+    <div class="answer-row">
+      <label for="answerInput">Your answer:</label>
+      <input id="answerInput" type="text" autocomplete="off" />
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
 
-<div id="stepBox"></div>
-
-<div id="work"></div>
+  <div class="helper-card" id="helperCard">
+    <div class="helper-title">Long Division Helper</div>
+    <div class="step-text" id="helperExplanation"></div>
+    <div class="long-division-block mono" id="longDivisionSteps"></div>
+    <div class="hint">
+      Try doing each step on your paper as you follow along.  
+      When you’re done, check your answer with the green button.
+    </div>
+  </div>
+</div>
 
 <script>
-let dividend, divisor, quotient;
-let currentStep = 0;
-let steps = [];
+/*
+  We generate problems of the form:
+     (decimal dividend) ÷ (whole number divisor)
+  Example: 4.8 ÷ 4, 37.2 ÷ 6, 5.25 ÷ 3, etc.
+*/
 
-function newProblem() {
-    // Generate clean decimal problem like 4.45 ÷ 0.4
-    let a = (Math.random() * 9 + 1).toFixed(2);
-    let b = (Math.random() * 0.9 + 0.1).toFixed(1);
+let currentProblem = null;
 
-    dividend = a;
-    divisor = b;
-    quotient = (a / b).toFixed(3);
-
-    document.getElementById("problemBox").innerHTML = `${a} ÷ ${b} = ?`;
-
-    buildSteps();
-    renderSteps();
+// Utility: count decimal places
+function countDecimals(numStr) {
+  const s = String(numStr);
+  const dot = s.indexOf(".");
+  return dot === -1 ? 0 : s.length - dot - 1;
 }
 
+// Pad left with spaces for vertical alignment
+function padLeft(str, width) {
+  str = String(str);
+  if (str.length >= width) return str;
+  return " ".repeat(width - str.length) + str;
+}
+
+// Build a student-friendly long-division text block for integers N ÷ D
+function buildLongDivisionSteps(N, D) {
+  const digits = String(N).split("").map(d => parseInt(d,10));
+  let remainder = 0;
+  let started = false;
+  const steps = [];
+  let quotientDigits = [];
+
+  for (let i = 0; i < digits.length; i++) {
+    remainder = remainder * 10 + digits[i];
+    let qDigit = 0;
+    if (remainder >= D || started) {
+      qDigit = Math.floor(remainder / D);
+      started = true;
+    }
+    const product = qDigit * D;
+    const newRemainder = remainder - product;
+    quotientDigits.push(qDigit);
+
+    steps.push({
+      index: i,
+      partialDividend: remainder,
+      qDigit,
+      product,
+      remainder: newRemainder
+    });
+
+    remainder = newRemainder;
+  }
+
+  // Format nicely
+  const width = Math.max(
+    String(N).length,
+    String(D).length + 2,  // for "D )"
+    6
+  );
+
+  let out = "";
+
+  // Header: show "D ) N"
+  out += "We now divide the whole numbers:\n\n";
+  out += "  " + padLeft(D + " ) " + N, width + 3) + "\n\n";
+
+  steps.forEach((s, idx) => {
+    if (s.qDigit === 0 && s.partialDividend < D && idx !== digits.length-1) {
+      // skip silent zero steps in the middle to avoid confusion
+      return;
+    }
+    const stepNum = idx + 1;
+    out += "Step " + stepNum + ":\n";
+    out += "  Bring down next digit → " + s.partialDividend + "\n";
+    if (s.qDigit === 0) {
+      out += "  " + s.partialDividend + " is smaller than " + D +
+             ", so the next quotient digit is 0.\n\n";
+      return;
+    }
+
+    const top    = padLeft(s.partialDividend, width);
+    const bottom = padLeft(s.product, width);
+    const line   = "-".repeat(width);
+    const rem    = padLeft(s.remainder, width);
+
+    out += "  " + top + "\n";
+    out += "  " + ("-" + bottom.slice(1)) + "\n"; // add minus sign roughly aligned
+    out += "  " + line + "\n";
+    out += "  " + rem + "  (remainder)\n\n";
+  });
+
+  return out;
+}
+
+// Create one clean decimal-division problem
+function generateProblem() {
+  // whole-number divisor between 2 and 12
+  const divisor = Math.floor(Math.random() * 11) + 2; // 2–12
+
+  // decide quotient type
+  const quotientType = Math.random() < 0.5 ? "integer" : "oneDecimal";
+
+  let quotient;
+  if (quotientType === "integer") {
+    quotient = Math.floor(Math.random() * 18) + 2; // 2–19
+  } else {
+    const base = Math.floor(Math.random() * 18) + 2; // 2–19
+    quotient = base / 10; // one decimal place
+  }
+
+  const rawDividend = divisor * quotient;
+  // keep up to 2 decimal places
+  const dividend = parseFloat(rawDividend.toFixed(2));
+
+  const dividendStr = dividend.toString();
+  const decPlacesDividend = countDecimals(dividendStr);
+  const scale = Math.pow(10, decPlacesDividend);
+  const integerDividend = Math.round(dividend * scale);
+
+  const integerQuotient = integerDividend / divisor; // exact (if we chose nicely)
+  const finalQuotient = integerQuotient / scale;
+
+  currentProblem = {
+    dividend,
+    divisor,
+    decPlacesDividend,
+    scale,
+    integerDividend,
+    integerQuotient,
+    finalQuotient
+  };
+
+  // Update UI
+  document.getElementById("problemDisplay").textContent =
+    dividend.toFixed(decPlacesDividend) + " ÷ " + divisor + " = ?";
+  document.getElementById("answerInput").value = "";
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+
+  // Build helper text but keep card hidden until toggled
+  buildHelper();
+}
+
+// Build the helper card content (but don't show/hide here)
+function buildHelper() {
+  if (!currentProblem) return;
+
+  const {
+    dividend,
+    divisor,
+    decPlacesDividend,
+    scale,
+    integerDividend,
+    integerQuotient,
+    finalQuotient
+  } = currentProblem;
+
+  const explanationEl = document.getElementById("helperExplanation");
+  const stepsEl = document.getElementById("longDivisionSteps");
+
+  let exp = "";
+
+  if (decPlacesDividend === 0) {
+    exp += "<span class='step-number'>Step 1:</span> "
+         + "Both numbers are whole, so we can divide normally.\n";
+  } else if (decPlacesDividend === 1) {
+    exp += "<span class='step-number'>Step 1:</span> "
+         + "Think of " + dividend.toFixed(1) + " as " + integerDividend
+         + " tenths. So we divide " + integerDividend + " ÷ " + divisor
+         + " and then put the decimal back 1 place.\n";
+  } else {
+    exp += "<span class='step-number'>Step 1:</span> "
+         + "Think of " + dividend.toFixed(decPlacesDividend) + " as "
+         + integerDividend + " hundredths (or thousandths). "
+         + "We divide " + integerDividend + " ÷ " + divisor
+         + " and then put the decimal back " + decPlacesDividend + " place(s).\n";
+  }
+
+  exp += "<br><br><span class='step-number'>Step 2:</span> "
+       + "Use long division on the whole numbers.<br>";
+
+  explanationEl.innerHTML = exp;
+
+  const longDivText = buildLongDivisionSteps(integerDividend, divisor);
+  const extraLine = "\nFinal whole-number answer: " + integerQuotient +
+                    "\nPut the decimal back " + decPlacesDividend +
+                    " place(s): " + finalQuotient.toFixed(decPlacesDividend);
+  stepsEl.textContent = longDivText + extraLine;
+}
+
+// Check student answer
+function checkAnswer() {
+  if (!currentProblem) return;
+  const inp = document.getElementById("answerInput");
+  const feedback = document.getElementById("feedback");
+
+  const studentStr = inp.value.trim();
+  if (studentStr === "") {
+    feedback.textContent = "Type an answer first 🙂";
+    feedback.className = "feedback bad";
+    return;
+  }
+
+  const studentVal = Number(studentStr.replace(",", ""));
+  if (Number.isNaN(studentVal)) {
+    feedback.textContent = "That doesn’t look like a number. Try again.";
+    feedback.className = "feedback bad";
+    return;
+  }
+
+  const correct = currentProblem.finalQuotient;
+  const diff = Math.abs(studentVal - correct);
+
+  if (diff < 0.001) {
+    feedback.textContent = "Nice work! ✅ Your answer is correct.";
+    feedback.className = "feedback ok";
+  } else {
+    feedback.textContent =
+      "Not quite yet. ❌ The correct answer is " + correct.toFixed(currentProblem.decPlacesDividend) + ".";
+    feedback.className = "feedback bad";
+  }
+}
+
+// Toggle helper visibility
 function toggleHelper() {
-    let box = document.getElementById("stepBox");
-    box.style.display = (box.style.display === "none") ? "block" : "none";
+  const card = document.getElementById("helperCard");
+  card.style.display = (card.style.display === "none" || card.style.display === "") ?
+                       "block" : "none";
 }
 
-function buildSteps() {
-    currentStep = 0;
-    steps = [];
+// Hook up buttons
+document.getElementById("newProblemBtn").addEventListener("click", generateProblem);
+document.getElementById("checkAnswerBtn").addEventListener("click", checkAnswer);
+document.getElementById("toggleHelperBtn").addEventListener("click", toggleHelper);
 
-    // Determine how many decimal places to move
-    let move = divisor.split(".")[1].length;
-
-    let scaledDividend = (parseFloat(dividend) * Math.pow(10, move)).toFixed(0);
-    let scaledDivisor = (parseFloat(divisor) * Math.pow(10, move)).toFixed(0);
-
-    // Step 1: Move the decimal
-    steps.push({
-        text: `Step 1: Move the decimal ${move} place to the right on both numbers.\n`
-            + `(${dividend} ÷ ${divisor} → ${scaledDividend} ÷ ${scaledDivisor})`
-    });
-
-    // Build long division numeric steps manually
-    let d = parseInt(scaledDividend);
-    let v = parseInt(scaledDivisor);
-
-    let temp = d;
-    let q = "";
-    let longSteps = [];
-
-    let digits = String(d).split("");
-
-    let remainder = 0;
-    let bringDownStr = "";
-
-    let partial = "";
-
-    // Do classic long division step by step
-    for (let i = 0; i < digits.length; i++) {
-        remainder = remainder * 10 + parseInt(digits[i]);
-
-        if (remainder < v) {
-            q += "0";
-            longSteps.push({
-                text: `Bring down ${digits[i]} → still less than ${v}, write 0 on top.`,
-            });
-            continue;
-        }
-
-        let stepQ = Math.floor(remainder / v);
-        let prod = stepQ * v;
-        let newRem = remainder - prod;
-
-        q += stepQ;
-
-        longSteps.push({
-            text:
-                `Divide: ${remainder} ÷ ${v} = ${stepQ}\n` +
-                `Multiply: ${stepQ} × ${v} = ${prod}\n` +
-                `Subtract: ${remainder} − ${prod} = ${newRem}`
-        });
-
-        remainder = newRem;
-    }
-
-    // Add all numeric steps
-    longSteps.forEach(s => steps.push(s));
-
-    // Final answer
-    steps.push({
-        text: `Final Answer: ${dividend} ÷ ${divisor} = ${quotient}`
-    });
-}
-
-function renderSteps() {
-    let work = document.getElementById("work");
-    let helper = document.getElementById("stepBox");
-
-    work.innerHTML = "";
-    helper.innerHTML = "";
-
-    // Long division top layout (static)
-    work.innerHTML += 
-`   ${String(quotient).padEnd(8)} 
-${divisor})${String(dividend).padEnd(4)}\n\n`;
-
-    // Render hidden steps
-    steps.forEach((s, i) => {
-        work.innerHTML += `<div id="step${i}" class="hiddenStep">${s.text}</div>\n`;
-    });
-}
-
-function revealNext() {
-    if (currentStep < steps.length) {
-        document.getElementById("step" + currentStep).classList.remove("hiddenStep");
-        document.getElementById("step" + currentStep).classList.add("visibleStep");
-        document.getElementById("stepBox").innerHTML = steps[currentStep].text;
-        currentStep++;
-    }
-}
-
-// Initialize
-newProblem();
+// Start with an initial problem
+generateProblem();
 </script>
 
 </body>
