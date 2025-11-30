@@ -3,189 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Step-by-Step Mental Math Trainer</title>
+    <title>Master Mental Math | Enhanced Trainer</title>
     <style>
         :root {
-            --primary: #4f46e5;
-            --success: #10b981;
+            --primary: #2563eb;
+            --secondary: #4f46e5;
+            --accent: #10b981;
             --bg: #f3f4f6;
             --card-bg: #ffffff;
-            --highlight: #fcd34d;
+            --text: #1f2937;
+            --text-light: #6b7280;
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg);
-            display: flex;
-            justify-content: center;
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
             padding: 20px;
-            color: #333;
         }
 
         .container {
-            width: 100%;
-            max-width: 600px;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        /* --- Main Display Card --- */
-        .problem-card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        header {
             text-align: center;
-            margin-bottom: 20px;
-            position: sticky;
-            top: 20px;
-            z-index: 10;
+            margin-bottom: 40px;
         }
 
-        .math-display {
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--secondary);
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        /* --- Trainer Section Styles --- */
+        .trainer-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #eef2ff;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #c7d2fe;
+        }
+
+        .math-problem {
             font-family: 'Courier New', monospace;
-            font-size: 4rem;
+            font-size: 3rem;
             font-weight: bold;
-            display: inline-block;
+            display: grid;
+            grid-template-columns: 1fr;
             text-align: right;
-            line-height: 1.2;
+            margin-bottom: 20px;
             position: relative;
         }
 
-        .digit {
-            display: inline-block;
-            transition: color 0.3s, transform 0.3s;
-            padding: 0 2px;
-        }
-
-        .digit.active {
-            color: var(--primary);
-            transform: scale(1.2);
-            text-shadow: 0 0 10px rgba(79, 70, 229, 0.3);
-        }
-
-        .operator {
-            border-bottom: 3px solid #333;
-            padding-bottom: 5px;
-            display: block;
-            width: 100%;
-        }
-
-        .answer-row {
-            font-size: 4rem;
-            color: var(--success);
-            min-height: 1.2em;
-            margin-top: 10px;
-            letter-spacing: 5px;
-        }
-
-        /* --- Step Cards --- */
-        .step-container {
+        .input-area {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .step-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            border-left: 5px solid #ccc;
-            opacity: 0.6;
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
-
-        .step-card.active {
-            opacity: 1;
-            pointer-events: all;
-            border-left-color: var(--primary);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transform: scale(1.02);
-        }
-
-        .step-card.completed {
-            opacity: 0.8;
-            border-left-color: var(--success);
-            background: #f0fdf4;
-        }
-
-        .step-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .step-title {
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .diagram svg {
-            width: 40px;
-            height: 40px;
-        }
-        
-        .line { stroke: var(--primary); stroke-width: 3; stroke-linecap: round; }
-        .dot { fill: #ccc; }
-        .dot.active { fill: var(--primary); }
-
-        .input-group {
-            display: flex;
-            align-items: center;
             gap: 10px;
-            margin-top: 10px;
+            margin-bottom: 20px;
         }
 
-        input {
+        input[type="number"] {
             padding: 10px;
             font-size: 1.2rem;
-            border: 2px solid #ddd;
+            border: 2px solid #d1d5db;
             border-radius: 8px;
-            width: 80px;
+            width: 150px;
             text-align: center;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
         button {
-            padding: 10px 20px;
-            background: var(--primary);
+            background-color: var(--primary);
             color: white;
             border: none;
+            padding: 10px 20px;
             border-radius: 8px;
             font-size: 1rem;
             cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
         }
 
-        button:hover { background: #4338ca; }
-        button:disabled { background: #ccc; }
+        button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        button.secondary {
+            background-color: var(--text-light);
+        }
 
         .feedback {
-            font-size: 0.9rem;
-            margin-top: 8px;
-            font-weight: 600;
-        }
-        .feedback.error { color: #dc2626; }
-        .feedback.success { color: var(--success); }
-
-        .carry-badge {
-            background: #fcd34d;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.85rem;
             font-weight: bold;
-            color: #78350f;
-            display: inline-block;
+            min-height: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .success { color: var(--accent); }
+        .error { color: #ef4444; }
+
+        /* --- Visualizer Styles --- */
+        .steps-container {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .step {
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: var(--primary);
+            display: block;
             margin-bottom: 5px;
         }
 
-        .reset-btn {
-            background: #333;
-            margin-top: 20px;
+        .diagram {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 15px;
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        /* Drawing lines for the visual explanation */
+        .diagram svg {
             width: 100%;
+            height: 100%;
+        }
+        
+        .dot {
+            fill: #333;
+        }
+        .line {
+            stroke: var(--accent);
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+
+        /* --- Tricks Grid --- */
+        .tricks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .trick-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .trick-card:hover {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .trick-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--primary);
         }
 
     </style>
@@ -193,280 +201,198 @@
 <body>
 
 <div class="container">
-    
-    <div class="problem-card">
-        <div class="math-display">
-            <div>
-                <span id="d1" class="digit">2</span><span id="d2" class="digit">3</span>
+    <header>
+        <h1>Mental Math Master</h1>
+        <p>Enhance your calculation speed with the Vedic "Vertically & Crosswise" Method</p>
+    </header>
+
+    <div class="card">
+        <h2>The Universal Method Trainer</h2>
+        <p>This method allows you to multiply <strong>ANY</strong> two 2-digit numbers.</p>
+        
+        <div class="trainer-box">
+            <div class="math-problem">
+                <div id="num1">23</div>
+                <div style="border-bottom: 2px solid black; padding-bottom: 5px;">× <span id="num2">12</span></div>
             </div>
-            <div class="operator">
-                × <span id="d3" class="digit">1</span><span id="d4" class="digit">2</span>
+
+            <div class="feedback" id="feedback"></div>
+
+            <div class="input-area">
+                <input type="number" id="userAnswer" placeholder="?" onkeydown="if(event.key === 'Enter') checkAnswer()">
+                <button onclick="checkAnswer()">Check Answer</button>
             </div>
-            <div class="answer-row">
-                <span id="ans-final">?</span>
+            
+            <button class="secondary" onclick="newQuestion()">New Question</button>
+
+            <div class="steps-container" id="stepsArea">
+                <h3>Solution Breakdown:</h3>
+                
+                <div class="step">
+                    <span class="step-title">Step 1: Vertical Right (Ones × Ones)</span>
+                    <div class="diagram">
+                        <svg viewBox="0 0 40 40">
+                            <circle cx="28" cy="10" r="3" class="dot"/>
+                            <circle cx="28" cy="30" r="3" class="dot"/>
+                            <line x1="28" y1="10" x2="28" y2="30" class="line"/>
+                            <circle cx="12" cy="10" r="2" fill="#ddd"/>
+                            <circle cx="12" cy="30" r="2" fill="#ddd"/>
+                        </svg>
+                    </div>
+                    <span id="step1-text"></span>
+                </div>
+
+                <div class="step">
+                    <span class="step-title">Step 2: Crosswise (Cross Multiply & Add)</span>
+                    <div class="diagram">
+                        <svg viewBox="0 0 40 40">
+                            <circle cx="12" cy="10" r="3" class="dot"/>
+                            <circle cx="28" cy="10" r="3" class="dot"/>
+                            <circle cx="12" cy="30" r="3" class="dot"/>
+                            <circle cx="28" cy="30" r="3" class="dot"/>
+                            <line x1="12" y1="10" x2="28" y2="30" class="line"/>
+                            <line x1="28" y1="10" x2="12" y2="30" class="line"/>
+                        </svg>
+                    </div>
+                    <span id="step2-text"></span>
+                </div>
+
+                <div class="step">
+                    <span class="step-title">Step 3: Vertical Left (Tens × Tens)</span>
+                    <div class="diagram">
+                        <svg viewBox="0 0 40 40">
+                            <circle cx="12" cy="10" r="3" class="dot"/>
+                            <circle cx="12" cy="30" r="3" class="dot"/>
+                            <line x1="12" y1="10" x2="12" y2="30" class="line"/>
+                            <circle cx="28" cy="10" r="2" fill="#ddd"/>
+                            <circle cx="28" cy="30" r="2" fill="#ddd"/>
+                        </svg>
+                    </div>
+                    <span id="step3-text"></span>
+                </div>
+                
+                <p style="margin-top: 10px; font-weight: bold; border-top: 1px solid #ddd; padding-top:10px;">
+                    Final Calculation: <span id="final-calc"></span>
+                </p>
             </div>
         </div>
-        <button class="reset-btn" onclick="newGame()">New Question</button>
     </div>
 
-    <div class="step-container">
-
-        <div id="step1" class="step-card active">
-            <div class="step-header">
-                <div class="diagram">
-                    <svg viewBox="0 0 40 40">
-                        <circle cx="12" cy="10" r="3" class="dot"/>
-                        <circle cx="28" cy="10" r="3" class="dot active"/>
-                        <circle cx="12" cy="30" r="3" class="dot"/>
-                        <circle cx="28" cy="30" r="3" class="dot active"/>
-                        <line x1="28" y1="10" x2="28" y2="30" class="line"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="step-title">Step 1: Vertical Right</div>
-                    <small>Multiply the ones digits.</small>
-                </div>
+    <div class="card">
+        <h2>Quick Tricks Cheat Sheet</h2>
+        <div class="tricks-grid">
+            <div class="trick-card">
+                <div class="trick-title">Multiply by 11</div>
+                <div>Split the digits and sum them in the middle.</div>
+                <div style="color: var(--text-light); font-size: 0.9em; margin-top:5px;">Ex: 35 × 11 → 3 (3+5) 5 → 385</div>
             </div>
-            <div>Calculate: <strong id="s1-calc">3 × 2</strong></div>
-            <div class="input-group">
-                <input type="number" id="inp1" placeholder="?" onkeydown="handleEnter(event, 1)">
-                <button onclick="checkStep1()">Check</button>
+            <div class="trick-card">
+                <div class="trick-title">Square Ends in 5</div>
+                <div>Ends in 25. Multiply first digit by (itself + 1).</div>
+                <div style="color: var(--text-light); font-size: 0.9em; margin-top:5px;">Ex: 45² → (4×5) | 25 → 2025</div>
             </div>
-            <div id="fb1" class="feedback"></div>
+            <div class="trick-card">
+                <div class="trick-title">Double & Halve</div>
+                <div>Double one side, half the other to simplify.</div>
+                <div style="color: var(--text-light); font-size: 0.9em; margin-top:5px;">Ex: 16 × 3.5 → 8 × 7 → 56</div>
+            </div>
+            <div class="trick-card">
+                <div class="trick-title">Close to 100</div>
+                <div>Find difference from 100, multiply diffs, cross subtract.</div>
+                <div style="color: var(--text-light); font-size: 0.9em; margin-top:5px;">Ex: 98 × 97</div>
+            </div>
         </div>
-
-        <div id="step2" class="step-card">
-            <div class="step-header">
-                <div class="diagram">
-                    <svg viewBox="0 0 40 40">
-                        <circle cx="12" cy="10" r="3" class="dot active"/>
-                        <circle cx="28" cy="10" r="3" class="dot active"/>
-                        <circle cx="12" cy="30" r="3" class="dot active"/>
-                        <circle cx="28" cy="30" r="3" class="dot active"/>
-                        <line x1="12" y1="10" x2="28" y2="30" class="line"/>
-                        <line x1="28" y1="10" x2="12" y2="30" class="line"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="step-title">Step 2: Crosswise</div>
-                    <small>Cross multiply and add them together.</small>
-                </div>
-            </div>
-            <div id="carry-msg-2" style="display:none;" class="carry-badge">Don't forget to add the carry: +<span id="c1-val">0</span>!</div>
-            <div>Calculate: <strong id="s2-calc">(2×2) + (3×1)</strong></div>
-            <div class="input-group">
-                <input type="number" id="inp2" placeholder="?" onkeydown="handleEnter(event, 2)">
-                <button onclick="checkStep2()">Check</button>
-            </div>
-            <div id="fb2" class="feedback"></div>
-        </div>
-
-        <div id="step3" class="step-card">
-            <div class="step-header">
-                <div class="diagram">
-                    <svg viewBox="0 0 40 40">
-                        <circle cx="12" cy="10" r="3" class="dot active"/>
-                        <circle cx="28" cy="10" r="3" class="dot"/>
-                        <circle cx="12" cy="30" r="3" class="dot active"/>
-                        <circle cx="28" cy="30" r="3" class="dot"/>
-                        <line x1="12" y1="10" x2="12" y2="30" class="line"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="step-title">Step 3: Vertical Left</div>
-                    <small>Multiply the tens digits.</small>
-                </div>
-            </div>
-            <div id="carry-msg-3" style="display:none;" class="carry-badge">Don't forget to add the carry: +<span id="c2-val">0</span>!</div>
-            <div>Calculate: <strong id="s3-calc">2 × 1</strong></div>
-            <div class="input-group">
-                <input type="number" id="inp3" placeholder="?" onkeydown="handleEnter(event, 3)">
-                <button onclick="checkStep3()">Check</button>
-            </div>
-            <div id="fb3" class="feedback"></div>
-        </div>
-
     </div>
 </div>
 
 <script>
-    // Variables to store current state
-    let digitA, digitB, digitC, digitD;
-    let carry1 = 0;
-    let carry2 = 0;
-    let ansPart1, ansPart2, ansPart3;
+    let n1, n2, correctAnswer;
 
-    function handleEnter(e, step) {
-        if(e.key === 'Enter') {
-            if(step === 1) checkStep1();
-            if(step === 2) checkStep2();
-            if(step === 3) checkStep3();
-        }
+    function generateRandomNumber() {
+        return Math.floor(Math.random() * 90) + 10; // 10 to 99
     }
 
-    function newGame() {
-        // Generate random numbers (10-99)
-        digitA = Math.floor(Math.random() * 9) + 1; // 1-9
-        digitB = Math.floor(Math.random() * 10);    // 0-9
-        digitC = Math.floor(Math.random() * 9) + 1;
-        digitD = Math.floor(Math.random() * 10);
+    function newQuestion() {
+        n1 = generateRandomNumber();
+        n2 = generateRandomNumber();
+        correctAnswer = n1 * n2;
 
-        // Update Display Digits
-        document.getElementById('d1').textContent = digitA;
-        document.getElementById('d2').textContent = digitB;
-        document.getElementById('d3').textContent = digitC;
-        document.getElementById('d4').textContent = digitD;
-        document.getElementById('ans-final').textContent = "?";
-
-        // Reset Steps UI
-        resetStepUI('step1', 'inp1', 'fb1');
-        resetStepUI('step2', 'inp2', 'fb2');
-        resetStepUI('step3', 'inp3', 'fb3');
+        document.getElementById('num1').textContent = n1;
+        document.getElementById('num2').textContent = n2;
         
-        // Disable steps 2 & 3
-        document.getElementById('step1').classList.add('active');
-        document.getElementById('step2').classList.remove('active', 'completed');
-        document.getElementById('step3').classList.remove('active', 'completed');
+        // Reset UI
+        document.getElementById('userAnswer').value = '';
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('stepsArea').style.display = 'none';
+        document.getElementById('userAnswer').focus();
+    }
+
+    function checkAnswer() {
+        const userVal = parseInt(document.getElementById('userAnswer').value);
+        const feedbackEl = document.getElementById('feedback');
+
+        if (isNaN(userVal)) {
+            feedbackEl.textContent = "Please enter a number.";
+            feedbackEl.className = "feedback error";
+            return;
+        }
+
+        if (userVal === correctAnswer) {
+            feedbackEl.textContent = "Correct! Great job.";
+            feedbackEl.className = "feedback success";
+            generateSteps(); // Show how it works even on success (reinforcement)
+        } else {
+            feedbackEl.textContent = "Not quite. Check the steps below to see the trick!";
+            feedbackEl.className = "feedback error";
+            generateSteps();
+        }
+    }
+
+    function generateSteps() {
+        document.getElementById('stepsArea').style.display = 'block';
+
+        // Parse digits
+        const s1 = n1.toString();
+        const s2 = n2.toString();
         
-        // Highlight Step 1 Digits (Right Vertical: B & D)
-        highlightDigits([2, 4]);
+        // n1 = AB, n2 = CD
+        const A = parseInt(s1[0]);
+        const B = parseInt(s1[1]);
+        const C = parseInt(s2[0]);
+        const D = parseInt(s2[1]);
 
-        // Set Step 1 text
-        document.getElementById('s1-calc').textContent = `${digitB} × ${digitD}`;
-        
-        // Reset Carries
-        carry1 = 0;
-        carry2 = 0;
-        document.getElementById('carry-msg-2').style.display = 'none';
-        document.getElementById('carry-msg-3').style.display = 'none';
+        // Step 1: Right (B * D)
+        const step1Val = B * D;
+        let step1Text = `${B} × ${D} = <strong>${step1Val}</strong>`;
+        let carry1 = Math.floor(step1Val / 10);
+        let digit1 = step1Val % 10;
+        if(carry1 > 0) step1Text += ` (Write ${digit1}, carry ${carry1})`;
 
-        document.getElementById('inp1').focus();
+        // Step 2: Cross (A*D + B*C)
+        const crossRaw = (A * D) + (B * C);
+        const step2Total = crossRaw + carry1;
+        let step2Text = `(${A} × ${D}) + (${B} × ${C}) = ${crossRaw}.`;
+        if(carry1 > 0) step2Text += ` Add carry (${carry1}) → ${step2Total}.`;
+        let carry2 = Math.floor(step2Total / 10);
+        let digit2 = step2Total % 10;
+        step2Text += ` <strong>Result: ${step2Total}</strong>.`;
+        if(carry2 > 0) step2Text += ` (Write ${digit2}, carry ${carry2})`;
+
+        // Step 3: Left (A * C)
+        const leftRaw = A * C;
+        const step3Total = leftRaw + carry2;
+        let step3Text = `${A} × ${C} = ${leftRaw}.`;
+        if(carry2 > 0) step3Text += ` Add carry (${carry2}) → <strong>${step3Total}</strong>.`;
+
+        // Update DOM
+        document.getElementById('step1-text').innerHTML = step1Text;
+        document.getElementById('step2-text').innerHTML = step2Text;
+        document.getElementById('step3-text').innerHTML = step3Text;
+        document.getElementById('final-calc').textContent = `Put it together: ${step3Total}${digit2}${digit1} = ${correctAnswer}`;
     }
 
-    function checkStep1() {
-        const userVal = parseInt(document.getElementById('inp1').value);
-        const correctVal = digitB * digitD;
-
-        if (userVal === correctVal) {
-            // Success Logic
-            markCorrect('step1', 'fb1', 'inp1');
-            
-            // Calculate Carry
-            ansPart1 = correctVal % 10;
-            carry1 = Math.floor(correctVal / 10);
-
-            // Prepare Step 2
-            document.getElementById('step2').classList.add('active');
-            highlightDigits([1, 2, 3, 4]); // Highlight All for Cross
-            
-            document.getElementById('s2-calc').textContent = `(${digitA}×${digitD}) + (${digitB}×${digitC})`;
-            
-            // Show carry message if exists
-            if (carry1 > 0) {
-                document.getElementById('carry-msg-2').style.display = 'inline-block';
-                document.getElementById('c1-val').textContent = carry1;
-            }
-
-            // Update final answer preview (Partial)
-            document.getElementById('ans-final').textContent = `_ _ ${ansPart1}`;
-            document.getElementById('inp2').focus();
-
-        } else {
-            markError('fb1', 'Check your multiplication table!');
-        }
-    }
-
-    function checkStep2() {
-        const userVal = parseInt(document.getElementById('inp2').value);
-        const crossMult = (digitA * digitD) + (digitB * digitC);
-        const totalVal = crossMult + carry1;
-
-        // User enters the TOTAL sum (including carry)
-        if (userVal === totalVal) {
-            markCorrect('step2', 'fb2', 'inp2');
-
-            // Calculate Carry
-            ansPart2 = totalVal % 10;
-            carry2 = Math.floor(totalVal / 10);
-
-            // Prepare Step 3
-            document.getElementById('step3').classList.add('active');
-            highlightDigits([1, 3]); // Highlight Left Vertical
-            
-            document.getElementById('s3-calc').textContent = `${digitA} × ${digitC}`;
-
-             // Show carry message if exists
-             if (carry2 > 0) {
-                document.getElementById('carry-msg-3').style.display = 'inline-block';
-                document.getElementById('c2-val').textContent = carry2;
-            }
-
-            // Update final answer preview
-            document.getElementById('ans-final').textContent = `_ ${ansPart2}${ansPart1}`;
-            document.getElementById('inp3').focus();
-
-        } else {
-            let msg = `(${digitA}×${digitD}) + (${digitB}×${digitC}) = ${crossMult}.`;
-            if(carry1 > 0) msg += ` Plus carry of ${carry1}.`;
-            markError('fb2', `Not quite. ${msg}`);
-        }
-    }
-
-    function checkStep3() {
-        const userVal = parseInt(document.getElementById('inp3').value);
-        const vertMult = digitA * digitC;
-        const totalVal = vertMult + carry2;
-
-        if (userVal === totalVal) {
-            markCorrect('step3', 'fb3', 'inp3');
-            
-            // Final Celebration
-            ansPart3 = totalVal; // No mod 10 here, take the whole thing
-            document.getElementById('ans-final').textContent = `${ansPart3}${ansPart2}${ansPart1}`;
-            highlightDigits([1,2,3,4]); // All light up
-            document.querySelector('.math-display').style.transform = "scale(1.1)";
-            setTimeout(() => document.querySelector('.math-display').style.transform = "scale(1)", 300);
-
-        } else {
-             let msg = `${digitA}×${digitC} = ${vertMult}.`;
-            if(carry2 > 0) msg += ` Plus carry of ${carry2}.`;
-            markError('fb3', `Not quite. ${msg}`);
-        }
-    }
-
-    // --- Helpers ---
-
-    function highlightDigits(indices) {
-        // Reset all
-        [1,2,3,4].forEach(i => document.getElementById(`d${i}`).classList.remove('active'));
-        // Set new
-        indices.forEach(i => document.getElementById(`d${i}`).classList.add('active'));
-    }
-
-    function resetStepUI(cardId, inpId, fbId) {
-        document.getElementById(cardId).classList.remove('completed');
-        document.getElementById(inpId).value = '';
-        document.getElementById(inpId).disabled = false;
-        document.getElementById(fbId).textContent = '';
-        document.getElementById(fbId).className = 'feedback';
-    }
-
-    function markCorrect(cardId, fbId, inpId) {
-        document.getElementById(cardId).classList.add('completed');
-        document.getElementById(inpId).disabled = true;
-        document.getElementById(fbId).textContent = "Correct!";
-        document.getElementById(fbId).className = 'feedback success';
-    }
-
-    function markError(fbId, msg) {
-        const el = document.getElementById(fbId);
-        el.textContent = msg;
-        el.className = 'feedback error';
-    }
-
-    // Start
-    newGame();
-
+    // Initialize
+    newQuestion();
 </script>
 
 </body>
