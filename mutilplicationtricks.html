@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vedic 2-Digit Multiplication Trainer</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; padding: 30px; background: #f4f7f9; }
+  .box { font-size: 48px; margin: 30px; background: white; padding: 20px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  input { font-size: 36px; width: 200px; text-align: center; padding: 10px; margin: 20px; }
+  button { font-size: 24px; padding: 12px 30px; cursor: pointer; }
+  .steps { font-size: 28px; margin: 20px; color: #333; line-height: 1.8; }
+  .feedback { font-size: 32px; margin: 20px; font-weight: bold; }
+  .correct { color: green; }
+  .wrong { color: red; }
+</style>
+</head>
+<body>
+<h1>Vertically & Crosswise 2-Digit Trainer</h1>
+<div class="box" id="question"></div>
+<div class="steps" id="steps"></div>
+
+<input type="text" id="answer" placeholder="Your answer" autocomplete="off">
+<br>
+<button onclick="check()">Check Answer</button>
+<button onclick="newQuestion()">New Question</button>
+
+<div class="feedback" id="feedback"></div>
+
+<script>
+function newQuestion() {
+  const a = Math.floor(Math.random() * 90) + 10;  // 10–99
+  const b = Math.floor(Math.random() * 90) + 10;
+  window.currentA = a;
+  window.currentB = b;
+  window.correct = a * b;
+
+  const a1 = Math.floor(a / 10), a2 = a % 10;
+  const b1 = Math.floor(b / 10), b2 = b % 10;
+
+  document.getElementById("question").innerHTML = `${a}<br>× ${b}<br>─────`;
+  document.getElementById("steps").innerHTML = `
+    <strong>Steps (watch the pattern):</strong><br>
+    ① Units: ${a2}×${b2} = ${a2*b2}<br>
+    ② Cross: ${a1}×${b2} + ${a2}×${b1} = ${a1*b2} + ${a2*b1} = ${a1*b2 + a2*b1}<br>
+    ③ Tens: ${a1}×${b1} = ${a1*b1}<br>
+    (carry over as needed)
+  `;
+  document.getElementById("answer").value = "";
+  document.getElementById("feedback").innerText = "";
+  document.getElementById("answer").focus();
+}
+
+function check() {
+  const user = parseInt(document.getElementById("answer").value);
+  const fb = document.getElementById("feedback");
+  if (user === window.correct) {
+    fb.innerHTML = "CORRECT! 🎉";
+    fb.className = "feedback correct";
+    setTimeout(newQuestion, 1200);
+  } else {
+    fb.innerHTML = `Nope → ${window.currentA} × ${window.currentB} = ${window.correct}`;
+    fb.className = "feedback wrong";
+  }
+}
+
+// Start
+newQuestion();
+document.getElementById("answer").addEventListener("keyup", function(e) {
+  if (e.key === "Enter") check();
+});
+</script>
+
+<p>Master this one trick → you can multiply ANY two 2-digit numbers mentally in seconds!</p>
+</body>
+</html>
