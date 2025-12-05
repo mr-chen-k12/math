@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Digit Master Trainer</title>
+    <style>
+        :root {
+            --primary: #7c3aed; /* Purple for 3-digit */
+            --success: #10b981;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container { width: 100%; max-width: 650px; }
+
+        /* --- Problem Display --- */
+        .problem-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 10px;
+            z-index: 10;
+        }
+
+        .math-display {
+            font-family: 'Courier New', monospace;
+            font-size: 3.5rem;
+            font-weight: bold;
+            display: inline-block;
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .digit { padding: 0 4px; transition: all 0.3s; color: #9ca3af; }
+        .digit.active { color: var(--primary); font-weight: 900; transform: scale(1.1); text-shadow: 0 0 10px rgba(124, 58, 237, 0.2); }
+        .operator { border-bottom: 3px solid #333; display: block; width: 100%; margin-top: 5px;}
+        .answer-row { color: var(--success); min-height: 1.2em; margin-top: 5px; letter-spacing: 5px; }
+
+        /* --- Steps --- */
+        .step-container { display: flex; flex-direction: column; gap: 15px; padding-bottom: 50px;}
+
+        .step-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            border-left: 5px solid #ccc;
+            opacity: 0.5;
+            pointer-events: none;
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            gap: 15px;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .step-card.active { opacity: 1; pointer-events: all; border-left-color: var(--primary); transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .step-card.completed { opacity: 0.7; border-left-color: var(--success); background: #f0fdf4; transform: scale(1); }
+
+        /* --- Diagrams --- */
+        .diagram svg { width: 50px; height: 50px; }
+        .dot { fill: #e5e7eb; }
+        .dot.active { fill: var(--primary); }
+        .line { stroke: var(--primary); stroke-width: 2.5; stroke-linecap: round; }
+
+        /* --- Inputs --- */
+        .calc-area { display: flex; flex-direction: column; gap: 5px; }
+        .input-group { display: flex; gap: 10px; margin-top: 5px; }
+        
+        input {
+            padding: 8px; font-size: 1.1rem; border: 2px solid #ddd;
+            border-radius: 6px; width: 80px; text-align: center;
+        }
+        input:focus { outline: none; border-color: var(--primary); }
+
+        button {
+            padding: 8px 15px; background: var(--primary); color: white;
+            border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+        }
+        button:hover { background: #6d28d9; }
+        
+        .feedback { font-size: 0.85rem; font-weight: bold; margin-top: 5px; }
+        .feedback.error { color: #dc2626; }
+        
+        .carry-badge {
+            font-size: 0.75rem; background: #fef3c7; color: #92400e;
+            padding: 2px 6px; border-radius: 4px; display: inline-block; font-weight: bold;
+        }
+
+        h2 { margin: 0; color: var(--primary); font-size: 1.2rem; }
+        .sub { font-size: 0.8rem; color: #6b7280; }
+        .formula { font-weight: bold; color: #333; display: block; margin-bottom: 5px;}
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="problem-card">
+        <div class="math-display">
+            <div>
+                <span id="d1" class="digit">1</span><span id="d2" class="digit">2</span><span id="d3" class="digit">3</span>
+            </div>
+            <div class="operator">
+                × <span id="d4" class="digit">3</span><span id="d5" class="digit">2</span><span id="d6" class="digit">1</span>
+            </div>
+            <div class="answer-row" id="ans-final">?</div>
+        </div>
+        <button onclick="newGame()" style="margin-top:10px; background:#333; width:100%">New Random Question</button>
+    </div>
+
+    <div class="step-container">
+        </div>
+</div>
+
+<script>
+    const stepsConfig = [
+        {
+            title: "Step 1: Vertical Right",
+            desc: "Multiply the Ones",
+            indices: [3, 6],
+            lines: [[3,6]],
+            formula: (d) => `${d[2]} × ${d[5]}`
+        },
+        {
+            title: "Step 2: Cross Right",
+            desc: "Cross multiply Tens & Ones",
+            indices: [2,3,5,6],
+            lines: [[2,6], [3,5]],
+            formula: (d) => `(${d[1]}×${d[5]}) + (${d[2]}×${d[4]})`
+        },
+        {
+            title: "Step 3: The Star",
+            desc: "Big Cross + Middle Vertical",
+            indices: [1,2,3,4,5,6],
+            lines: [[1,6], [3,4], [2,5]],
+            formula: (d) => `(${d[0]}×${d[5]}) + (${d[2]}×${d[3]}) + (${d[1]}×${d[4]})`
+        },
+        {
+            title: "Step 4: Cross Left",
+            desc: "Cross multiply Hundreds & Tens",
+            indices: [1,2,4,5],
+            lines: [[1,5], [2,4]],
+            formula: (d) => `(${d[0]}×${d[4]}) + (${d[1]}×${d[3]})`
+        },
+        {
+            title: "Step 5: Vertical Left",
+            desc: "Multiply the Hundreds",
+            indices: [1,4],
+            lines: [[1,4]],
+            formula: (d) => `${d[0]} × ${d[3]}`
+        }
+    ];
+
+    let digits = []; // [d1, d2, d3, d4, d5, d6]
+    let carry = 0;
+    let finalAnswerParts = [];
+
+    function init() {
+        const container = document.querySelector('.step-container');
+        container.innerHTML = ''; 
+
+        // Generate HTML for 5 steps
+        stepsConfig.forEach((step, index) => {
+            const html = `
+            <div id="step${index}" class="step-card">
+                <div class="diagram">
+                    <svg viewBox="0 0 60 40">
+                        <circle cx="10" cy="10" r="3" class="dot d1"/>
+                        <circle cx="30" cy="10" r="3" class="dot d2"/>
+                        <circle cx="50" cy="10" r="3" class="dot d3"/>
+                        <circle cx="10" cy="30" r="3" class="dot d4"/>
+                        <circle cx="30" cy="30" r="3" class="dot d5"/>
+                        <circle cx="50" cy="30" r="3" class="dot d6"/>
+                        <g class="lines-layer"></g>
+                    </svg>
+                </div>
+                <div class="calc-area">
+                    <h2>${step.title}</h2>
+                    <span class="sub">${step.desc}</span>
+                    <div id="carry-box-${index}" style="display:none;" class="carry-badge"></div>
+                    <span class="formula" id="formula-${index}"></span>
+                    <div class="input-group">
+                        <input type="number" id="inp-${index}" placeholder="?" onkeydown="if(event.key==='Enter') checkStep(${index})">
+                        <button onclick="checkStep(${index})">Check</button>
+                    </div>
+                    <div id="fb-${index}" class="feedback"></div>
+                </div>
+            </div>`;
+            container.innerHTML += html;
+        });
+        
+        // Draw lines for diagrams
+        stepsConfig.forEach((step, index) => {
+            const svg = document.querySelector(`#step${index} .lines-layer`);
+            const dots = {
+                1: [10,10], 2: [30,10], 3: [50,10],
+                4: [10,30], 5: [30,30], 6: [50,30]
+            };
+            step.lines.forEach(pair => {
+                const [start, end] = pair;
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", dots[start][0]);
+                line.setAttribute("y1", dots[start][1]);
+                line.setAttribute("x2", dots[end][0]);
+                line.setAttribute("y2", dots[end][1]);
+                line.setAttribute("class", "line");
+                svg.appendChild(line);
+            });
+            // Highlight active dots
+            step.indices.forEach(i => {
+                const dot = document.querySelector(`#step${index} .d${i}`);
+                if(dot) dot.classList.add('active');
+            });
+        });
+
+        newGame();
+    }
+
+    function newGame() {
+        // Generate digits: 
+        // Top: 100-999, Bottom: 100-999
+        digits = [];
+        for(let i=0; i<6; i++) digits.push(Math.floor(Math.random() * 10));
+        // Ensure first digits aren't 0 for realism
+        if(digits[0] === 0) digits[0] = Math.floor(Math.random()*9)+1;
+        if(digits[3] === 0) digits[3] = Math.floor(Math.random()*9)+1;
+
+        // Render Top Display
+        digits.forEach((d, i) => document.getElementById(`d${i+1}`).textContent = d);
+        document.getElementById('ans-final').textContent = "?";
+
+        // Reset Logic
+        carry = 0;
+        finalAnswerParts = [];
+
+        // Reset UI
+        for(let i=0; i<5; i++) {
+            const card = document.getElementById(`step${i}`);
+            card.classList.remove('active', 'completed');
+            document.getElementById(`inp-${i}`).value = '';
+            document.getElementById(`inp-${i}`).disabled = false;
+            document.getElementById(`fb-${i}`).textContent = '';
+            document.getElementById(`formula-${i}`).textContent = stepsConfig[i].formula(digits);
+            document.getElementById(`carry-box-${i}`).style.display = 'none';
+        }
+
+        // Activate Step 0
+        activateStep(0);
+    }
+
+    function activateStep(index) {
+        document.getElementById(`step${index}`).classList.add('active');
+        
+        // Highlight main display digits
+        document.querySelectorAll('.digit').forEach(el => el.classList.remove('active'));
+        stepsConfig[index].indices.forEach(i => {
+            document.getElementById(`d${i}`).classList.add('active');
+        });
+
+        // Show Carry if exists
+        if (carry > 0) {
+            const cBox = document.getElementById(`carry-box-${index}`);
+            cBox.textContent = `Add Carry: +${carry}`;
+            cBox.style.display = 'inline-block';
+        }
+        
+        document.getElementById(`inp-${index}`).focus();
+    }
+
+    function checkStep(index) {
+        const inputVal = parseInt(document.getElementById(`inp-${index}`).value);
+        if (isNaN(inputVal)) return;
+
+        // Calculate correct value
+        // Indices in 'digits' array are 0-5, but step config uses 1-6. Adjust by -1.
+        let rawSum = 0;
+        const d = digits;
+        
+        // Manual logic based on step index to ensure accuracy
+        if (index === 0) rawSum = d[2]*d[5];
+        if (index === 1) rawSum = (d[1]*d[5]) + (d[2]*d[4]);
+        if (index === 2) rawSum = (d[0]*d[5]) + (d[2]*d[3]) + (d[1]*d[4]);
+        if (index === 3) rawSum = (d[0]*d[4]) + (d[1]*d[3]);
+        if (index === 4) rawSum = d[0]*d[3];
+
+        const totalExpected = rawSum + carry;
+
+        if (inputVal === totalExpected) {
+            // Correct
+            const fb = document.getElementById(`fb-${index}`);
+            fb.textContent = "Correct!";
+            fb.className = "feedback";
+            
+            document.getElementById(`step${index}`).classList.add('completed');
+            document.getElementById(`inp-${index}`).disabled = true;
+
+            // Math Logic
+            if (index < 4) {
+                const writeDigit = totalExpected % 10;
+                carry = Math.floor(totalExpected / 10);
+                finalAnswerParts.unshift(writeDigit); // Add to front
+                updateFinalDisplay(false);
+                activateStep(index + 1);
+            } else {
+                // Last step takes whole number
+                finalAnswerParts.unshift(totalExpected); 
+                updateFinalDisplay(true);
+                document.querySelectorAll('.digit').forEach(el => el.classList.add('active')); // Celebration
+            }
+        } else {
+            const fb = document.getElementById(`fb-${index}`);
+            let msg = `Calculation: ${rawSum}.`;
+            if(carry > 0) msg += ` + Carry(${carry}) = ${rawSum + carry}`;
+            fb.textContent = `Check your math! ${msg}`;
+            fb.className = "feedback error";
+        }
+    }
+
+    function updateFinalDisplay(isFinal) {
+        let txt = finalAnswerParts.join('');
+        if (!isFinal) txt = "_ " + txt;
+        document.getElementById('ans-final').textContent = txt;
+    }
+
+    // Run
+    init();
+
+</script>
+</body>
+</html>
