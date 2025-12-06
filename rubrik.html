@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rubik's Cube Algorithm Visualizer</title>
+    <style>
+        :root {
+            --cube-size: 200px;
+            --cubie-size: calc(var(--cube-size) / 3);
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #222;
+            color: white;
+            font-family: sans-serif;
+            margin: 0;
+        }
+
+        /* UI Controls */
+        .controls {
+            margin-bottom: 30px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            padding: 8px;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: none;
+            width: 200px;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover { background-color: #0056b3; }
+
+        /* 3D Scene */
+        .scene {
+            width: var(--cube-size);
+            height: var(--cube-size);
+            perspective: 800px;
+        }
+
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-30deg) rotateY(-45deg);
+            transition: transform 0.5s;
+        }
+
+        /* Individual Cubies (27 small cubes) */
+        .cubie {
+            position: absolute;
+            width: var(--cubie-size);
+            height: var(--cubie-size);
+            transform-style: preserve-3d;
+        }
+
+        /* Faces of the Cubies */
+        .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px solid #000;
+            opacity: 1;
+            box-sizing: border-box;
+            background: black; /* Internal color */
+        }
+
+        /* Face positioning */
+        .face--front  { transform: rotateY(  0deg) translateZ(calc(var(--cubie-size) / 2)); }
+        .face--right  { transform: rotateY( 90deg) translateZ(calc(var(--cubie-size) / 2)); }
+        .face--back   { transform: rotateY(180deg) translateZ(calc(var(--cubie-size) / 2)); }
+        .face--left   { transform: rotateY(-90deg) translateZ(calc(var(--cubie-size) / 2)); }
+        .face--top    { transform: rotateX( 90deg) translateZ(calc(var(--cubie-size) / 2)); }
+        .face--bottom { transform: rotateX(-90deg) translateZ(calc(var(--cubie-size) / 2)); }
+
+        /* Standard Colors */
+        .U { background-color: white; }
+        .D { background-color: yellow; }
+        .F { background-color: #009E60; } /* Green */
+        .B { background-color: #0051BA; } /* Blue */
+        .L { background-color: #FF5800; } /* Orange */
+        .R { background-color: #C41E3A; } /* Red */
+
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <input type="text" id="algoInput" placeholder="e.g., R U R' U'" value="R U R' U'">
+        <button onclick="runAlgorithm()">Run Algorithm</button>
+        <button onclick="resetCube()">Reset</button>
+    </div>
+
+    <div class="scene">
+        <div class="cube" id="cube">
+            </div>
+    </div>
+
+    <script>
+        const cubeEl = document.getElementById('cube');
+        let cubies = [];
+        let isAnimating = false;
+        
+        // Coordinates for 3x3x3 grid: x, y, z range from -1 to 1
+        // x: Left(-1) to Right(1)
+        // y: Bottom(1) to Top(-1) (CSS Y is inverted visually usually, but we'll map carefully)
+        // z: Back(-1) to Front(1)
+        
+        function initCube() {
+            cubeEl.innerHTML = '';
+            cubies = [];
+            for (let x = -1; x <= 1; x++) {
+                for (let y = -1; y <= 1; y++) {
+                    for (let z = -1; z <= 1; z++) {
+                        createCubie(x, y, z);
+                    }
+                }
+            }
+        }
+
+        function createCubie(x, y, z) {
+            const el = document.createElement('div');
+            el.className = 'cubie';
+            // Translate position to CSS pixels
+            // x: -1 -> 0, 0 -> 100%, 1 -> 200%? No, we center it.
+            // Spacing is 100% of cubie size.
+            
+            // Initial transform
+            updateCubieTransform(el, x, y, z);
+
+            // Add faces
+            const faces = [
+                { dir: 'front',  cls: z === 1  ? 'F' : '' },
+                { dir: 'back',   cls: z === -1 ? 'B' : '' },
+                { dir: 'right',  cls: x === 1  ? 'R' : '' },
+                { dir: 'left',   cls: x === -1 ? 'L' : '' },
+                { dir: 'top',    cls: y === -1 ? 'U' : '' }, // y-1 is top in our loop logic
+                { dir: 'bottom', cls: y === 1  ? 'D' : '' }
+            ];
+
+            faces.forEach(f => {
+                const div = document.createElement('div');
+                div.className = `face face--${f.dir} ${f.cls}`;
+                el.appendChild(div);
+            });
+
+            const cubieObj = { el, x, y, z };
+            cubies.push(cubieObj);
+            cubeEl.appendChild(el);
+        }
+
+        function updateCubieTransform(el, x, y, z) {
+            // CSS Transform
+            // We multiply by 100% of the cubie size (approx 66px)
+            const size = 66.66; 
+            el.style.transform = `
+                translate3d(${x * 100}%, ${y * 100}%, ${z * 66.66}px)
+            `;
+        }
+
+        // Logic to rotate a group of cubies
+        // Axis: 'x', 'y', 'z'
+        // Layer: -1, 0, 1
+        // Dir: 1 (clockwise), -1 (counter-clockwise)
+        function rotateLayer(axis, layer, dir) {
+            return new Promise(resolve => {
+                // 1. Select relevant cubies
+                const movingCubies = cubies.filter(c => c[axis] === layer);
+
+                // 2. Animate them visually
+                // We apply a transition to a rotation group or apply individual rotations.
+                // For simplicity in a single file, we will rotate the visual 'transform' property temporarily,
+                // then snap logic, then reset transform.
+                
+                movingCubies.forEach(c => {
+                    c.el.style.transition = 'transform 0.3s ease-in-out';
+                    // Current Transform
+                    const currentT = c.el.style.transform;
+                    
+                    // Add Rotation
+                    let rot = '';
+                    if (axis === 'x') rot = `rotateX(${dir * 90}deg)`;
+                    if (axis === 'y') rot = `rotateY(${dir * -90}deg)`; // Y axis rotation direction is often inverted in CSS vs standard notation
+                    if (axis === 'z') rot = `rotateZ(${dir * 90}deg)`;
+
+                    c.el.style.transform = `${currentT} ${rot}`;
+                });
+
+                // 3. Wait for animation, then update logical coordinates
+                setTimeout(() => {
+                    movingCubies.forEach(c => {
+                        c.el.style.transition = 'none'; // disable transition for snap
+                        
+                        // Update logical coordinates (Rotation Matrix 90deg)
+                        // x' = x cos - y sin ...
+                        // Simplified for 90 deg integers:
+                        const oldX = c.x;
+                        const oldY = c.y;
+                        const oldZ = c.z;
+
+                        if (axis === 'x') {
+                            // Rotate around X
+                            // Y -> Z, Z -> -Y (for dir 1)
+                            c.y = oldY * 0 - oldZ * dir;
+                            c.z = oldY * dir + oldZ * 0;
+                        } else if (axis === 'y') {
+                            // Rotate around Y
+                            // Z -> X, X -> -Z
+                            // Note: CSS Y axis points down, standard 3D math Y points up.
+                            // Let's rely on standard: Top face (U) is Y=-1.
+                            // U move rotates around Y axis.
+                            c.x = oldX * 0 + oldZ * dir;
+                            c.z = oldX * -dir + oldZ * 0;
+                        } else if (axis === 'z') {
+                            // Rotate around Z
+                            // X -> -Y, Y -> X
+                            c.x = oldX * 0 - oldY * dir;
+                            c.y = oldX * dir + oldY * 0;
+                        }
+
+                        // Reset visual rotation and apply new position
+                        updateCubieTransform(c.el, c.x, c.y, c.z);
+                    });
+                    resolve();
+                }, 350);
+            });
+        }
+
+        // Parsing Algorithms
+        async function runAlgorithm() {
+            if (isAnimating) return;
+            isAnimating = true;
+            const input = document.getElementById('algoInput').value.trim();
+            if (!input) { isAnimating = false; return; }
+
+            const moves = input.split(/\s+/);
+            
+            for (let move of moves) {
+                await performMove(move);
+            }
+            isAnimating = false;
+        }
+
+        function performMove(move) {
+            const base = move[0].toUpperCase();
+            const isPrime = move.includes("'");
+            const isDouble = move.includes("2");
+            
+            let axis, layer, dir;
+
+            // Standard Notation:
+            // R (Right): x=1
+            // L (Left): x=-1
+            // U (Up): y=-1
+            // D (Down): y=1
+            // F (Front): z=1
+            // B (Back): z=-1
+            
+            // Direction 1 is Clockwise looking at the face
+            
+            switch(base) {
+                case 'R': axis = 'x'; layer = 1; dir = -1; break; // X rot right hand rule is thumb left. R is clockwise relative to Right face.
+                case 'L': axis = 'x'; layer = -1; dir = 1; break;
+                case 'U': axis = 'y'; layer = -1; dir = -1; break; 
+                case 'D': axis = 'y'; layer = 1; dir = 1; break;
+                case 'F': axis = 'z'; layer = 1; dir = -1; break;
+                case 'B': axis = 'z'; layer = -1; dir = 1; break;
+            }
+
+            if (isPrime) dir *= -1;
+            
+            // Execute
+            const p1 = rotateLayer(axis, layer, dir);
+            if (isDouble) {
+                return p1.then(() => rotateLayer(axis, layer, dir));
+            }
+            return p1;
+        }
+
+        function resetCube() {
+            if (isAnimating) return;
+            initCube();
+        }
+
+        // Initialize
+        initCube();
+
+        // Mouse Rotation for the whole cube view
+        let isDragging = false;
+        let startX, startY;
+        let rotX = -30, rotY = -45;
+
+        document.addEventListener('mousedown', (e) => {
+            if(e.target.closest('input') || e.target.closest('button')) return;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            rotY += dx * 0.5;
+            rotX -= dy * 0.5;
+            cubeEl.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        document.addEventListener('mouseup', () => isDragging = false);
+
+    </script>
+</body>
+</html>
