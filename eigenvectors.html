@@ -12,6 +12,7 @@
             --success: #22c55e;
             --error: #ef4444;
             --text: #1f2937;
+            --border: #e5e7eb;
         }
 
         body {
@@ -22,7 +23,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            margin: 0;
+            margin: 20px 0;
             color: var(--text);
         }
 
@@ -32,147 +33,75 @@
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             text-align: center;
-            max-width: 400px;
+            max-width: 450px;
             width: 90%;
         }
 
-        h1 {
-            margin-top: 0;
-            font-size: 1.5rem;
-            color: var(--text);
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            color: #6b7280;
-        }
+        h1 { margin-top: 0; font-size: 1.5rem; color: var(--text); }
+        .stats { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-size: 0.9rem; color: #6b7280; }
 
         /* Matrix Styling */
-        .matrix-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Times New Roman', serif;
-            font-size: 2rem;
-            margin: 2rem 0;
-        }
-
-        .matrix-label {
-            margin-right: 10px;
-            font-style: italic;
-        }
-
-        .matrix {
-            position: relative;
-            padding: 0 10px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px 20px;
-            text-align: center;
-        }
-
-        /* The Brackets */
-        .matrix::before, .matrix::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 8px;
-            border: 2px solid var(--text);
-        }
-
-        .matrix::before {
-            left: 0;
-            border-right: none;
-            border-top-left-radius: 8px;
-            border-bottom-left-radius: 8px;
-        }
-
-        .matrix::after {
-            right: 0;
-            border-left: none;
-            border-top-right-radius: 8px;
-            border-bottom-right-radius: 8px;
-        }
+        .matrix-container { display: flex; align-items: center; justify-content: center; font-family: 'Times New Roman', serif; font-size: 2rem; margin: 2rem 0; }
+        .matrix-label { margin-right: 10px; font-style: italic; }
+        .matrix { position: relative; padding: 0 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; text-align: center; }
+        .matrix::before, .matrix::after { content: ""; position: absolute; top: 0; bottom: 0; width: 8px; border: 2px solid var(--text); }
+        .matrix::before { left: 0; border-right: none; border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        .matrix::after { right: 0; border-left: none; border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 
         /* Inputs */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .lambda-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 1.2rem;
-        }
-
-        input[type="number"] {
-            width: 60px;
-            padding: 8px;
-            font-size: 1.1rem;
-            text-align: center;
-            border: 2px solid #e5e7eb;
-            border-radius: 6px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input[type="number"]:focus {
-            border-color: var(--primary);
-        }
+        .input-group { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+        .lambda-row { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.2rem; }
+        input[type="number"] { width: 60px; padding: 8px; font-size: 1.1rem; text-align: center; border: 2px solid var(--border); border-radius: 6px; outline: none; transition: border-color 0.2s; }
+        input[type="number"]:focus { border-color: var(--primary); }
+        /* Removing spinners from number input */
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
         /* Buttons */
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
+        .btn-group { display: flex; gap: 10px; justify-content: center; }
+        button { padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        button:active { transform: translateY(1px); }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-secondary { background-color: var(--border); color: var(--text); }
 
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        button:active {
-            transform: translateY(1px);
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn-secondary {
-            background-color: #e5e7eb;
-            color: var(--text);
-        }
-
-        .message {
-            margin-top: 1rem;
-            min-height: 1.5em;
-            font-weight: 600;
-        }
-
+        .message { margin-top: 1rem; min-height: 1.5em; font-weight: 600; }
         .correct { color: var(--success); }
         .incorrect { color: var(--error); }
 
-        .hint {
-            margin-top: 10px;
-            font-size: 0.85rem;
-            color: #6b7280;
+        /* Cheat Sheet Section */
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            padding: 5px;
         }
+        .toggle-btn:hover { opacity: 0.8; }
+
+        #cheatSheetContainer {
+            margin-top: 1rem;
+            text-align: left;
+            font-size: 0.9rem;
+            border-top: 2px solid #f3f4f6;
+            padding-top: 1rem;
+        }
+
+        /* Utility class to hide elements */
+        .hidden { display: none; }
+
+        .hint-text {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .cheat-sheet-table { width: 100%; border-collapse: collapse; font-size: 0.9rem;}
+        .cheat-sheet-table th, .cheat-sheet-table td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+        .cheat-sheet-table th { background-color: #f9fafb; font-weight: 600; }
+        .cheat-sheet-table td strong { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -206,11 +135,42 @@
 
     <div class="btn-group">
         <button class="btn-primary" onclick="checkAnswer()">Check</button>
-        <button class="btn-secondary" onclick="newProblem()">Skip / New</button>
+        <button class="btn-secondary" id="skipBtn" onclick="newProblem()">Skip</button>
     </div>
 
     <div class="message" id="message"></div>
-    <div class="hint">Hint: &lambda;<sub>1</sub> + &lambda;<sub>2</sub> = Trace(A)</div>
+
+    <button class="toggle-btn" id="toggleBtn" onclick="toggleCheatSheet()">Show Cheat Sheet</button>
+
+    <div id="cheatSheetContainer" class="hidden">
+        <div class="hint-text">Goal: Find two numbers that <strong>ADD</strong> to the Trace and <strong>MULTIPLY</strong> to the Determinant.</div>
+        <table class="cheat-sheet-table">
+            <thead>
+                <tr>
+                    <th style="width: 25%">Step</th>
+                    <th style="width: 25%">Formula</th>
+                    <th>Mental Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1. Trace</td>
+                    <td>a + d</td>
+                    <td><strong>Add</strong> the diagonals.</td>
+                </tr>
+                <tr>
+                    <td>2. Det</td>
+                    <td>ad - bc</td>
+                    <td><strong>Cross-multiply</strong> and subtract.</td>
+                </tr>
+                <tr>
+                    <td>3. Solve</td>
+                    <td>Find &lambda;<sub>1</sub>, &lambda;<sub>2</sub></td>
+                    <td>Find two numbers that sum to Trace and multiply to Det.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
@@ -218,19 +178,14 @@
     let streak = 0;
     let highScore = 0;
 
-    // Helper to get factors of a number (including negative factors)
     function getFactors(n) {
         if (n === 0) return [0]; 
         const factors = [];
         const absN = Math.abs(n);
         for (let i = 1; i <= Math.sqrt(absN); i++) {
             if (n % i === 0) {
-                factors.push(i);
-                factors.push(-i);
-                if (i !== n/i) {
-                    factors.push(n/i);
-                    factors.push(-(n/i));
-                }
+                factors.push(i); factors.push(-i);
+                if (i !== n/i) { factors.push(n/i); factors.push(-(n/i)); }
             }
         }
         return factors;
@@ -241,59 +196,47 @@
     }
 
     function generateMatrix() {
-        // 1. Pick two small integer eigenvalues (-6 to 6)
-        // We avoid 0 just to keep it interesting, though 0 is valid.
+        // Small integer eigenvalues (-6 to 6)
         let l1 = getRandomInt(-6, 6);
         let l2 = getRandomInt(-6, 6);
         
         currentEigenvalues = [l1, l2].sort((a, b) => a - b);
 
-        const trace = l1 + l2;     // a + d
-        const det = l1 * l2;       // ad - bc
+        const trace = l1 + l2; 
+        const det = l1 * l2;   
 
-        // 2. Construct matrix entries
-        // We need integers a, b, c, d such that:
-        // a + d = trace
-        // ad - bc = det  =>  bc = ad - det
-        
-        // Pick 'a' randomly near the trace to keep numbers small
+        // Construct integer matrix
         let a = getRandomInt(Math.min(l1, l2) - 2, Math.max(l1, l2) + 2);
         let d = trace - a;
-
         let targetBC = (a * d) - det;
-
         let b, c;
 
         if (targetBC === 0) {
-            // If ad == det, then bc must be 0.
-            // Randomly assign one to be 0 and the other to be a small random int.
-            if (Math.random() > 0.5) {
-                b = 0;
-                c = getRandomInt(-5, 5);
-            } else {
-                c = 0;
-                b = getRandomInt(-5, 5);
-            }
+            if (Math.random() > 0.5) { b = 0; c = getRandomInt(-5, 5); } 
+            else { c = 0; b = getRandomInt(-5, 5); }
         } else {
-            // Find factors of targetBC to get integer b and c
             const factors = getFactors(targetBC);
-            // Pick a random factor for b
-            b = factors[getRandomInt(0, factors.length - 1)];
-            c = targetBC / b;
+            // avoid b=0 if targetBC is not 0
+            let validFactors = factors.filter(f => f !== 0);
+             if (validFactors.length === 0) {
+                 // Fallback for rare edge cases to prevent infinite loops/errors
+                 b = 1; c = targetBC;
+             } else {
+                 b = validFactors[getRandomInt(0, validFactors.length - 1)];
+                 c = targetBC / b;
+             }
         }
 
-        // Render to DOM
-        const matrixDiv = document.getElementById('matrixDisplay');
-        matrixDiv.innerHTML = `
+        document.getElementById('matrixDisplay').innerHTML = `
             <div>${a}</div><div>${b}</div>
             <div>${c}</div><div>${d}</div>
         `;
 
-        // Clear inputs and messages
         document.getElementById('ans1').value = '';
         document.getElementById('ans2').value = '';
         document.getElementById('message').textContent = '';
         document.getElementById('message').className = 'message';
+        document.getElementById('skipBtn').textContent = "Skip";
         document.getElementById('ans1').focus();
     }
 
@@ -313,19 +256,17 @@
         if (userAns[0] === currentEigenvalues[0] && userAns[1] === currentEigenvalues[1]) {
             msg.textContent = "Correct! Great work.";
             msg.className = "message correct";
-            
             streak++;
             if(streak > highScore) highScore = streak;
             updateStats();
-            
-            // Auto generate new problem after short delay
-            setTimeout(() => {
-                newProblem();
-            }, 1000);
+            document.getElementById('skipBtn').textContent = "Next Problem";
         } else {
             streak = 0;
             updateStats();
-            msg.textContent = `Incorrect. Try checking the Trace (${currentEigenvalues[0] + currentEigenvalues[1]}) and Determinant.`;
+            // Calculate Trace and Det for the hint
+            const trace = currentEigenvalues[0] + currentEigenvalues[1];
+            const det = currentEigenvalues[0] * currentEigenvalues[1];
+            msg.innerHTML = `Incorrect.<br>Hint: Try to find numbers that add to <strong>${trace}</strong> and multiply to <strong>${det}</strong>.`;
             msg.className = "message incorrect";
         }
     }
@@ -339,17 +280,27 @@
         document.getElementById('highScore').innerText = highScore;
     }
 
-    // Allow Enter key to submit
-    document.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            checkAnswer();
+    function toggleCheatSheet() {
+        const container = document.getElementById('cheatSheetContainer');
+        const btn = document.getElementById('toggleBtn');
+        
+        // Toggle the hidden class on the container
+        container.classList.toggle('hidden');
+
+        // Change button text based on visibility state
+        if (container.classList.contains('hidden')) {
+            btn.textContent = "Show Cheat Sheet";
+        } else {
+            btn.textContent = "Hide Cheat Sheet";
         }
+    }
+
+    document.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') checkAnswer();
     });
 
-    // Initial load
     generateMatrix();
 
 </script>
-
 </body>
 </html>
