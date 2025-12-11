@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slope & Intercept Challenge: Fractions Edition</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --primary: #3498db;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --text: #2c3e50;
+            --canvas-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 { margin-bottom: 10px; }
+        h2 { margin-top: 0; color: var(--primary); }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 900px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Canvas Styling */
+        canvas {
+            border: 2px solid var(--text);
+            background-color: var(--canvas-bg);
+            border-radius: 4px;
+            min-width: 300px;
+            min-height: 300px;
+        }
+
+        /* Controls & Interface Area */
+        .interface-area {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Score Bar System */
+        .score-system-container {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .score-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .score-bar-bg {
+            height: 20px;
+            background: linear-gradient(to right, #e74c3c, #f1c40f, #2ecc71);
+            border-radius: 10px;
+            position: relative;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #score-triangle {
+            position: absolute;
+            top: 22px; 
+            left: 0%; 
+            width: 0; 
+            height: 0; 
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid var(--text);
+            transform: translateX(-50%); 
+            transition: left 0.5s ease-in-out;
+        }
+        
+        .current-score-text {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        /* Multiple Choice Sections */
+        .mc-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .mc-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 10px;
+        }
+
+        .choice-btn {
+            padding: 12px 5px;
+            background-color: white;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            color: var(--primary);
+        }
+
+        .choice-btn:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .choice-btn.selected {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+        }
+
+        #check-btn {
+            padding: 15px;
+            background-color: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        #check-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        #check-btn:hover:not(:disabled) {
+            background-color: #27ae60;
+        }
+
+        /* Feedback Area */
+        #feedback-area {
+            padding: 15px;
+            border-radius: 8px;
+            display: none; 
+        }
+        .feedback-correct { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback-incorrect { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .next-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Submission Link */
+        .submit-link-container {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: #eef2f7;
+            border-radius: 10px;
+        }
+        .submit-link-container a {
+            color: var(--primary);
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .submit-link-container a:hover { text-decoration: underline; }
+
+    </style>
+</head>
+<body>
+
+    <h1>Mastering y = mx + b</h1>
+
+    <div class="score-system-container">
+        <div class="score-labels">
+            <span>Start</span>
+            <span>Good Effort</span>
+            <span>Lit 🔥</span>
+        </div>
+        <div class="score-bar-bg">
+            <div id="score-triangle"></div>
+        </div>
+        <div class="current-score-text">Score: <span id="score-val">0</span></div>
+    </div>
+
+    <div class="game-container">
+        <div>
+            <canvas id="gridCanvas" width="400" height="400"></canvas>
+        </div>
+
+        <div class="interface-area">
+            <h2>Find the Equation</h2>
+            
+            <div class="mc-section">
+                <span class="mc-label">1. What is the y-intercept (b)?</span>
+                <div class="choices-grid" id="b-choices"></div>
+            </div>
+
+            <div class="mc-section">
+                <span class="mc-label">2. What is the slope (m)?</span>
+                <div class="choices-grid" id="m-choices"></div>
+            </div>
+
+            <button id="check-btn" disabled>Check Answer</button>
+
+            <div id="feedback-area"></div>
+        </div>
+    </div>
+
+    <div class="submit-link-container">
+        <p>Reached "Lit" status? Take a screenshot of your score!</p>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfvVF6yR1b2vLfWnTxrT7x4ee6VFRxCXlqN3c19zRwSMZ_JOA/viewform" target="_blank">👉 Submit Best Score Screenshot Here 👈</a>
+    </div>
+
+
+<script>
+    // --- Configuration ---
+    const GRID_SIZE = 400; // px
+    const GRID_UNITS = 5; // Min/Max range (-5 to 5)
+    const MAX_SCORE = 1000; 
+
+    // Define the pool of allowed slopes with their string representations
+    const SLOPE_POOL = [
+        { val: 1, label: "1" },
+        { val: -1, label: "-1" },
+        { val: 2, label: "2" },
+        { val: -2, label: "-2" },
+        { val: 3, label: "3" },
+        { val: -3, label: "-3" },
+        { val: 0.5, label: "1/2" },
+        { val: -0.5, label: "-1/2" },
+        { val: 1/3, label: "1/3" },
+        { val: -1/3, label: "-1/3" },
+        { val: 2/3, label: "2/3" },
+        { val: -2/3, label: "-2/3" }
+    ];
+
+    // --- State ---
+    let currentSlopeObj = null; // Will hold the full object {val, label}
+    let currentB = 0;
+    
+    let selectedM_Val = null; // Stores value
+    let selectedB_Val = null;
+    
+    let totalScore = 0;
+
+    // --- DOM Elements ---
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+    const bChoicesDiv = document.getElementById('b-choices');
+    const mChoicesDiv = document.getElementById('m-choices');
+    const checkBtn = document.getElementById('check-btn');
+    const feedbackArea = document.getElementById('feedback-area');
+    const scoreTriangle = document.getElementById('score-triangle');
+    const scoreValSpan = document.getElementById('score-val');
+
+    // --- Drawing Functions ---
+
+    function drawGrid() {
+        ctx.clearRect(0, 0, GRID_SIZE, GRID_SIZE);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "#555";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        const unitPixels = GRID_SIZE / (GRID_UNITS * 2); 
+        const center = GRID_SIZE / 2;
+
+        // Draw grid lines
+        for (let i = -GRID_UNITS; i <= GRID_UNITS; i++) {
+            const pos = center + (i * unitPixels);
+            
+            // Vertical lines
+            ctx.beginPath();
+            ctx.moveTo(pos, 0);
+            ctx.lineTo(pos, GRID_SIZE);
+            ctx.stroke();
+
+            // Horizontal lines
+            ctx.beginPath();
+            ctx.moveTo(0, pos);
+            ctx.lineTo(GRID_SIZE, pos);
+            ctx.stroke();
+
+            // Numbers
+            if (i !== 0) {
+                // X-axis numbers
+                ctx.fillText(i.toString(), pos, center + 15);
+                // Y-axis numbers
+                ctx.fillText((-i).toString(), center - 15, pos);
+            }
+        }
+
+        // Draw Axes (Darker)
+        ctx.strokeStyle = '#2c3e50';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(center, 0);
+        ctx.lineTo(center, GRID_SIZE);
+        ctx.moveTo(0, center);
+        ctx.lineTo(GRID_SIZE, center);
+        ctx.stroke();
+    }
+
+    // Convert grid coordinate to canvas coordinate
+    function toCanvasCoord(x, y) {
+        const unitPixels = GRID_SIZE / (GRID_UNITS * 2);
+        const center = GRID_SIZE / 2;
+        return {
+            x: center + (x * unitPixels),
+            y: center - (y * unitPixels)
+        };
+    }
+
+    function drawLine(m, b) {
+        ctx.strokeStyle = '#e74c3c'; // Red line
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        // Calculate points far off screen to ensure full line coverage
+        const x1 = -GRID_UNITS - 2;
+        const y1 = m * x1 + b;
+        const pt1 = toCanvasCoord(x1, y1);
+
+        const x2 = GRID_UNITS + 2;
+        const y2 = m * x2 + b;
+        const pt2 = toCanvasCoord(x2, y2);
+
+        ctx.moveTo(pt1.x, pt1.y);
+        ctx.lineTo(pt2.x, pt2.y);
+        ctx.stroke();
+
+        // Draw intercept dot
+        const interceptPt = toCanvasCoord(0, b);
+        ctx.fillStyle = '#3498db';
+        ctx.beginPath();
+        ctx.arc(interceptPt.x, interceptPt.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // --- Game Logic ---
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function generateProblem() {
+        // Reset UI
+        selectedM_Val = null;
+        selectedB_Val = null;
+        checkBtn.disabled = true;
+        feedbackArea.style.display = 'none';
+        feedbackArea.className = '';
+
+        // 1. Choose B (integer between -3 and 3 to allow room for slope)
+        currentB = Math.floor(Math.random() * 7) - 3;
+
+        // 2. Choose M from our fractional pool
+        currentSlopeObj = SLOPE_POOL[Math.floor(Math.random() * SLOPE_POOL.length)];
+
+        // 3. Draw
+        drawGrid();
+        drawLine(currentSlopeObj.val, currentB);
+
+        // 4. Generate Choices
+        generateBChoices(currentB);
+        generateMChoices(currentSlopeObj);
+    }
+
+    function generateBChoices(correctB) {
+        bChoicesDiv.innerHTML = '';
+        let choices = new Set([correctB]);
+        
+        // Logical distractors
+        choices.add(-correctB);
+        choices.add(correctB + 1);
+        choices.add(correctB - 1);
+        
+        // Fill remaining with randoms
+        while (choices.size < 4) {
+            choices.add(Math.floor(Math.random() * 9) - 4);
+        }
+
+        let choicesArr = Array.from(choices);
+        // Bounds check
+        choicesArr = choicesArr.filter(c => c >= -5 && c <= 5).slice(0, 4);
+        while(choicesArr.length < 4) {
+             let newChoice = Math.floor(Math.random() * 11) - 5;
+             if(!choicesArr.includes(newChoice)) choicesArr.push(newChoice);
+        }
+        
+        shuffleArray(choicesArr);
+
+        choicesArr.forEach(val => {
+            const btn = document.createElement('button');
+            btn.innerText = val;
+            btn.classList.add('choice-btn');
+            btn.dataset.val = val; 
+            btn.onclick = (e) => selectChoice(e, 'b', val);
+            bChoicesDiv.appendChild(btn);
+        });
+    }
+
+    function generateMChoices(correctSlopeObj) {
+        mChoicesDiv.innerHTML = '';
+        
+        // Start with the correct object
+        let choicesObjs = [correctSlopeObj];
+
+        // Create a copy of the pool without the correct answer to pick distractors from
+        let pool = SLOPE_POOL.filter(s => Math.abs(s.val - correctSlopeObj.val) > 0.001);
+        
+        // Shuffle the pool and pick 3 distractors
+        shuffleArray(pool);
+        let distractors = pool.slice(0, 3);
+        
+        choicesObjs = choicesObjs.concat(distractors);
+        shuffleArray(choicesObjs);
+
+        choicesObjs.forEach(obj => {
+            const btn = document.createElement('button');
+            btn.innerText = obj.label; // Display the fraction string (e.g. "1/2")
+            btn.classList.add('choice-btn');
+            btn.dataset.val = obj.val; // Store the decimal value for checking
+            btn.onclick = (e) => selectChoice(e, 'm', obj.val);
+            mChoicesDiv.appendChild(btn);
+        });
+    }
+
+    function selectChoice(event, type, val) {
+        const parent = type === 'b' ? bChoicesDiv : mChoicesDiv;
+        
+        // Visual selection
+        Array.from(parent.children).forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+
+        // Logic selection
+        if (type === 'b') selectedB_Val = parseFloat(val);
+        else selectedM_Val = parseFloat(val);
+
+        // Enable check?
+        if (selectedB_Val !== null && selectedM_Val !== null) {
+            checkBtn.disabled = false;
+        }
+    }
+
+    checkBtn.addEventListener('click', () => {
+        checkBtn.disabled = true; 
+        feedbackArea.style.display = 'block';
+
+        // Check Logic (using epsilon for float comparison)
+        const isBCorrect = Math.abs(selectedB_Val - currentB) < 0.001;
+        const isMCorrect = Math.abs(selectedM_Val - currentSlopeObj.val) < 0.001;
+        
+        if (isBCorrect && isMCorrect) {
+            // Correct
+            feedbackArea.className = 'feedback-correct';
+            feedbackArea.innerHTML = `
+                <strong>Correct!</strong> <br>
+                y-intercept = <strong>${currentB}</strong> <br>
+                Slope = <strong>${currentSlopeObj.label}</strong>
+                <br><button class="next-btn" onclick="generateProblem()">Next Problem</button>
+            `;
+            updateScore(100); 
+        } else {
+            // Incorrect
+            feedbackArea.className = 'feedback-incorrect';
+            let explanation = "<strong>Not quite.</strong><br>";
+            
+            if (!isBCorrect) {
+                 explanation += `Check where the line crosses the vertical y-axis. It crosses at <strong>${currentB}</strong>.<br>`;
+            }
+            if (!isMCorrect) {
+                 explanation += `For the slope, try counting "Rise over Run". The correct slope is <strong>${currentSlopeObj.label}</strong>.`;
+            }
+
+            explanation += `<br><button class="next-btn" onclick="generateProblem()">Try Another</button>`;
+            feedbackArea.innerHTML = explanation;
+        }
+    });
+
+    function updateScore(pointsToAdd) {
+        totalScore = Math.min(totalScore + pointsToAdd, MAX_SCORE);
+        scoreValSpan.innerText = totalScore;
+        const percentage = (totalScore / MAX_SCORE) * 100;
+        scoreTriangle.style.left = `${percentage}%`;
+    }
+
+    // --- Initialization ---
+    drawGrid();
+    generateProblem();
+
+</script>
+</body>
+</html>
