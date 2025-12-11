@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Rain: Multiplication Defense</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --text-color: #e94560;
+            --accent-color: #0f3460;
+            --highlight: #16213e;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--white);
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* --- UI Header --- */
+        #ui-layer {
+            width: 100%;
+            padding: 10px 20px;
+            background-color: var(--highlight);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .stat-box {
+            text-align: center;
+            margin: 0 10px;
+        }
+
+        .stat-label { font-size: 0.8rem; color: #888; }
+        .stat-value { font-size: 1.2rem; font-weight: bold; color: var(--text-color); }
+
+        /* --- Controls --- */
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+            background-color: var(--accent-color);
+            color: white;
+            border: 1px solid var(--text-color);
+            font-family: inherit;
+            transition: 0.2s;
+        }
+
+        button:hover { background-color: var(--text-color); }
+        button.active { background-color: #2ecc71; border-color: #27ae60; }
+
+        /* --- Game Area --- */
+        #game-container {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            max-width: 800px;
+            background: rgba(0,0,0,0.2);
+            border-left: 2px solid var(--accent-color);
+            border-right: 2px solid var(--accent-color);
+            overflow: hidden;
+        }
+
+        /* Falling Equations */
+        .falling-item {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--white);
+            text-shadow: 0 0 5px var(--text-color);
+            transition: transform 0.1s linear;
+        }
+
+        /* --- Input Area --- */
+        #input-area {
+            width: 100%;
+            padding: 20px;
+            background-color: var(--highlight);
+            display: flex;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        #answer-input {
+            font-size: 2rem;
+            padding: 10px;
+            width: 200px;
+            text-align: center;
+            background: #000;
+            color: #2ecc71;
+            border: 2px solid var(--text-color);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        /* --- Overlays --- */
+        #start-screen, #game-over-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border: 2px solid var(--text-color);
+            text-align: center;
+            z-index: 20;
+            border-radius: 10px;
+        }
+
+        .hidden { display: none; }
+
+        h1 { margin-top: 0; color: var(--text-color); }
+        .big-score { font-size: 3rem; margin: 10px 0; color: #2ecc71; }
+        
+        .mode-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            opacity: 0.3;
+            font-size: 5rem;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div style="display:flex;">
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score-display">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value" id="streak-display">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Level</div>
+                <div class="stat-value" id="level-display">x1</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Lives</div>
+                <div class="stat-value" id="lives-display">3</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="btn-infinite" onclick="toggleInfinite()">Inf. Lives: OFF</button>
+            <button id="btn-random" onclick="toggleRandom()">Random Mode: OFF</button>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <div id="bg-text" class="mode-indicator">x1</div>
+    </div>
+
+    <div id="input-area">
+        <input type="number" id="answer-input" placeholder="?" autofocus>
+    </div>
+
+    <div id="start-screen">
+        <h1>MATH RAIN</h1>
+        <p>Type the answer and press ENTER to destroy the falling numbers.</p>
+        <button onclick="startGame()" style="font-size: 1.2rem; padding: 15px 30px;">START GAME</button>
+    </div>
+
+    <div id="game-over-screen" class="hidden">
+        <h1>GAME OVER</h1>
+        <p>Final Score</p>
+        <div class="big-score" id="final-score">0</div>
+        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+            <button onclick="submitScore()">Submit Score to Form</button>
+            <button onclick="location.reload()">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Configuration & State ---
+        const gameContainer = document.getElementById('game-container');
+        const inputField = document.getElementById('answer-input');
+        const bgText = document.getElementById('bg-text');
+        
+        // Settings
+        const MAX_TABLE = 12;
+        const SPAWN_RATE_MS = 2000; 
+        const FALL_SPEED_BASE = 1.0;
+        
+        // State Variables
+        let score = 0;
+        let streak = 0;
+        let lives = 3;
+        let currentTable = 1; // Starts at table 1
+        let isRandomMode = false;
+        let isInfiniteLives = false;
+        let gameRunning = false;
+        let animationFrameId;
+        let spawnIntervalId;
+        
+        // Arrays to hold active falling objects
+        let problems = []; 
+
+        // --- Core Functions ---
+
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            
+            score = 0;
+            streak = 0;
+            lives = 3;
+            currentTable = 1;
+            problems = [];
+            gameContainer.innerHTML = '<div id="bg-text" class="mode-indicator">x1</div>'; // Clear old
+            
+            updateUI();
+            inputField.value = '';
+            inputField.focus();
+            gameRunning = true;
+
+            // Start Loops
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+            spawnIntervalId = setInterval(spawnProblem, SPAWN_RATE_MS);
+        }
+
+        function spawnProblem() {
+            if(!gameRunning) return;
+
+            // Determine Math
+            let num1, num2;
+
+            if (isRandomMode) {
+                // Completely random 0-12
+                num1 = Math.floor(Math.random() * 13);
+                num2 = Math.floor(Math.random() * 13);
+            } else {
+                // Based on current level
+                num1 = currentTable;
+                num2 = Math.floor(Math.random() * 13); // 0 to 12
+            }
+
+            const answer = num1 * num2;
+            const text = `${num1} × ${num2}`;
+
+            // Create Element
+            const el = document.createElement('div');
+            el.classList.add('falling-item');
+            el.innerText = text;
+            
+            // Random horizontal position (keep away from very edges)
+            const maxLeft = gameContainer.clientWidth - 80;
+            const leftPos = Math.floor(Math.random() * maxLeft);
+            
+            el.style.left = leftPos + 'px';
+            el.style.top = '-50px'; // Start above screen
+
+            gameContainer.appendChild(el);
+
+            // Add to logic array
+            problems.push({
+                element: el,
+                y: -50,
+                answer: answer,
+                speed: FALL_SPEED_BASE + (score / 200) // Gets slightly faster as score goes up
+            });
+        }
+
+        let lastTime = 0;
+
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+
+            // Calculate delta time if needed for smoother animations, 
+            // but simple increment works for this complexity.
+            
+            const containerHeight = gameContainer.clientHeight;
+
+            // Update Positions
+            for (let i = problems.length - 1; i >= 0; i--) {
+                let p = problems[i];
+                p.y += p.speed;
+                p.element.style.top = p.y + 'px';
+
+                // Check Bottom Collision
+                if (p.y > containerHeight - 30) {
+                    handleMiss(i);
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function handleMiss(index) {
+            const p = problems[index];
+            p.element.remove(); // Remove from DOM
+            problems.splice(index, 1); // Remove from Array
+
+            // Break streak
+            streak = 0;
+
+            // Handle Lives
+            if (!isInfiniteLives) {
+                lives--;
+                gameContainer.style.boxShadow = "inset 0 0 50px red";
+                setTimeout(() => gameContainer.style.boxShadow = "none", 200);
+
+                if (lives <= 0) {
+                    endGame();
+                }
+            }
+            updateUI();
+        }
+
+        function checkInput() {
+            const val = parseInt(inputField.value);
+            if (isNaN(val)) return;
+
+            // Find if any falling problem matches the answer
+            // We search from bottom (lowest Y) to top, so we kill the most dangerous one first
+            // Sort problems by Y descending just to be sure, or iterate backwards
+            
+            // Let's iterate backwards through the array (newest is usually last, but Y varies by speed)
+            // Actually, let's find the 'lowest' problem that matches
+            
+            let targetIndex = -1;
+            let maxY = -1000;
+
+            for(let i=0; i<problems.length; i++) {
+                if(problems[i].answer === val) {
+                    if(problems[i].y > maxY) {
+                        maxY = problems[i].y;
+                        targetIndex = i;
+                    }
+                }
+            }
+
+            if (targetIndex !== -1) {
+                // Correct Answer!
+                const p = problems[targetIndex];
+                
+                // Visual Flair
+                createExplosion(p.y, p.element.style.left, val);
+                
+                p.element.remove();
+                problems.splice(targetIndex, 1);
+                
+                score += 10;
+                streak++;
+                
+                // Progressive Difficulty Logic (only if not in random mode)
+                if (!isRandomMode) {
+                    // Every 50 points (5 answers), check if we should level up
+                    // We cap at 12
+                    if (score > 0 && score % 50 === 0 && currentTable < MAX_TABLE) {
+                        currentTable++;
+                        // Visual notification of level up could go here
+                    }
+                }
+
+                inputField.value = ''; // Clear input
+                updateUI();
+            }
+        }
+
+        function createExplosion(top, left, val) {
+            // Simple visual effect
+            const div = document.createElement('div');
+            div.style.position = 'absolute';
+            div.style.top = top + 'px';
+            div.style.left = left;
+            div.style.color = '#2ecc71';
+            div.style.fontWeight = 'bold';
+            div.style.fontSize = '30px';
+            div.innerText = val;
+            div.style.transition = 'all 0.5s ease-out';
+            gameContainer.appendChild(div);
+
+            setTimeout(() => {
+                div.style.opacity = '0';
+                div.style.transform = 'scale(2)';
+            }, 10);
+
+            setTimeout(() => div.remove(), 500);
+        }
+
+        function updateUI() {
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('streak-display').innerText = streak;
+            document.getElementById('lives-display').innerText = isInfiniteLives ? "∞" : lives;
+            
+            const levelText = isRandomMode ? "RND" : ("x" + currentTable);
+            document.getElementById('level-display').innerText = levelText;
+            
+            // Update BG watermark
+            const bgEl = document.getElementById('bg-text');
+            if(bgEl) bgEl.innerText = levelText;
+        }
+
+        function endGame() {
+            gameRunning = false;
+            clearInterval(spawnIntervalId);
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('game-over-screen').classList.remove('hidden');
+        }
+
+        function submitScore() {
+            const url = "https://forms.gle/dvzmyQyur8z8kgGZ8";
+            window.open(url, '_blank');
+        }
+
+        // --- Controls Functions ---
+
+        function toggleRandom() {
+            isRandomMode = !isRandomMode;
+            const btn = document.getElementById('btn-random');
+            if(isRandomMode) {
+                btn.innerText = "Random Mode: ON";
+                btn.classList.add('active');
+            } else {
+                btn.innerText = "Random Mode: OFF";
+                btn.classList.remove('active');
+                // Reset level to 1 if we turn off random
+                currentTable = 1;
+            }
+            updateUI();
+            inputField.focus();
+        }
+
+        function toggleInfinite() {
+            isInfiniteLives = !isInfiniteLives;
+            const btn = document.getElementById('btn-infinite');
+            if(isInfiniteLives) {
+                btn.innerText = "Inf. Lives: ON";
+                btn.classList.add('active');
+            } else {
+                btn.innerText = "Inf. Lives: OFF";
+                btn.classList.remove('active');
+            }
+            updateUI();
+            inputField.focus();
+        }
+
+        // --- Event Listeners ---
+
+        inputField.addEventListener('input', () => {
+            // Optional: Check on every keystroke if you want instant deletion 
+            // without pressing Enter. 
+            // Because answers can be 1 digit or 2 digits or 3 digits (12*12=144),
+            // we have to be careful. But 'Enter' is safer. 
+            // HOWEVER, user asked for "Enter the correct response to get it eliminated".
+            // Let's stick to Enter key for precision, OR check purely matches.
+        });
+
+        inputField.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                checkInput();
+                // If the answer was wrong, user might want to clear box.
+                // For better UX, we usually leave it so they can fix it, 
+                // or we select all. Let's select all.
+                inputField.select(); 
+            }
+        });
+
+        // Always keep focus on input unless clicking buttons
+        document.addEventListener('click', (e) => {
+            if(e.target.tagName !== 'BUTTON' && gameRunning) {
+                inputField.focus();
+            }
+        });
+
+    </script>
+</body>
+</html>
