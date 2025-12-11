@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Rain: Multiplication Defense</title>
+    <title>Math Rain: Slow Mode</title>
     <style>
         :root {
             --bg-color: #1a1a2e;
@@ -18,7 +18,7 @@
             background-color: var(--bg-color);
             color: var(--white);
             margin: 0;
-            overflow: hidden; /* Prevent scrolling */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -177,7 +177,7 @@
 
     <div id="start-screen">
         <h1>MATH RAIN</h1>
-        <p>Type the answer and press ENTER to destroy the falling numbers.</p>
+        <p>Type the answer and press ENTER.</p>
         <button onclick="startGame()" style="font-size: 1.2rem; padding: 15px 30px;">START GAME</button>
     </div>
 
@@ -199,8 +199,11 @@
         
         // Settings
         const MAX_TABLE = 12;
-        const SPAWN_RATE_MS = 2000; 
-        const FALL_SPEED_BASE = 1.0;
+        const SPAWN_RATE_MS = 2500; // Increased spawn time slightly to match slower fall
+        
+        // --- SPEED SETTING ---
+        // Changed from 1.5 to 0.6 (Very Slow)
+        const FALL_SPEED_BASE = 0.6; 
         
         // State Variables
         let score = 0;
@@ -210,7 +213,6 @@
         let isRandomMode = false;
         let isInfiniteLives = false;
         let gameRunning = false;
-        let animationFrameId;
         let spawnIntervalId;
         
         // Arrays to hold active falling objects
@@ -227,7 +229,7 @@
             lives = 3;
             currentTable = 1;
             problems = [];
-            gameContainer.innerHTML = '<div id="bg-text" class="mode-indicator">x1</div>'; // Clear old
+            gameContainer.innerHTML = '<div id="bg-text" class="mode-indicator">x1</div>'; 
             
             updateUI();
             inputField.value = '';
@@ -235,7 +237,6 @@
             gameRunning = true;
 
             // Start Loops
-            lastTime = performance.now();
             requestAnimationFrame(gameLoop);
             spawnIntervalId = setInterval(spawnProblem, SPAWN_RATE_MS);
         }
@@ -253,7 +254,7 @@
             } else {
                 // Based on current level
                 num1 = currentTable;
-                num2 = Math.floor(Math.random() * 13); // 0 to 12
+                num2 = Math.floor(Math.random() * 13); 
             }
 
             const answer = num1 * num2;
@@ -264,12 +265,11 @@
             el.classList.add('falling-item');
             el.innerText = text;
             
-            // Random horizontal position (keep away from very edges)
             const maxLeft = gameContainer.clientWidth - 80;
             const leftPos = Math.floor(Math.random() * maxLeft);
             
             el.style.left = leftPos + 'px';
-            el.style.top = '-50px'; // Start above screen
+            el.style.top = '-50px'; 
 
             gameContainer.appendChild(el);
 
@@ -278,18 +278,14 @@
                 element: el,
                 y: -50,
                 answer: answer,
-                speed: FALL_SPEED_BASE + (score / 200) // Gets slightly faster as score goes up
+                // CONSTANT SPEED HERE
+                speed: FALL_SPEED_BASE 
             });
         }
 
-        let lastTime = 0;
-
-        function gameLoop(timestamp) {
+        function gameLoop() {
             if (!gameRunning) return;
 
-            // Calculate delta time if needed for smoother animations, 
-            // but simple increment works for this complexity.
-            
             const containerHeight = gameContainer.clientHeight;
 
             // Update Positions
@@ -309,13 +305,11 @@
 
         function handleMiss(index) {
             const p = problems[index];
-            p.element.remove(); // Remove from DOM
-            problems.splice(index, 1); // Remove from Array
+            p.element.remove(); 
+            problems.splice(index, 1); 
 
-            // Break streak
             streak = 0;
 
-            // Handle Lives
             if (!isInfiniteLives) {
                 lives--;
                 gameContainer.style.boxShadow = "inset 0 0 50px red";
@@ -332,13 +326,7 @@
             const val = parseInt(inputField.value);
             if (isNaN(val)) return;
 
-            // Find if any falling problem matches the answer
-            // We search from bottom (lowest Y) to top, so we kill the most dangerous one first
-            // Sort problems by Y descending just to be sure, or iterate backwards
-            
-            // Let's iterate backwards through the array (newest is usually last, but Y varies by speed)
-            // Actually, let's find the 'lowest' problem that matches
-            
+            // Find matching problem (lowest first)
             let targetIndex = -1;
             let maxY = -1000;
 
@@ -352,35 +340,27 @@
             }
 
             if (targetIndex !== -1) {
-                // Correct Answer!
                 const p = problems[targetIndex];
-                
-                // Visual Flair
                 createExplosion(p.y, p.element.style.left, val);
-                
                 p.element.remove();
                 problems.splice(targetIndex, 1);
                 
                 score += 10;
                 streak++;
                 
-                // Progressive Difficulty Logic (only if not in random mode)
+                // Progressive Levels
                 if (!isRandomMode) {
-                    // Every 50 points (5 answers), check if we should level up
-                    // We cap at 12
                     if (score > 0 && score % 50 === 0 && currentTable < MAX_TABLE) {
                         currentTable++;
-                        // Visual notification of level up could go here
                     }
                 }
 
-                inputField.value = ''; // Clear input
+                inputField.value = ''; 
                 updateUI();
             }
         }
 
         function createExplosion(top, left, val) {
-            // Simple visual effect
             const div = document.createElement('div');
             div.style.position = 'absolute';
             div.style.top = top + 'px';
@@ -408,7 +388,6 @@
             const levelText = isRandomMode ? "RND" : ("x" + currentTable);
             document.getElementById('level-display').innerText = levelText;
             
-            // Update BG watermark
             const bgEl = document.getElementById('bg-text');
             if(bgEl) bgEl.innerText = levelText;
         }
@@ -436,7 +415,6 @@
             } else {
                 btn.innerText = "Random Mode: OFF";
                 btn.classList.remove('active');
-                // Reset level to 1 if we turn off random
                 currentTable = 1;
             }
             updateUI();
@@ -459,26 +437,13 @@
 
         // --- Event Listeners ---
 
-        inputField.addEventListener('input', () => {
-            // Optional: Check on every keystroke if you want instant deletion 
-            // without pressing Enter. 
-            // Because answers can be 1 digit or 2 digits or 3 digits (12*12=144),
-            // we have to be careful. But 'Enter' is safer. 
-            // HOWEVER, user asked for "Enter the correct response to get it eliminated".
-            // Let's stick to Enter key for precision, OR check purely matches.
-        });
-
         inputField.addEventListener('keyup', (e) => {
             if (e.key === 'Enter') {
                 checkInput();
-                // If the answer was wrong, user might want to clear box.
-                // For better UX, we usually leave it so they can fix it, 
-                // or we select all. Let's select all.
                 inputField.select(); 
             }
         });
 
-        // Always keep focus on input unless clicking buttons
         document.addEventListener('click', (e) => {
             if(e.target.tagName !== 'BUTTON' && gameRunning) {
                 inputField.focus();
