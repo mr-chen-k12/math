@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Rain: Slow Mode</title>
+    <title>Math Rain: Fixed Edition</title>
     <style>
         :root {
             --bg-color: #1a1a2e;
@@ -79,11 +79,11 @@
         /* Falling Equations */
         .falling-item {
             position: absolute;
-            font-size: 24px;
+            font-size: 28px; /* Slightly larger for clarity */
             font-weight: bold;
             color: var(--white);
             text-shadow: 0 0 5px var(--text-color);
-            transition: transform 0.1s linear;
+            white-space: nowrap;
         }
 
         /* --- Input Area --- */
@@ -172,7 +172,7 @@
     </div>
 
     <div id="input-area">
-        <input type="number" id="answer-input" placeholder="?" autofocus>
+        <input type="text" inputmode="numeric" id="answer-input" placeholder="?" autocomplete="off" autofocus>
     </div>
 
     <div id="start-screen">
@@ -199,23 +199,19 @@
         
         // Settings
         const MAX_TABLE = 12;
-        const SPAWN_RATE_MS = 2500; // Increased spawn time slightly to match slower fall
-        
-        // --- SPEED SETTING ---
-        // Changed from 1.5 to 0.6 (Very Slow)
-        const FALL_SPEED_BASE = 0.6; 
+        const SPAWN_RATE_MS = 2500; 
+        const FALL_SPEED_BASE = 0.6; // Slow constant speed
         
         // State Variables
         let score = 0;
         let streak = 0;
         let lives = 3;
-        let currentTable = 1; // Starts at table 1
+        let currentTable = 1; 
         let isRandomMode = false;
         let isInfiniteLives = false;
         let gameRunning = false;
         let spawnIntervalId;
         
-        // Arrays to hold active falling objects
         let problems = []; 
 
         // --- Core Functions ---
@@ -236,7 +232,6 @@
             inputField.focus();
             gameRunning = true;
 
-            // Start Loops
             requestAnimationFrame(gameLoop);
             spawnIntervalId = setInterval(spawnProblem, SPAWN_RATE_MS);
         }
@@ -244,15 +239,12 @@
         function spawnProblem() {
             if(!gameRunning) return;
 
-            // Determine Math
             let num1, num2;
 
             if (isRandomMode) {
-                // Completely random 0-12
                 num1 = Math.floor(Math.random() * 13);
                 num2 = Math.floor(Math.random() * 13);
             } else {
-                // Based on current level
                 num1 = currentTable;
                 num2 = Math.floor(Math.random() * 13); 
             }
@@ -260,12 +252,11 @@
             const answer = num1 * num2;
             const text = `${num1} × ${num2}`;
 
-            // Create Element
             const el = document.createElement('div');
             el.classList.add('falling-item');
             el.innerText = text;
             
-            const maxLeft = gameContainer.clientWidth - 80;
+            const maxLeft = gameContainer.clientWidth - 100; // Increased buffer
             const leftPos = Math.floor(Math.random() * maxLeft);
             
             el.style.left = leftPos + 'px';
@@ -273,12 +264,10 @@
 
             gameContainer.appendChild(el);
 
-            // Add to logic array
             problems.push({
                 element: el,
                 y: -50,
                 answer: answer,
-                // CONSTANT SPEED HERE
                 speed: FALL_SPEED_BASE 
             });
         }
@@ -288,18 +277,15 @@
 
             const containerHeight = gameContainer.clientHeight;
 
-            // Update Positions
             for (let i = problems.length - 1; i >= 0; i--) {
                 let p = problems[i];
                 p.y += p.speed;
                 p.element.style.top = p.y + 'px';
 
-                // Check Bottom Collision
                 if (p.y > containerHeight - 30) {
                     handleMiss(i);
                 }
             }
-
             requestAnimationFrame(gameLoop);
         }
 
@@ -323,8 +309,11 @@
         }
 
         function checkInput() {
-            const val = parseInt(inputField.value);
-            if (isNaN(val)) return;
+            // Updated parsing logic to handle spaces or type errors
+            let rawVal = inputField.value.trim();
+            const val = Number(rawVal);
+            
+            if (rawVal === "" || isNaN(val)) return;
 
             // Find matching problem (lowest first)
             let targetIndex = -1;
@@ -404,8 +393,6 @@
             window.open(url, '_blank');
         }
 
-        // --- Controls Functions ---
-
         function toggleRandom() {
             isRandomMode = !isRandomMode;
             const btn = document.getElementById('btn-random');
@@ -435,17 +422,19 @@
             inputField.focus();
         }
 
-        // --- Event Listeners ---
-
-        inputField.addEventListener('keyup', (e) => {
+        // --- Improved Event Listener ---
+        // Using 'keydown' is often faster than 'keyup' for games
+        inputField.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault(); // Prevents form submission ghosts
                 checkInput();
-                inputField.select(); 
+                inputField.select(); // Selects all text for quick overwrite
             }
         });
 
+        // Ensure focus stays on game
         document.addEventListener('click', (e) => {
-            if(e.target.tagName !== 'BUTTON' && gameRunning) {
+            if(e.target.tagName !== 'BUTTON' && e.target !== inputField && gameRunning) {
                 inputField.focus();
             }
         });
