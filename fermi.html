@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fermi Math Master</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --success: #22c55e;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Main Game Container */
+        #game-container {
+            background: var(--card);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        p.subtitle { color: #666; margin-bottom: 25px; }
+
+        /* Scoreboard */
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+            background: #eef2ff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        /* Progress Bar Section */
+        .progress-wrapper {
+            position: relative;
+            margin: 30px 0;
+            padding: 0 20px;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .progress-track {
+            height: 15px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            width: 100%;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b, #ef4444);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        /* The Triangle Pointer */
+        .pointer {
+            position: absolute;
+            top: 15px; /* Just below the bar */
+            left: 0%;
+            transform: translateX(-50%);
+            transition: left 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pointer-triangle {
+            width: 0; 
+            height: 0; 
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid var(--primary);
+        }
+
+        .status-text {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        /* Question Area */
+        .question-box {
+            font-size: 1.3em;
+            margin: 20px 0;
+            color: #1f2937;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 150px;
+            text-align: center;
+            outline: none;
+        }
+        
+        input[type="number"]:focus { border-color: var(--primary); }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            margin-top: 10px;
+            transition: transform 0.1s;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        .btn-submit { background-color: var(--primary); color: white; }
+        .btn-next { background-color: var(--success); color: white; display: none; }
+
+        /* Dimensional Analysis Visualization */
+        .feedback-area {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #fdf2f8; /* Light pink bg for contrast */
+            display: none; 
+            text-align: left;
+            animation: fadeIn 0.5s;
+        }
+
+        .da-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1em;
+            gap: 5px;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 5px;
+            vertical-align: middle;
+        }
+
+        .numerator { border-bottom: 2px solid #000; padding: 0 5px; }
+        .denominator { padding: 0 5px; }
+        
+        .operator { font-size: 1.5em; color: #888; }
+        
+        /* Crossed out text */
+        .cancelled {
+            text-decoration: line-through;
+            text-decoration-color: red;
+            text-decoration-thickness: 2px;
+            color: #999;
+        }
+
+        .answer-reveal {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--secondary);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        /* Final Screen */
+        #final-screen { display: none; }
+        .btn-download { background-color: var(--secondary); color: white; margin-top: 20px; display: block; width: 100%; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>Fermi Math Master</h1>
+    <p class="subtitle">Estimate. Calculate. Level Up.</p>
+
+    <div class="stats-row">
+        <span>Question: <span id="q-num">1</span>/10</span>
+        <span>Streak: <span id="streak">0</span> 🔥</span>
+        <span>Score: <span id="score">0</span></span>
+    </div>
+
+    <div class="progress-wrapper">
+        <div class="progress-labels">
+            <span>Trying</span>
+            <span>Good Job</span>
+            <span>Lit Status</span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="pointer" id="pointer">
+            <div class="pointer-triangle"></div>
+            <div class="status-text" id="status-text">Trying</div>
+        </div>
+    </div>
+
+    <div id="game-play">
+        <div class="question-box" id="question-text">
+            Loading question...
+        </div>
+        
+        <div>
+            <input type="number" id="user-input" placeholder="Type answer..." />
+            <br>
+            <button class="btn-submit" id="submit-btn" onclick="checkAnswer()">Check Answer</button>
+            <button class="btn-next" id="next-btn" onclick="nextQuestion()">Next Question ➡</button>
+        </div>
+
+        <div class="feedback-area" id="feedback-area">
+            <div class="answer-reveal" id="answer-reveal"></div>
+            <p style="text-align:center; font-size:0.9em; color:#666;">Dimensional Analysis (Unit Cancellation):</p>
+            <div class="da-container" id="da-visual">
+                </div>
+        </div>
+    </div>
+
+    <div id="final-screen">
+        <h2>🎉 Mission Complete! 🎉</h2>
+        <p>You have finished the challenge.</p>
+        <p>Your Status: <strong id="final-status" style="font-size:1.5em; color:var(--secondary)"></strong></p>
+        
+        <div style="background:#fff3cd; padding:15px; border-radius:10px; border:1px solid #ffeeba; margin-top:20px;">
+            <strong>Step 1:</strong> Click the button below to download your scorecard image.<br><br>
+            <strong>Step 2:</strong> The Google Form will open. Upload the image there!
+        </div>
+
+        <button class="btn-download" onclick="downloadAndRedirect()">📸 Download Screen & Open Form</button>
+    </div>
+
+</div>
+
+<script>
+    // --- Data: The 10 Fermi Questions ---
+    // Note: We use rounded numbers to make the "Fermi" estimation approachable for 6th graders
+    const questions = [
+        {
+            text: "If your heart beats 80 times per minute, how many times does it beat in an hour?",
+            answer: 4800,
+            units: ["beats/min", "min/hr"],
+            steps: [
+                { num: "80 beats", den: "1 min" },
+                { num: "60 min", den: "1 hr" }
+            ],
+            resultUnit: "beats/hr"
+        },
+        {
+            text: "A student blinks 15 times per minute. How many blinks in a 40-minute class?",
+            answer: 600,
+            units: ["blinks/min", "min/class"],
+            steps: [
+                { num: "15 blinks", den: "1 min" },
+                { num: "40 min", den: "1 class" }
+            ],
+            resultUnit: "blinks"
+        },
+        {
+            text: "How many seconds are in 2 hours?",
+            answer: 7200,
+            units: ["hours", "min/hr", "sec/min"],
+            steps: [
+                { num: "2 hr", den: "1" },
+                { num: "60 min", den: "1 hr" },
+                { num: "60 sec", den: "1 min" }
+            ],
+            resultUnit: "seconds"
+        },
+        {
+            text: "A giant pizza has 12 slices. If you eat 2 pizzas a month, how many slices do you eat in a year? (Assume 12 months/year)",
+            answer: 288,
+            units: ["slices/pizza", "pizzas/month", "months/year"],
+            steps: [
+                { num: "12 slices", den: "1 pizza" },
+                { num: "2 pizzas", den: "1 month" },
+                { num: "12 months", den: "1 year" }
+            ],
+            resultUnit: "slices/year"
+        },
+        {
+            text: "If you walk 3 miles every day, how many miles do you walk in a standard 30-day month?",
+            answer: 90,
+            units: ["miles/day", "days/month"],
+            steps: [
+                { num: "3 miles", den: "1 day" },
+                { num: "30 days", den: "1 month" }
+            ],
+            resultUnit: "miles/month"
+        },
+        {
+            text: "A dripping tap wastes 20 drops per minute. How many drops is that in an hour?",
+            answer: 1200,
+            units: ["drops/min", "min/hr"],
+            steps: [
+                { num: "20 drops", den: "1 min" },
+                { num: "60 min", den: "1 hr" }
+            ],
+            resultUnit: "drops/hr"
+        },
+        {
+            text: "There are 100 pennies in a dollar. If you save 50 cents (0.5 dollars) a day, how many pennies do you have after 10 days?",
+            answer: 500,
+            units: ["pennies/dollar", "dollars/day", "days"],
+            steps: [
+                { num: "100 pennies", den: "1 dollar" },
+                { num: "0.5 dollar", den: "1 day" },
+                { num: "10 days", den: "1" }
+            ],
+            resultUnit: "pennies"
+        },
+        {
+            text: "How many hours are in a standard 30-day month?",
+            answer: 720,
+            units: ["hours/day", "days/month"],
+            steps: [
+                { num: "24 hr", den: "1 day" },
+                { num: "30 days", den: "1 month" }
+            ],
+            resultUnit: "hours/month"
+        },
+        {
+            text: "If you sleep 8 hours a day, how many hours do you sleep in a week?",
+            answer: 56,
+            units: ["hours/day", "days/week"],
+            steps: [
+                { num: "8 hr", den: "1 day" },
+                { num: "7 days", den: "1 week" }
+            ],
+            resultUnit: "hours/week"
+        },
+        {
+            text: "The speed of light is roughly 300,000 km per second. How far does light travel in 2 seconds? (Wait, this is too easy... let's do: How many minutes in a 30 day month?)",
+            // Swapping to a better dimensional analysis for 6th graders
+            text: "How many minutes are in exactly 3 hours?",
+            answer: 180,
+            units: ["min/hr", "hours"],
+            steps: [
+                { num: "60 min", den: "1 hr" },
+                { num: "3 hr", den: "1" }
+            ],
+            resultUnit: "minutes"
+        }
+    ];
+
+    // --- Game State ---
+    let currentQIndex = 0;
+    let score = 0;
+    let streak = 0;
+    const TOTAL_QS = questions.length;
+
+    // --- DOM Elements ---
+    const qNumEl = document.getElementById('q-num');
+    const streakEl = document.getElementById('streak');
+    const scoreEl = document.getElementById('score');
+    const questionTextEl = document.getElementById('question-text');
+    const inputEl = document.getElementById('user-input');
+    const submitBtn = document.getElementById('submit-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const feedbackArea = document.getElementById('feedback-area');
+    const answerReveal = document.getElementById('answer-reveal');
+    const daVisual = document.getElementById('da-visual');
+    const progressFill = document.getElementById('progress-fill');
+    const pointer = document.getElementById('pointer');
+    const statusText = document.getElementById('status-text');
+    const gamePlayDiv = document.getElementById('game-play');
+    const finalScreenDiv = document.getElementById('final-screen');
+
+    // --- Initialization ---
+    loadQuestion();
+
+    function loadQuestion() {
+        if(currentQIndex >= TOTAL_QS) {
+            endGame();
+            return;
+        }
+
+        const q = questions[currentQIndex];
+        qNumEl.innerText = currentQIndex + 1;
+        questionTextEl.innerText = q.text;
+        inputEl.value = '';
+        inputEl.disabled = false;
+        
+        feedbackArea.style.display = 'none';
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'inline-block';
+        inputEl.focus();
+    }
+
+    function checkAnswer() {
+        const userVal = parseFloat(inputEl.value);
+        const q = questions[currentQIndex];
+        
+        if (isNaN(userVal)) {
+            alert("Please type a number!");
+            return;
+        }
+
+        // Allow a tiny margin of error for floating point weirdness, though these are integers
+        const isCorrect = Math.abs(userVal - q.answer) < 0.1;
+
+        if (isCorrect) {
+            score += 10;
+            streak++;
+            answerReveal.innerHTML = `<span style="color:var(--success)">Correct!</span> The answer is ${q.answer} ${q.resultUnit}.`;
+        } else {
+            streak = 0;
+            answerReveal.innerHTML = `<span style="color:red">Nice try!</span> The correct answer was ${q.answer} ${q.resultUnit}.`;
+        }
+
+        updateStats();
+        renderDimensionalAnalysis(q);
+        
+        // UI Transition
+        inputEl.disabled = true;
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'inline-block';
+        feedbackArea.style.display = 'block';
+    }
+
+    function updateStats() {
+        streakEl.innerText = streak;
+        scoreEl.innerText = score;
+
+        // Calculate progress 0-100%
+        // We base "Status" on the score percentage of current questions answered? 
+        // Or just total progress through the game?
+        // Let's make the bar represent Score Potential (how well they are doing)
+        
+        // Logic: 100 points possible. 
+        let percentage = score; // Since there are 10 questions worth 10 pts each.
+        
+        // Clamp percentage
+        if (percentage > 100) percentage = 100;
+        if (percentage < 0) percentage = 0;
+
+        progressFill.style.width = percentage + "%";
+        pointer.style.left = percentage + "%";
+
+        // Update Text Status
+        if (percentage < 33) {
+            statusText.innerText = "Trying";
+            statusText.style.color = "#666";
+        } else if (percentage < 70) {
+            statusText.innerText = "Good Job";
+            statusText.style.color = "#f59e0b";
+        } else {
+            statusText.innerText = "Lit Status";
+            statusText.style.color = "#ef4444";
+        }
+    }
+
+    function renderDimensionalAnalysis(q) {
+        daVisual.innerHTML = '';
+        
+        q.steps.forEach((step, index) => {
+            // Create Fraction
+            const frac = document.createElement('div');
+            frac.className = 'fraction';
+            
+            // Logic to determine what gets "cancelled"
+            // Simple heuristic for this game:
+            // If the unit in the denominator of this step matches numerator of previous?
+            // Actually, let's just hardcode the visual "cancel" style based on the problem structure
+            // Usually: Step 1 Numerator Unit cancels Step 2 Denominator Unit.
+            
+            let numClass = '';
+            let denClass = '';
+            
+            // Visual logic: 
+            // 1. Numerator of Step 1 cancels Denominator of Step 2
+            // 2. Numerator of Step 2 cancels Denominator of Step 3 (if exists)
+            
+            // Apply cancellation styles
+            if (index < q.steps.length - 1) {
+                // This numerator cancels next denominator
+                // We'll just style the TEXT, but we need to split number and unit.
+                // For simplicity in this script, we assume the string format "Number Unit"
+            }
+
+            // To make it simple and robust, we will just render them. 
+            // Then apply 'cancelled' class to specific known units for these specific questions.
+            // A generic parser is too complex for this snippet.
+            
+            // Simple Regex to wrap the Unit in a span we can style
+            const wrapUnit = (str) => {
+                const parts = str.match(/^([\d\.]+)\s+(.+)$/);
+                if (parts) {
+                    return `${parts[1]} <span class="unit-text">${parts[2]}</span>`;
+                }
+                return str; 
+            };
+
+            const numeratorHTML = `<div class="numerator">${wrapUnit(step.num)}</div>`;
+            const denominatorHTML = `<div class="denominator">${wrapUnit(step.den)}</div>`;
+            
+            frac.innerHTML = numeratorHTML + denominatorHTML;
+            daVisual.appendChild(frac);
+
+            // Add Multiply sign if not last
+            if (index < q.steps.length) {
+                const op = document.createElement('div');
+                op.className = 'operator';
+                op.innerText = (index === q.steps.length -1) ? "=" : "×";
+                daVisual.appendChild(op);
+            }
+        });
+
+        // Add Result
+        const res = document.createElement('div');
+        res.className = 'fraction';
+        res.innerHTML = `<div class="numerator" style="border:none; font-weight:bold; color:var(--primary)">${q.answer} ${q.resultUnit}</div>`;
+        daVisual.appendChild(res);
+
+        // Apply Red Lines (Strikethroughs) dynamically
+        // We find all "unit-text" spans. If two hold the same text, we cross them out.
+        const units = daVisual.querySelectorAll('.unit-text');
+        const unitMap = {};
+
+        units.forEach(u => {
+            const txt = u.innerText.trim(); // simplistic matching (e.g. "min" matches "min")
+            // Note: In real math "min" and "mins" might differ, we kept data consistent.
+            if (!unitMap[txt]) unitMap[txt] = [];
+            unitMap[txt].push(u);
+        });
+
+        // If a unit appears 2 or more times (usually one num, one den), cross them out
+        for (const [key, elements] of Object.entries(unitMap)) {
+            // In these chains, we only cancel intermediate units, not the final result unit usually
+            // But our heuristic: if it appears > 1, it's likely a cancellation pair.
+            // Exception: The result unit might appear in the last step? No, result unit is new.
+            
+            // Only cancel if we have pairs (one top, one bottom ideally, but simplistic is fine here)
+            if (elements.length >= 2) {
+                elements.forEach(el => el.classList.add('cancelled'));
+            }
+        }
+    }
+
+    function nextQuestion() {
+        currentQIndex++;
+        loadQuestion();
+    }
+
+    function endGame() {
+        gamePlayDiv.style.display = 'none';
+        finalScreenDiv.style.display = 'block';
+        
+        let finalText = statusText.innerText;
+        document.getElementById('final-status').innerText = finalText;
+    }
+
+    function downloadAndRedirect() {
+        const gameContainer = document.getElementById('game-container');
+        
+        // Use html2canvas to take screenshot
+        html2canvas(gameContainer).then(canvas => {
+            // Create a fake link to trigger download
+            const link = document.createElement('a');
+            link.download = 'Fermi_Scorecard.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            
+            // Open the Google Form
+            setTimeout(() => {
+                window.open('https://forms.gle/kxTA89aXy8uX9zLn6', '_blank');
+            }, 1000);
+        });
+    }
+
+</script>
+
+</body>
+</html>
