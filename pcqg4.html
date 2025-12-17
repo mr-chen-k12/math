@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingdom of Gallon: Master Converter</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #f59e0b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 { margin-bottom: 10px; color: var(--primary); }
+        p { margin-top: 0; color: #64748b; }
+
+        /* --- VISUAL CHEAT SHEET --- */
+        .cheat-sheet-container { margin-bottom: 30px; text-align: center; transform: scale(0.9); }
+        
+        .gallon-box {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 8px solid var(--text);
+            background: white;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            margin: 0 auto;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .g-label {
+            position: absolute;
+            top: -45px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 2em; font-weight: bold; color: var(--text);
+        }
+
+        .quart-box {
+            border: 2px solid #cbd5e1;
+            display: flex; flex-direction: row; 
+            position: relative; background-color: #eff6ff;
+        }
+
+        .quart-letter {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5em; color: rgba(79, 70, 229, 0.15);
+            font-weight: 900; pointer-events: none;
+        }
+
+        .pint-box {
+            flex: 1; border: 1px solid #94a3b8;
+            display: flex; flex-direction: column;
+            justify-content: space-around; align-items: center;
+            position: relative; z-index: 1;
+        }
+
+        .pint-letter {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5em; color: rgba(236, 72, 153, 0.4);
+            font-weight: 800;
+        }
+
+        .cup-box {
+            width: 25px; height: 25px; background-color: #fff;
+            border: 2px solid var(--accent); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 0.8em; font-weight: bold; color: #b45309;
+            z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* --- GAME UI --- */
+        .game-card {
+            background: var(--card-bg);
+            width: 100%; max-width: 750px;
+            border-radius: 20px; padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stats-bar {
+            display: flex; justify-content: space-between;
+            margin-bottom: 20px; font-weight: bold; color: #64748b;
+            background: #f1f5f9; padding: 10px 20px; border-radius: 10px;
+        }
+
+        .progress-wrapper { position: relative; margin: 20px 0 40px 0; height: 40px; }
+        .progress-track { background: #e2e8f0; height: 12px; border-radius: 6px; width: 100%; position: absolute; top: 14px; }
+        .progress-fill { background: linear-gradient(90deg, #f59e0b, #ec4899, #4f46e5); height: 100%; border-radius: 6px; width: 0%; transition: width 0.5s ease; }
+        .progress-labels { display: flex; justify-content: space-between; position: absolute; width: 100%; top: -20px; font-size: 0.8em; font-weight: bold; text-transform: uppercase; color: #94a3b8; }
+        .status-indicator { position: absolute; top: 30px; left: 0%; transform: translateX(-50%); transition: left 0.5s ease; font-weight: bold; color: var(--primary); }
+
+        .question-text { font-size: 1.5em; font-weight: 600; margin-bottom: 25px; min-height: 50px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .btn-option {
+            background: white; border: 2px solid #e2e8f0;
+            padding: 15px; border-radius: 12px; font-size: 1.2em;
+            cursor: pointer; transition: all 0.2s; color: var(--text);
+        }
+        .btn-option:hover { border-color: var(--primary); background: #eef2ff; }
+        .btn-option.correct { background: #dcfce7 !important; border-color: #22c55e !important; color: #15803d; }
+        .btn-option.wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c; }
+
+        .feedback-msg { height: 20px; margin-top: 15px; font-weight: bold; margin-bottom: 10px; }
+
+        /* --- DIMENSIONAL ANALYSIS STYLES --- */
+        .math-container {
+            display: none;
+            background: #f0fdf4;
+            border: 2px dashed #86efac;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            animation: slideUp 0.5s ease-out;
+            overflow-x: auto;
+        }
+
+        .math-title {
+            color: #166534; font-size: 0.9em; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 15px; font-weight: bold;
+        }
+
+        .math-row {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            align-items: center; gap: 8px;
+            font-family: 'Courier New', monospace; font-size: 1.15em;
+        }
+
+        .fraction {
+            display: inline-flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+
+        .numerator { border-bottom: 2px solid #374151; padding: 2px 8px; font-weight: bold; }
+        .denominator { padding: 2px 8px; color: #4b5563; }
+        .operator { font-size: 1.5em; color: #9ca3af; font-weight: bold; margin: 0 5px; }
+        .result-highlight { color: #15803d; font-weight: bold; font-size: 1.3em; margin-left: 10px; }
+
+        /* --- CANCELLATION STYLES --- */
+        .unit-span {
+            display: inline-block;
+            transition: all 0.5s ease;
+        }
+        
+        /* The Red Strike */
+        .cancelled {
+            position: relative;
+            color: #94a3b8; /* Fade out text */
+        }
+        .cancelled::after {
+            content: '';
+            position: absolute;
+            left: 0; top: 50%;
+            width: 100%; height: 2px;
+            background: #ef4444; /* Red Line */
+            transform: rotate(-10deg);
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <h1>Liquid Math Master</h1>
+    <p>Look at the castle diagram to solve the puzzles!</p>
+
+    <div class="cheat-sheet-container">
+        <div class="gallon-box">
+            <div class="g-label">1 Gallon</div>
+            <div class="quart-box"><div class="quart-letter">Q</div><div class="pint-box"><div class="pint-letter">P</div><div class="cup-box">C</div><div class="cup-box">C</div></div><div class="pint-box"><div class="pint-letter">P</div><div class="cup-box">C</div><div class="cup-box">C</div></div></div>
+            <div class="quart-box"><div class="quart-letter">Q</div><div class="pint-box"><div class="pint-letter">P</div><div class="cup-box">C</div><div class="cup-box">C</div></div><div class="pint-box"><div class="pint-letter">P</div><div class="cup-box">C</div><div class="cup-box">C</div></div></div>
+            <div class="quart-box"><div class="quart-letter">Q</div><div class="pint-box"><div class="pint-letter">P</div><div class="cup-box">C</div><div class="cup-box">C</div></div><div class="pint-box"><div class="pint-letter">P</div><div class="cup-box">C</div><div class="cup-box">C</div></div></div>
+            <div class="quart-box"><div class="quart-letter">Q</div><div class="pint-box"><div class="pint-letter">P</div><div class="cup-box">C</div><div class="cup-box">C</div></div><div class="pint-box"><div class="pint-letter">P</div><div class="cup-box">C</div><div class="cup-box">C</div></div></div>
+        </div>
+    </div>
+
+    <div class="game-card">
+        <div class="stats-bar">
+            <span>Streak: <span id="streak">0</span> 🔥</span>
+            <span>Score: <span id="score">0</span></span>
+        </div>
+
+        <div class="progress-wrapper">
+            <div class="progress-labels"><span>Trying</span><span>Good Effort</span><span style="color:var(--secondary)">Lit</span></div>
+            <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+            <div class="status-indicator" id="status-text">Trying</div>
+        </div>
+
+        <div class="question-text" id="question-text">Loading...</div>
+
+        <div class="options-grid" id="options-container"></div>
+
+        <div class="feedback-msg" id="feedback"></div>
+
+        <div id="math-display" class="math-container">
+            <div class="math-title">The Math Path (Only Matching Units Cancel!) 🤓</div>
+            <div id="math-content" class="math-row"></div>
+        </div>
+        
+        <button id="next-btn" style="display:none; margin-top:20px; background:var(--primary); color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-size:1.1em;" onclick="nextQuestion()">Next Question ➡</button>
+    </div>
+
+<script>
+    // --- Configuration ---
+    const unitOrder = ['gallon', 'quart', 'pint', 'cup'];
+    
+    const conversions = {
+        gallon: { next: 'quart', factor: 4 },
+        quart: { next: 'pint', factor: 2 },
+        pint: { next: 'cup', factor: 2 }
+    };
+
+    let score = 0;
+    let streak = 0;
+    let currentQ = null;
+
+    // DOM Elements
+    const qText = document.getElementById('question-text');
+    const optionsCont = document.getElementById('options-container');
+    const feedback = document.getElementById('feedback');
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const progressFill = document.getElementById('progress-fill');
+    const statusText = document.getElementById('status-text');
+    const nextBtn = document.getElementById('next-btn');
+    const mathDisplay = document.getElementById('math-display');
+    const mathContent = document.getElementById('math-content');
+
+    function generateQuestion() {
+        const startIdx = Math.floor(Math.random() * 3); 
+        const startUnit = unitOrder[startIdx];
+        const remainingUnits = unitOrder.slice(startIdx + 1);
+        const endUnit = remainingUnits[Math.floor(Math.random() * remainingUnits.length)];
+        const amount = Math.floor(Math.random() * 5) + 1;
+
+        let answer = amount;
+        let tempUnit = startUnit;
+        while(tempUnit !== endUnit) {
+            const data = conversions[tempUnit];
+            answer *= data.factor;
+            tempUnit = data.next;
+        }
+
+        let options = new Set([answer]);
+        while(options.size < 4) {
+            let fake = answer;
+            let r = Math.random();
+            if (r < 0.33) fake = answer * 2;
+            else if (r < 0.66) fake = Math.floor(answer / 2);
+            else fake = answer + Math.floor(Math.random() * 5) + 1;
+            if (fake > 0 && fake !== answer) options.add(fake);
+            else options.add(answer + Math.floor(Math.random() * 10) + 1);
+        }
+
+        return {
+            startUnit, endUnit, amount, answer,
+            options: Array.from(options).sort(() => Math.random() - 0.5)
+        };
+    }
+
+    function loadQuestion() {
+        currentQ = generateQuestion();
+        qText.innerHTML = `How many <b>${currentQ.endUnit}s</b> are in <b>${currentQ.amount} ${currentQ.startUnit}${currentQ.amount > 1 ? 's' : ''}</b>?`;
+        feedback.innerText = "";
+        nextBtn.style.display = "none";
+        mathDisplay.style.display = "none";
+        optionsCont.innerHTML = "";
+
+        currentQ.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(btn, opt);
+            optionsCont.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(btn, value) {
+        const allBtns = document.querySelectorAll('.btn-option');
+        allBtns.forEach(b => b.disabled = true);
+
+        if (value === currentQ.answer) {
+            btn.classList.add('correct');
+            feedback.style.color = "#15803d";
+            feedback.innerText = "Correct! Watch the units cancel out below 👇";
+            score += 100;
+            streak++;
+            renderMath(currentQ); 
+        } else {
+            btn.classList.add('wrong');
+            feedback.style.color = "#b91c1c";
+            feedback.innerText = `Oops! The answer is ${currentQ.answer}.`;
+            streak = 0;
+            allBtns.forEach(b => {
+                if(parseInt(b.innerText) === currentQ.answer) b.classList.add('correct');
+            });
+        }
+        updateStats();
+        nextBtn.style.display = "inline-block";
+    }
+
+    // --- NEW: DIMENSIONAL ANALYSIS WITH TOP/BOTTOM LOGIC ---
+    function renderMath(q) {
+        mathContent.innerHTML = '';
+        mathDisplay.style.display = 'block';
+
+        // Helper to wrap unit text with type (top/bottom)
+        const wrapUnit = (val, u, type) => {
+            // Add 's' if val > 1 for visual polish, 
+            // logic handles normalization so it doesn't break matching
+            let displayUnit = (parseInt(val) !== 1) ? u + 's' : u;
+            return `${val} <span class="unit-span unit-${type}">${displayUnit}</span>`;
+        };
+
+        // 1. Initial Fraction (Start Unit is on TOP)
+        addFraction(wrapUnit(q.amount, q.startUnit, 'top'), "1");
+        addOperator("×");
+
+        // 2. Loop path
+        let tempUnit = q.startUnit;
+        while (tempUnit !== q.endUnit) {
+            const data = conversions[tempUnit];
+            
+            // Factor is on TOP, previous unit is on BOTTOM
+            // Example: 2 Cups (Top) / 1 Pint (Bottom)
+            addFraction(
+                wrapUnit(data.factor, data.next, 'top'), 
+                wrapUnit("1", tempUnit, 'bottom')
+            );
+            
+            tempUnit = data.next;
+            if (tempUnit !== q.endUnit) addOperator("×");
+        }
+
+        // 3. Result
+        // We do NOT give the result a 'unit-top' class. 
+        // We give it 'unit-result' so it is completely ignored by the canceller.
+        addOperator("=");
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'result-highlight';
+        resultDiv.innerHTML = wrapUnit(q.answer, q.endUnit, 'result'); 
+        mathContent.appendChild(resultDiv);
+
+        // 4. Trigger the smart cancellation logic
+        setTimeout(applySmartCancellations, 500);
+    }
+
+    function applySmartCancellations() {
+        const spans = document.querySelectorAll('.unit-span');
+        const registry = {};
+
+        // 1. Organize units into registry
+        spans.forEach(span => {
+            // Skip the result unit entirely
+            if(span.classList.contains('unit-result')) return;
+
+            // Normalize text (lower case, remove 's')
+            let txt = span.innerText.toLowerCase().trim();
+            if(txt.endsWith('s')) txt = txt.slice(0, -1);
+            
+            if(!registry[txt]) registry[txt] = { tops: [], bottoms: [] };
+
+            if (span.classList.contains('unit-top')) {
+                registry[txt].tops.push(span);
+            } else if (span.classList.contains('unit-bottom')) {
+                registry[txt].bottoms.push(span);
+            }
+        });
+
+        // 2. Cancel only pairs (One Top + One Bottom)
+        for (let unit in registry) {
+            const data = registry[unit];
+            
+            // While we have at least one top AND one bottom for this unit
+            while (data.tops.length > 0 && data.bottoms.length > 0) {
+                const t = data.tops.pop();
+                const b = data.bottoms.pop();
+                
+                // Strike them both
+                t.classList.add('cancelled');
+                b.classList.add('cancelled');
+            }
+        }
+    }
+
+    function addFraction(topHTML, bottomHTML) {
+        const f = document.createElement('div');
+        f.className = 'fraction';
+        f.innerHTML = `<div class="numerator">${topHTML}</div><div class="denominator">${bottomHTML}</div>`;
+        mathContent.appendChild(f);
+    }
+
+    function addOperator(symbol) {
+        const o = document.createElement('div');
+        o.className = 'operator';
+        o.innerText = symbol;
+        mathContent.appendChild(o);
+    }
+
+    function updateStats() {
+        scoreEl.innerText = score;
+        streakEl.innerText = streak;
+        let percent = (score / 2000) * 100;
+        if (percent > 100) percent = 100;
+        
+        progressFill.style.width = `${percent}%`;
+        statusText.style.left = `${percent}%`;
+
+        if (percent < 33) {
+            statusText.innerText = "Trying"; statusText.style.color = "#64748b";
+        } else if (percent < 75) {
+            statusText.innerText = "Good Effort"; statusText.style.color = "#f59e0b";
+        } else {
+            statusText.innerText = "Lit Status 🔥"; statusText.style.color = "#ec4899";
+        }
+    }
+
+    function nextQuestion() {
+        loadQuestion();
+    }
+
+    loadQuestion();
+
+</script>
+</body>
+</html>
