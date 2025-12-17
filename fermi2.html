@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fermi Master: Level 2 (Fixed)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1; /* Indigo */
+            --secondary: #d946ef; /* Fuchsia */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --bg: #1e1e2e; /* Darker background */
+            --card: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #game-container {
+            background: var(--card);
+            width: 100%;
+            max-width: 900px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            padding: 35px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 { color: var(--primary); margin: 0; font-size: 2.5em; letter-spacing: -1px; }
+        .badge { 
+            background: var(--secondary); color: white; padding: 5px 10px; 
+            border-radius: 15px; font-size: 0.5em; vertical-align: middle; 
+            position: relative; top: -10px;
+        }
+        p.subtitle { color: #666; margin-bottom: 25px; }
+
+        /* Stats & Header */
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 30px;
+        }
+
+        /* Progress Bar */
+        .progress-container { margin: 30px 0; padding: 0 10px; }
+        .progress-track {
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #d946ef);
+            width: 0%;
+            border-radius: 6px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .rank-text {
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 8px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Question Area */
+        .question-box {
+            font-size: 1.4em;
+            font-weight: 500;
+            margin: 20px 0;
+            color: #1e293b;
+            line-height: 1.4;
+        }
+
+        /* Inputs & Buttons */
+        .input-area { margin: 25px 0; }
+        
+        input[type="number"] {
+            padding: 12px 20px;
+            font-size: 1.3em;
+            border: 3px solid #cbd5e1;
+            border-radius: 12px;
+            width: 200px;
+            text-align: center;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+        input[type="number"]:focus { border-color: var(--primary); }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, background 0.2s;
+            margin: 5px;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: scale(0.98); }
+
+        .btn-check { background-color: var(--primary); color: white; }
+        .btn-next { background-color: var(--success); color: white; display: none; }
+        
+        /* Hint System */
+        .hint-wrapper { margin-top: 15px; min-height: 40px; }
+        .btn-hint {
+            background-color: #fffbeb;
+            color: #b45309;
+            border: 2px solid #fcd34d;
+            font-size: 0.9em;
+            padding: 8px 15px;
+        }
+        .hint-text {
+            display: none;
+            background: #fffbeb;
+            color: #92400e;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.95em;
+            border-left: 4px solid #f59e0b;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        /* Dimensional Analysis Visualizer */
+        .feedback-section {
+            display: none;
+            background: #eff6ff;
+            border: 2px solid #bfdbfe;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+            animation: fadeIn 0.5s;
+        }
+
+        .da-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .fraction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 1.1em;
+        }
+
+        .numerator { border-bottom: 2px solid #333; padding: 2px 5px; }
+        .denominator { padding: 2px 5px; }
+        
+        .operator { font-size: 1.5em; color: #94a3b8; font-weight: bold; }
+
+        /* Unit Cancellation Style */
+        .cancelled {
+            text-decoration: line-through;
+            text-decoration-color: #ef4444;
+            text-decoration-thickness: 3px;
+            color: #94a3b8;
+            opacity: 0.7;
+        }
+
+        /* Final Screen */
+        #final-screen { display: none; }
+        .btn-download { 
+            background: var(--secondary); color: white; width: 100%; 
+            padding: 15px; font-size: 1.2em; margin-top: 20px;
+        }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>Fermi Master <span class="badge">Level 2</span></h1>
+    <p class="subtitle">Advanced Dimensional Analysis Challenge</p>
+
+    <div class="stats-row">
+        <span>Question <span id="q-num">1</span> / 10</span>
+        <span>Streak: <span id="streak">0</span> 🔥</span>
+        <span>Score: <span id="score">0</span></span>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="rank-text" id="rank-text">Rank: Novice</div>
+    </div>
+
+    <div id="game-play">
+        <div class="question-box" id="question-text"></div>
+
+        <div class="input-area">
+            <input type="number" id="user-input" placeholder="Enter answer..." />
+            <br>
+            <button class="btn btn-check" id="btn-check" onclick="checkAnswer()">Submit Answer</button>
+            <button class="btn btn-next" id="btn-next" onclick="nextQuestion()">Next Challenge ➡</button>
+        </div>
+
+        <div class="hint-wrapper">
+            <button class="btn btn-hint" id="btn-hint" onclick="toggleHint()">💡 Need a Hint?</button>
+            <div class="hint-text" id="hint-text"></div>
+        </div>
+
+        <div class="feedback-section" id="feedback-section">
+            <h3 id="feedback-title" style="margin-top:0;"></h3>
+            <p><strong>The Math Path:</strong></p>
+            <div class="da-row" id="da-visual"></div>
+        </div>
+    </div>
+
+    <div id="final-screen">
+        <h2 style="font-size: 2em; margin-bottom: 10px;">Simulation Complete</h2>
+        <p>You have completed the Level 2 Advanced Course.</p>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <h3>Final Status: <span id="final-rank" style="color:var(--secondary)"></span></h3>
+            <p>Score: <span id="final-score"></span></p>
+        </div>
+        <p>Click below to capture your result and submit it to your teacher.</p>
+        <button class="btn btn-download" onclick="downloadAndRedirect()">📸 Capture & Submit</button>
+    </div>
+</div>
+
+<script>
+    // --- Level 2 Data: Multi-step conversions ---
+    // FIXED: Ensured all questions use 'steps' array correctly to prevent crash.
+    // FIXED: Tightened answer tolerance so incorrect answers are rejected.
+    const questions = [
+        {
+            text: "How many seconds are in exactly one week?",
+            answer: 604800,
+            hint: "60 seconds = 1 min, 60 min = 1 hour, 24 hours = 1 day, 7 days = 1 week",
+            steps: [
+                { num: "1 week", den: "1" },
+                { num: "7 days", den: "1 week" },
+                { num: "24 hr", den: "1 day" },
+                { num: "60 min", den: "1 hr" },
+                { num: "60 sec", den: "1 min" }
+            ],
+            resultUnit: "seconds"
+        },
+        {
+            text: "A student drinks 2 cups of water per day. How many gallons is that in a school year (180 days)?",
+            answer: 22.5,
+            hint: "8 fl oz = 1 cup, 128 fl oz = 1 gallon. (Don't forget the 180 days!)",
+            steps: [
+                { num: "2 cups", den: "1 day" },
+                { num: "8 fl oz", den: "1 cup" },
+                { num: "180 days", den: "1 school year" },
+                { num: "1 gal", den: "128 fl oz" }
+            ],
+            resultUnit: "gallons"
+        },
+        {
+            text: "If your heart beats 80 times per minute, how many times does it beat in a standard 365-day year?",
+            answer: 42048000,
+            hint: "60 min = 1 hr, 24 hr = 1 day, 365 days = 1 year",
+            steps: [
+                { num: "80 beats", den: "1 min" },
+                { num: "60 min", den: "1 hr" },
+                { num: "24 hr", den: "1 day" },
+                { num: "365 days", den: "1 year" }
+            ],
+            resultUnit: "beats"
+        },
+        {
+            text: "How many inches are in 1 mile? (Hint: Use feet first)",
+            answer: 63360,
+            hint: "12 inches = 1 foot, 5280 feet = 1 mile",
+            steps: [
+                { num: "1 mile", den: "1" },
+                { num: "5280 ft", den: "1 mile" },
+                { num: "12 in", den: "1 ft" }
+            ],
+            resultUnit: "inches"
+        },
+        {
+            text: "A car is traveling at 60 miles per hour. How many feet does it travel in 1 second?",
+            answer: 88,
+            hint: "1 hr = 3600 seconds, 1 mile = 5280 feet",
+            steps: [
+                { num: "60 miles", den: "1 hr" },
+                { num: "5280 ft", den: "1 mile" },
+                { num: "1 hr", den: "3600 sec" }
+            ],
+            resultUnit: "ft/sec"
+        },
+        {
+            text: "If you blink 15 times a minute, how many times do you blink in a 24-hour day?",
+            answer: 21600,
+            hint: "60 minutes = 1 hour, 24 hours = 1 day",
+            steps: [
+                { num: "15 blinks", den: "1 min" },
+                { num: "60 min", den: "1 hr" },
+                { num: "24 hr", den: "1 day" }
+            ],
+            resultUnit: "blinks"
+        },
+        {
+            text: "A leaky faucet drips 1 drop per second. If there are roughly 15,000 drops in a gallon, how many gallons are wasted in a week?",
+            answer: 40.32, 
+            hint: "Seconds in a week = 604,800. Drops per gallon = 15,000. (Divide total drops by 15,000)",
+            steps: [
+                { num: "1 drop", den: "1 sec" },
+                { num: "60 sec", den: "1 min" },
+                { num: "60 min", den: "1 hr" },
+                { num: "24 hr", den: "1 day" },
+                { num: "7 days", den: "1 week" },
+                { num: "1 gal", den: "15,000 drops" }
+            ],
+            resultUnit: "gallons"
+        },
+        {
+            text: "How many minutes are in a decade? (Include 2 leap years, so 3652 days total)",
+            answer: 5258880,
+            hint: "60 min = 1 hr, 24 hr = 1 day, 1 decade = 3652 days",
+            steps: [
+                { num: "1 decade", den: "1" },
+                { num: "3652 days", den: "1 decade" },
+                { num: "24 hr", den: "1 day" },
+                { num: "60 min", den: "1 hr" }
+            ],
+            resultUnit: "minutes"
+        },
+        {
+            text: "A fast typist types 80 words per minute. If the average book has 50,000 words, how many HOURS would it take to type a book?",
+            answer: 10.4, 
+            hint: "Think: Words -> Minutes -> Hours. (Divide total words by words/min, then divide by 60)",
+            steps: [
+                { num: "50,000 words", den: "1 book" },
+                { num: "1 min", den: "80 words" }, 
+                { num: "1 hr", den: "60 min" }
+            ],
+            resultUnit: "hours"
+        },
+        {
+            text: "The speed of sound is roughly 340 meters per second. How many Kilometers does it travel in 1 hour?",
+            answer: 1224,
+            hint: "1000 meters = 1 km, 3600 seconds = 1 hour",
+            steps: [
+                { num: "340 m", den: "1 sec" },
+                { num: "3600 sec", den: "1 hr" },
+                { num: "1 km", den: "1000 m" }
+            ],
+            resultUnit: "km/hr"
+        }
+    ];
+
+    let currentQIndex = 0;
+    let score = 0;
+    let streak = 0;
+    const TOTAL_QS = questions.length;
+
+    // DOM References
+    const dom = {
+        qNum: document.getElementById('q-num'),
+        streak: document.getElementById('streak'),
+        score: document.getElementById('score'),
+        question: document.getElementById('question-text'),
+        input: document.getElementById('user-input'),
+        btnCheck: document.getElementById('btn-check'),
+        btnNext: document.getElementById('btn-next'),
+        btnHint: document.getElementById('btn-hint'),
+        hintText: document.getElementById('hint-text'),
+        feedbackSection: document.getElementById('feedback-section'),
+        feedbackTitle: document.getElementById('feedback-title'),
+        daVisual: document.getElementById('da-visual'),
+        progressFill: document.getElementById('progress-fill'),
+        rankText: document.getElementById('rank-text'),
+        gamePlay: document.getElementById('game-play'),
+        finalScreen: document.getElementById('final-screen')
+    };
+
+    function loadQuestion() {
+        if (currentQIndex >= TOTAL_QS) return endGame();
+
+        const q = questions[currentQIndex];
+        dom.qNum.innerText = currentQIndex + 1;
+        dom.question.innerText = q.text;
+        dom.hintText.innerText = q.hint;
+        
+        // Reset UI states
+        dom.input.value = '';
+        dom.input.disabled = false;
+        dom.feedbackSection.style.display = 'none';
+        dom.hintText.style.display = 'none';
+        dom.btnCheck.style.display = 'inline-block';
+        dom.btnNext.style.display = 'none';
+        dom.btnHint.style.display = 'inline-block';
+        dom.btnHint.innerText = "💡 Need a Hint?";
+        
+        dom.input.focus();
+    }
+
+    function toggleHint() {
+        if (dom.hintText.style.display === 'block') {
+            dom.hintText.style.display = 'none';
+            dom.btnHint.innerText = "💡 Need a Hint?";
+        } else {
+            dom.hintText.style.display = 'block';
+            dom.btnHint.innerText = "Hide Hint";
+        }
+    }
+
+    function checkAnswer() {
+        const userVal = parseFloat(dom.input.value);
+        if (isNaN(userVal)) {
+            alert("Please enter a number!");
+            return;
+        }
+
+        // CRITICAL FIX: Lock UI immediately so user cannot double-click
+        dom.input.disabled = true;
+        dom.btnCheck.style.display = 'none';
+        dom.btnHint.style.display = 'none';
+        dom.btnNext.style.display = 'inline-block';
+
+        const q = questions[currentQIndex];
+        
+        // Tightened margin: 1% error allowed (accounts for small floating point differences)
+        const margin = q.answer * 0.01; 
+        const isCorrect = Math.abs(userVal - q.answer) <= margin;
+
+        if (isCorrect) {
+            score += 100;
+            streak++;
+            dom.feedbackTitle.innerHTML = `<span style="color:var(--success)">Correct!</span> Answer: ${formatNumber(q.answer)} ${q.resultUnit}`;
+        } else {
+            streak = 0;
+            dom.feedbackTitle.innerHTML = `<span style="color:var(--secondary)">Nice Try!</span> Correct: ${formatNumber(q.answer)} ${q.resultUnit}`;
+        }
+
+        updateStats();
+        
+        // Render visualization last (safely)
+        dom.feedbackSection.style.display = 'block';
+        try {
+            renderDA(q);
+        } catch(e) {
+            console.error("Visualizer error:", e);
+            // Even if visualizer crashes, the button is already hidden, preventing the cheat.
+        }
+    }
+
+    function renderDA(q) {
+        dom.daVisual.innerHTML = '';
+        
+        if(!q.steps) return; // Safety check
+
+        q.steps.forEach((step, idx) => {
+            const frac = document.createElement('div');
+            frac.className = 'fraction';
+            
+            // Helper to wrap unit text in span
+            const parse = (str) => {
+                // Regex to separate number and text
+                const match = str.match(/^([\d,\.]*)\s*(.*)$/);
+                if(match) return `${match[1]} <span class="unit-param">${match[2]}</span>`;
+                return str;
+            }
+
+            frac.innerHTML = `
+                <div class="numerator">${parse(step.num)}</div>
+                <div class="denominator">${parse(step.den)}</div>
+            `;
+            dom.daVisual.appendChild(frac);
+
+            if (idx < q.steps.length) { // Logic check: Show 'x' between steps
+                 // Actually, show 'x' between steps, and '=' at the very end
+                 // Logic: if current index < total steps, it's NOT the last one, so check logic?
+                 // No, standard dimensional analysis: Step x Step x Step = Result
+                 // The array length is the number of fractions.
+                 // We want operators BETWEEN fractions.
+            }
+            
+            // Add Multiply sign if not the last fraction
+            if (idx < q.steps.length - 1) {
+                const op = document.createElement('div');
+                op.className = 'operator';
+                op.innerText = '×';
+                dom.daVisual.appendChild(op);
+            }
+        });
+        
+        // Add Equals sign
+        const eq = document.createElement('div');
+        eq.className = 'operator';
+        eq.innerText = '=';
+        dom.daVisual.appendChild(eq);
+
+        // Result
+        const res = document.createElement('div');
+        res.className = 'fraction';
+        res.innerHTML = `<div class="numerator" style="border:none; color:var(--primary); font-weight:bold;">${formatNumber(q.answer)} ${q.resultUnit}</div>`;
+        dom.daVisual.appendChild(res);
+
+        // Apply cancellation logic visualization
+        setTimeout(() => applyCancellations(), 100);
+    }
+
+    function applyCancellations() {
+        const params = document.querySelectorAll('.unit-param');
+        const counts = {};
+        
+        // Normalize and count
+        params.forEach(p => {
+            // singularize simple units for matching (minute/minutes)
+            let txt = p.innerText.toLowerCase().replace(/s$/, ''); 
+            if(txt === 'min') txt = 'minute';
+            if(txt === 'hr') txt = 'hour';
+            
+            // Store reference
+            if(!counts[txt]) counts[txt] = [];
+            counts[txt].push(p);
+        });
+
+        // Cross out pairs
+        for (let unit in counts) {
+            if (counts[unit].length >= 2) {
+                counts[unit].forEach(el => el.classList.add('cancelled'));
+            }
+        }
+    }
+
+    function updateStats() {
+        dom.score.innerText = score;
+        dom.streak.innerText = streak;
+        
+        const pct = (currentQIndex + 1) / TOTAL_QS * 100;
+        // Rank based on Score vs Possible Score so far
+        const maxScore = (currentQIndex + 1) * 100;
+        const performance = score / maxScore;
+
+        dom.progressFill.style.width = `${pct}%`;
+
+        let rank = "Novice";
+        if (performance > 0.4) rank = "Apprentice";
+        if (performance > 0.7) rank = "Expert";
+        if (performance > 0.9) rank = "Grandmaster";
+        
+        dom.rankText.innerText = "Rank: " + rank;
+    }
+
+    function nextQuestion() {
+        currentQIndex++;
+        loadQuestion();
+    }
+
+    function endGame() {
+        dom.gamePlay.style.display = 'none';
+        dom.finalScreen.style.display = 'block';
+        document.getElementById('final-rank').innerText = dom.rankText.innerText.replace("Rank: ", "");
+        document.getElementById('final-score').innerText = score;
+    }
+
+    function formatNumber(num) {
+        // Pretty print large numbers
+        if (num >= 10000) return num.toLocaleString();
+        return num;
+    }
+
+    function downloadAndRedirect() {
+        html2canvas(document.getElementById('game-container')).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Fermi_Level2_Result.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            
+            setTimeout(() => {
+                window.open('https://forms.gle/kxTA89aXy8uX9zLn6', '_blank');
+            }, 1500);
+        });
+    }
+
+    // Init
+    loadQuestion();
+
+</script>
+
+</body>
+</html>
