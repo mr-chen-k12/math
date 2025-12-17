@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fermi Master: Level 2 (Fixed)</title>
+    <title>Fermi Master: Level 2 (Strict Mode)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --primary: #6366f1; /* Indigo */
             --secondary: #d946ef; /* Fuchsia */
             --success: #10b981; /* Emerald */
-            --warning: #f59e0b; /* Amber */
+            --error: #ef4444;   /* Red */
             --bg: #1e1e2e; /* Darker background */
             --card: #ffffff;
         }
@@ -105,6 +105,22 @@
             outline: none;
         }
         input[type="number"]:focus { border-color: var(--primary); }
+        
+        /* Animation for wrong answer */
+        .shake { animation: shake 0.5s; border-color: var(--error) !important; color: var(--error); }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
 
         .btn {
             padding: 12px 25px;
@@ -227,6 +243,8 @@
             <button class="btn btn-next" id="btn-next" onclick="nextQuestion()">Next Challenge ➡</button>
         </div>
 
+        <div id="status-msg" style="height: 20px; color: var(--error); font-weight: bold; margin-bottom: 10px;"></div>
+
         <div class="hint-wrapper">
             <button class="btn btn-hint" id="btn-hint" onclick="toggleHint()">💡 Need a Hint?</button>
             <div class="hint-text" id="hint-text"></div>
@@ -253,8 +271,6 @@
 
 <script>
     // --- Level 2 Data: Multi-step conversions ---
-    // FIXED: Ensured all questions use 'steps' array correctly to prevent crash.
-    // FIXED: Tightened answer tolerance so incorrect answers are rejected.
     const questions = [
         {
             text: "How many seconds are in exactly one week?",
@@ -392,6 +408,7 @@
         btnNext: document.getElementById('btn-next'),
         btnHint: document.getElementById('btn-hint'),
         hintText: document.getElementById('hint-text'),
+        statusMsg: document.getElementById('status-msg'),
         feedbackSection: document.getElementById('feedback-section'),
         feedbackTitle: document.getElementById('feedback-title'),
         daVisual: document.getElementById('da-visual'),
@@ -412,6 +429,8 @@
         // Reset UI states
         dom.input.value = '';
         dom.input.disabled = false;
+        dom.input.classList.remove('shake');
+        dom.statusMsg.innerText = '';
         dom.feedbackSection.style.display = 'none';
         dom.hintText.style.display = 'none';
         dom.btnCheck.style.display = 'inline-block';
@@ -439,51 +458,57 @@
             return;
         }
 
-        // CRITICAL FIX: Lock UI immediately so user cannot double-click
+        const q = questions[currentQIndex];
+        const margin = q.answer * 0.01; 
+        const isCorrect = Math.abs(userVal - q.answer) <= margin;
+
+        // Logic Change: If WRONG, do not proceed. Force Retry.
+        if (!isCorrect) {
+            streak = 0;
+            dom.statusMsg.innerText = "Incorrect! Try again.";
+            
+            // Visual Shake effect
+            dom.input.classList.remove('shake');
+            void dom.input.offsetWidth; // trigger reflow
+            dom.input.classList.add('shake');
+            
+            // Clear input for retry? Or keep it? Let's keep it so they can edit.
+            updateStats();
+            return; // EXIT FUNCTION HERE - Do not show next button
+        }
+
+        // Logic Change: If CORRECT, Lock UI and Proceed.
+        dom.statusMsg.innerText = "";
         dom.input.disabled = true;
         dom.btnCheck.style.display = 'none';
         dom.btnHint.style.display = 'none';
         dom.btnNext.style.display = 'inline-block';
 
-        const q = questions[currentQIndex];
-        
-        // Tightened margin: 1% error allowed (accounts for small floating point differences)
-        const margin = q.answer * 0.01; 
-        const isCorrect = Math.abs(userVal - q.answer) <= margin;
-
-        if (isCorrect) {
-            score += 100;
-            streak++;
-            dom.feedbackTitle.innerHTML = `<span style="color:var(--success)">Correct!</span> Answer: ${formatNumber(q.answer)} ${q.resultUnit}`;
-        } else {
-            streak = 0;
-            dom.feedbackTitle.innerHTML = `<span style="color:var(--secondary)">Nice Try!</span> Correct: ${formatNumber(q.answer)} ${q.resultUnit}`;
-        }
+        score += 100;
+        streak++;
+        dom.feedbackTitle.innerHTML = `<span style="color:var(--success)">Correct!</span> Answer: ${formatNumber(q.answer)} ${q.resultUnit}`;
 
         updateStats();
         
-        // Render visualization last (safely)
+        // Render visualization (safely)
         dom.feedbackSection.style.display = 'block';
         try {
             renderDA(q);
         } catch(e) {
             console.error("Visualizer error:", e);
-            // Even if visualizer crashes, the button is already hidden, preventing the cheat.
         }
     }
 
     function renderDA(q) {
         dom.daVisual.innerHTML = '';
         
-        if(!q.steps) return; // Safety check
+        if(!q.steps) return; 
 
         q.steps.forEach((step, idx) => {
             const frac = document.createElement('div');
             frac.className = 'fraction';
             
-            // Helper to wrap unit text in span
             const parse = (str) => {
-                // Regex to separate number and text
                 const match = str.match(/^([\d,\.]*)\s*(.*)$/);
                 if(match) return `${match[1]} <span class="unit-param">${match[2]}</span>`;
                 return str;
@@ -495,15 +520,6 @@
             `;
             dom.daVisual.appendChild(frac);
 
-            if (idx < q.steps.length) { // Logic check: Show 'x' between steps
-                 // Actually, show 'x' between steps, and '=' at the very end
-                 // Logic: if current index < total steps, it's NOT the last one, so check logic?
-                 // No, standard dimensional analysis: Step x Step x Step = Result
-                 // The array length is the number of fractions.
-                 // We want operators BETWEEN fractions.
-            }
-            
-            // Add Multiply sign if not the last fraction
             if (idx < q.steps.length - 1) {
                 const op = document.createElement('div');
                 op.className = 'operator';
@@ -524,7 +540,6 @@
         res.innerHTML = `<div class="numerator" style="border:none; color:var(--primary); font-weight:bold;">${formatNumber(q.answer)} ${q.resultUnit}</div>`;
         dom.daVisual.appendChild(res);
 
-        // Apply cancellation logic visualization
         setTimeout(() => applyCancellations(), 100);
     }
 
@@ -532,19 +547,14 @@
         const params = document.querySelectorAll('.unit-param');
         const counts = {};
         
-        // Normalize and count
         params.forEach(p => {
-            // singularize simple units for matching (minute/minutes)
             let txt = p.innerText.toLowerCase().replace(/s$/, ''); 
             if(txt === 'min') txt = 'minute';
             if(txt === 'hr') txt = 'hour';
-            
-            // Store reference
             if(!counts[txt]) counts[txt] = [];
             counts[txt].push(p);
         });
 
-        // Cross out pairs
         for (let unit in counts) {
             if (counts[unit].length >= 2) {
                 counts[unit].forEach(el => el.classList.add('cancelled'));
@@ -557,9 +567,8 @@
         dom.streak.innerText = streak;
         
         const pct = (currentQIndex + 1) / TOTAL_QS * 100;
-        // Rank based on Score vs Possible Score so far
         const maxScore = (currentQIndex + 1) * 100;
-        const performance = score / maxScore;
+        const performance = score / maxScore; // Will be lower if they had 0 streaks
 
         dom.progressFill.style.width = `${pct}%`;
 
@@ -584,7 +593,6 @@
     }
 
     function formatNumber(num) {
-        // Pretty print large numbers
         if (num >= 10000) return num.toLocaleString();
         return num;
     }
