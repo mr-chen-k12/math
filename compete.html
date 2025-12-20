@@ -1,3 +1,262 @@
-<html>
-  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta Math Battle Royale</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f0f13;
+            --card-bg: #1a1a24;
+            --text-color: #e0e0e0;
+            --accent-color: #00d4ff;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .scoreboard-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+
+        .class-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .class-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            width: 80px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .progress-track {
+            flex-grow: 1;
+            height: 30px;
+            background-color: #2c2c3a;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 0 20px;
+            position: relative;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* The animated bar */
+        .progress-bar {
+            height: 100%;
+            width: 0%; /* Starts at 0, JS updates this */
+            border-radius: 15px 0 0 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); /* Smooth ease-out animation */
+            position: relative;
+        }
+
+        /* Specific colors for classes */
+        .c-313 { background: linear-gradient(90deg, #ff0055, #ff4d88); box-shadow: 0 0 15px #ff0055; }
+        .c-315 { background: linear-gradient(90deg, #00d4ff, #5ce1ff); box-shadow: 0 0 15px #00d4ff; }
+        .c-318 { background: linear-gradient(90deg, #bc13fe, #d66aff); box-shadow: 0 0 15px #bc13fe; }
+        .c-319 { background: linear-gradient(90deg, #ffae00, #ffcc5c); box-shadow: 0 0 15px #ffae00; }
+        .c-320 { background: linear-gradient(90deg, #00ff9d, #6effc6); box-shadow: 0 0 15px #00ff9d; }
+
+        .percentage-text {
+            font-weight: bold;
+            color: #1a1a24;
+            font-size: 1.1rem;
+            z-index: 2;
+        }
+
+        .trophy {
+            font-size: 1.5rem;
+            width: 30px;
+            text-align: center;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.5s;
+        }
+
+        /* The 100% Marker Line */
+        .finish-line {
+            position: absolute;
+            right: 0;
+            top: -5px;
+            bottom: -5px;
+            width: 2px;
+            background: rgba(255,255,255,0.3);
+            z-index: 1;
+        }
+        .finish-line::after {
+            content: '100%';
+            position: absolute;
+            top: -20px;
+            right: -15px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Leading class glow effect */
+        .leading .progress-bar {
+            filter: brightness(1.2);
+        }
+        .leading .trophy {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Delta Math Showdown</h1>
+    <div class="subtitle">Race to 100% Completion</div>
+
+    <div class="scoreboard-container">
+        
+        <div class="class-row" id="row-313">
+            <div class="class-label">313</div>
+            <div class="progress-track">
+                <div class="finish-line"></div>
+                <div class="progress-bar c-313" id="bar-313">
+                    <span class="percentage-text" id="text-313">0%</span>
+                </div>
+            </div>
+            <div class="trophy">👑</div>
+        </div>
+
+        <div class="class-row" id="row-315">
+            <div class="class-label">315</div>
+            <div class="progress-track">
+                <div class="finish-line"></div>
+                <div class="progress-bar c-315" id="bar-315">
+                    <span class="percentage-text" id="text-315">0%</span>
+                </div>
+            </div>
+            <div class="trophy">👑</div>
+        </div>
+
+        <div class="class-row" id="row-318">
+            <div class="class-label">318</div>
+            <div class="progress-track">
+                <div class="finish-line"></div>
+                <div class="progress-bar c-318" id="bar-318">
+                    <span class="percentage-text" id="text-318">0%</span>
+                </div>
+            </div>
+            <div class="trophy">👑</div>
+        </div>
+
+        <div class="class-row" id="row-319">
+            <div class="class-label">319</div>
+            <div class="progress-track">
+                <div class="finish-line"></div>
+                <div class="progress-bar c-319" id="bar-319">
+                    <span class="percentage-text" id="text-319">0%</span>
+                </div>
+            </div>
+            <div class="trophy">👑</div>
+        </div>
+
+        <div class="class-row" id="row-320">
+            <div class="class-label">320</div>
+            <div class="progress-track">
+                <div class="finish-line"></div>
+                <div class="progress-bar c-320" id="bar-320">
+                    <span class="percentage-text" id="text-320">0%</span>
+                </div>
+            </div>
+            <div class="trophy">👑</div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        //  USER CONFIGURATION: UPDATE SCORES HERE
+        // ==========================================
+        
+        // Enter the percentage numbers below (no % sign needed, just the number)
+        const gr_313 = 15;
+        const gr_315 = 42;
+        const gr_318 = 88;
+        const gr_319 = 35;
+        const gr_320 = 60;
+
+        // ==========================================
+        //  SYSTEM LOGIC (DO NOT EDIT BELOW)
+        // ==========================================
+
+        const classes = [
+            { id: '313', score: gr_313 },
+            { id: '315', score: gr_315 },
+            { id: '318', score: gr_318 },
+            { id: '319', score: gr_319 },
+            { id: '320', score: gr_320 }
+        ];
+
+        // Find the highest score to award the crown
+        const maxScore = Math.max(...classes.map(c => c.score));
+
+        classes.forEach(c => {
+            // Get Elements
+            const bar = document.getElementById(`bar-${c.id}`);
+            const text = document.getElementById(`text-${c.id}`);
+            const row = document.getElementById(`row-${c.id}`);
+
+            // Cap percentage at 100 for visual sanity
+            let visualPercentage = c.score > 100 ? 100 : c.score;
+
+            // Update text
+            text.innerText = `${c.score}%`;
+
+            // Animate width (slight delay ensures animation triggers on load)
+            setTimeout(() => {
+                bar.style.width = `${visualPercentage}%`;
+            }, 100);
+
+            // Check for Leader (only if score > 0)
+            if (c.score === maxScore && c.score > 0) {
+                row.classList.add('leading');
+            }
+        });
+
+    </script>
+</body>
 </html>
