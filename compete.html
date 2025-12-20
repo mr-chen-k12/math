@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delta Math Battle Royale</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #0f0f13;
             --card-bg: #1a1a24;
             --text-color: #e0e0e0;
             --accent-color: #00d4ff;
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -51,6 +52,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border: 1px solid #333;
+            margin-bottom: 40px;
         }
 
         .class-row {
@@ -68,28 +70,28 @@
             color: #fff;
         }
 
+        /* FIX FOR TEXT VISIBILITY:
+           Added padding-right to the track so the text 
+           doesn't get cut off if it goes to 100% 
+        */
         .progress-track {
             flex-grow: 1;
             height: 30px;
             background-color: #2c2c3a;
             border-radius: 15px;
-            overflow: hidden;
             margin: 0 20px;
             position: relative;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-            display: flex; /* Added for alignment */
-            align-items: center; /* Added for alignment */
         }
 
         /* The animated bar */
         .progress-bar {
             height: 100%;
             width: 0%; /* Starts at 0, JS updates this */
-            border-radius: 15px 0 0 15px;
-            /* Removed flex properties for text alignment */
-            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); /* Smooth ease-out animation */
+            border-radius: 15px; /* Rounded on both sides helps the visual if small */
+            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
             position: relative;
-            z-index: 1; /* Ensure it's above the track background */
+            min-width: 10px; /* Ensures a tiny sliver of color is always seen */
         }
 
         /* Specific colors for classes */
@@ -99,32 +101,39 @@
         .c-319 { background: linear-gradient(90deg, #ffae00, #ffcc5c); box-shadow: 0 0 15px #ffae00; }
         .c-320 { background: linear-gradient(90deg, #00ff9d, #6effc6); box-shadow: 0 0 15px #00ff9d; }
 
+        /* FIX FOR TEXT VISIBILITY:
+           The text is now absolute positioned relative to the bar,
+           pushed 100% to the right (outside the bar) + 10px spacing.
+        */
         .percentage-text {
+            position: absolute;
+            left: 100%; 
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 12px;
             font-weight: bold;
-            color: #fff; /* Changed to white for better visibility */
+            color: #fff;
             font-size: 1.1rem;
-            z-index: 2;
-            margin-left: 10px; /* Spacing from the bar */
-            white-space: nowrap; /* Prevents wrapping */
+            white-space: nowrap;
+            text-shadow: 0 1px 2px #000;
         }
 
         .trophy {
             font-size: 1.5rem;
             width: 30px;
             text-align: center;
-            opacity: 0; /* Hidden by default */
+            opacity: 0;
             transition: opacity 0.5s;
         }
 
-        /* The 100% Marker Line */
         .finish-line {
             position: absolute;
             right: 0;
             top: -5px;
             bottom: -5px;
             width: 2px;
-            background: rgba(255,255,255,0.3);
-            z-index: 0; /* Behind the bar */
+            background: rgba(255,255,255,0.2);
+            z-index: 0;
         }
         .finish-line::after {
             content: '100%';
@@ -135,12 +144,45 @@
             color: rgba(255,255,255,0.5);
         }
 
-        /* Leading class glow effect */
-        .leading .progress-bar {
-            filter: brightness(1.2);
+        .leading .progress-bar { filter: brightness(1.2); }
+        .leading .trophy { opacity: 1; }
+
+        /* --- NEW FOOTER SECTION --- */
+        .mission-brief {
+            max-width: 700px;
+            text-align: center;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
         }
-        .leading .trophy {
-            opacity: 1;
+
+        .mission-brief h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .mission-brief p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: #ccc;
+        }
+
+        .highlight-text {
+            color: #fff;
+            font-weight: 700;
+        }
+        
+        .update-note {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
         }
 
     </style>
@@ -156,8 +198,9 @@
             <div class="class-label">313</div>
             <div class="progress-track">
                 <div class="finish-line"></div>
-                <div class="progress-bar c-313" id="bar-313"></div>
-                <span class="percentage-text" id="text-313">0%</span>
+                <div class="progress-bar c-313" id="bar-313">
+                    <span class="percentage-text" id="text-313">0%</span>
+                </div>
             </div>
             <div class="trophy">👑</div>
         </div>
@@ -166,8 +209,9 @@
             <div class="class-label">315</div>
             <div class="progress-track">
                 <div class="finish-line"></div>
-                <div class="progress-bar c-315" id="bar-315"></div>
-                <span class="percentage-text" id="text-315">0%</span>
+                <div class="progress-bar c-315" id="bar-315">
+                    <span class="percentage-text" id="text-315">0%</span>
+                </div>
             </div>
             <div class="trophy">👑</div>
         </div>
@@ -176,8 +220,9 @@
             <div class="class-label">318</div>
             <div class="progress-track">
                 <div class="finish-line"></div>
-                <div class="progress-bar c-318" id="bar-318"></div>
-                <span class="percentage-text" id="text-318">0%</span>
+                <div class="progress-bar c-318" id="bar-318">
+                    <span class="percentage-text" id="text-318">0%</span>
+                </div>
             </div>
             <div class="trophy">👑</div>
         </div>
@@ -186,8 +231,9 @@
             <div class="class-label">319</div>
             <div class="progress-track">
                 <div class="finish-line"></div>
-                <div class="progress-bar c-319" id="bar-319"></div>
-                <span class="percentage-text" id="text-319">0%</span>
+                <div class="progress-bar c-319" id="bar-319">
+                    <span class="percentage-text" id="text-319">0%</span>
+                </div>
             </div>
             <div class="trophy">👑</div>
         </div>
@@ -196,12 +242,21 @@
             <div class="class-label">320</div>
             <div class="progress-track">
                 <div class="finish-line"></div>
-                <div class="progress-bar c-320" id="bar-320"></div>
-                <span class="percentage-text" id="text-320">0%</span>
+                <div class="progress-bar c-320" id="bar-320">
+                    <span class="percentage-text" id="text-320">0%</span>
+                </div>
             </div>
             <div class="trophy">👑</div>
         </div>
 
+    </div>
+
+    <div class="mission-brief">
+        <h2>Mission Briefing</h2>
+        <p class="highlight-text">Please help your class win the first party!</p>
+        <p>Try not to sprint and do 10 to 15% a day at most.</p>
+        <p>Any amount you contribute to the class will be a good move!</p>
+        <div class="update-note">⚠️ The data gets updated every morning!</div>
     </div>
 
     <script>
@@ -209,16 +264,15 @@
         //  USER CONFIGURATION: UPDATE SCORES HERE
         // ==========================================
         
-        // Enter the percentage numbers below (no % sign needed, just the number)
-        // Updated scores to demonstrate the fix for low percentages
-        const gr_313 = 1;
+        // Example with low numbers to prove visibility fix
+        const gr_313 = 1.1;
         const gr_315 = 1.2;
         const gr_318 = 1;
-        const gr_319 = 2;
-        const gr_320 = 1;
+        const gr_319 = 1.3;
+        const gr_320 = 1.4;
 
         // ==========================================
-        //  SYSTEM LOGIC (DO NOT EDIT BELOW)
+        //  SYSTEM LOGIC
         // ==========================================
 
         const classes = [
@@ -229,11 +283,9 @@
             { id: '320', score: gr_320 }
         ];
 
-        // Find the highest score to award the crown
         const maxScore = Math.max(...classes.map(c => c.score));
 
         classes.forEach(c => {
-            // Get Elements
             const bar = document.getElementById(`bar-${c.id}`);
             const text = document.getElementById(`text-${c.id}`);
             const row = document.getElementById(`row-${c.id}`);
@@ -244,12 +296,12 @@
             // Update text
             text.innerText = `${c.score}%`;
 
-            // Animate width (slight delay ensures animation triggers on load)
+            // Animate width
             setTimeout(() => {
                 bar.style.width = `${visualPercentage}%`;
             }, 100);
 
-            // Check for Leader (only if score > 0)
+            // Check for Leader
             if (c.score === maxScore && c.score > 0) {
                 row.classList.add('leading');
             }
