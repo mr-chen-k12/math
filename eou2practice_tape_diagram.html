@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tape Diagram Practice</title>
+    <style>
+        :root {
+            --primary: #8e44ad; /* Purple focus */
+            --secondary: #9b59b6;
+            --accent: #f1c40f;
+            --success: #27ae60;
+            --wrong: #c0392b;
+            --bg: #f3f0f7;
+            --card: #ffffff;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.1);
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 2.2em;
+        }
+
+        p.subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        /* SCORE BAR */
+        .score-container {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            margin-bottom: 40px;
+        }
+
+        .score-track {
+            height: 24px;
+            background: linear-gradient(90deg, #fab1a0 0%, #74b9ff 50%, #a29bfe 100%);
+            border-radius: 12px;
+            position: relative;
+            margin-top: 15px;
+            border: 1px solid #dfe6e9;
+        }
+
+        .score-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 0.9em;
+            color: #636e72;
+        }
+
+        #triangle-pointer {
+            width: 0; 
+            height: 0; 
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 18px solid #2d3436;
+            position: absolute;
+            top: -14px;
+            left: 0%; 
+            transform: translateX(-50%);
+            transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .score-text {
+            text-align: center;
+            margin-top: 12px;
+            font-weight: 800;
+            font-size: 1.4em;
+            color: var(--primary);
+        }
+
+        /* QUESTION CARDS */
+        .question-card {
+            background: var(--card);
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 16px;
+            border-left: 10px solid var(--secondary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .question-text {
+            font-size: 1.25em;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* TAPE DIAGRAM STYLES */
+        .tape-container {
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .tape-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tape-label {
+            width: 100px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        .tape-blocks {
+            display: flex;
+            gap: 2px;
+        }
+
+        .block {
+            width: 45px;
+            height: 45px;
+            background-color: #3498db;
+            border: 2px solid #2980b9;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1.1em;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        .block.color-2 {
+            background-color: #e67e22;
+            border-color: #d35400;
+        }
+        
+        .block.color-3 {
+            background-color: #2ecc71;
+            border-color: #27ae60;
+        }
+
+        /* OPTIONS */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .tape-row { flex-direction: column; align-items: flex-start; gap: 5px;}
+            .tape-label { text-align: left; width: auto; }
+            .block { width: 35px; height: 35px; font-size: 0.9em; }
+        }
+
+        button.option-btn {
+            padding: 18px;
+            text-align: center;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.2s ease;
+        }
+
+        button.option-btn:hover:not(:disabled) {
+            background: #e3f2fd;
+            border-color: #90caf9;
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* FEEDBACK */
+        button.correct {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724 !important;
+        }
+
+        button.wrong {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24 !important;
+            opacity: 0.7;
+        }
+
+        .feedback-msg {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            display: none;
+            border: 1px solid transparent;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>Tape Diagram Challenge</h1>
+        <p class="subtitle">Visualize the blocks to solve the ratio!</p>
+    </header>
+
+    <div class="score-container">
+        <div class="score-labels">
+            <span>Good Effort</span>
+            <span>Lit 🔥</span>
+            <span>Show Off 🚀</span>
+        </div>
+        <div class="score-track">
+            <div id="triangle-pointer"></div>
+        </div>
+        <div class="score-text" id="score-text">Score: 0 / 12</div>
+    </div>
+
+    <div id="quiz-area"></div>
+
+</div>
+
+<script>
+    // --- TAPE DIAGRAM GENERATOR ---
+    function createTapeDiagram(rows) {
+        // rows is an array of objects: { label: "Red", count: 3, colorClass: "" }
+        let html = '<div class="tape-container">';
+        
+        rows.forEach((row, i) => {
+            const colorClass = row.colorClass || (i === 1 ? 'color-2' : '');
+            
+            html += `<div class="tape-row">`;
+            html += `<div class="tape-label">${row.label}</div>`;
+            html += `<div class="tape-blocks">`;
+            
+            for(let b=0; b<row.count; b++) {
+                html += `<div class="block ${colorClass}">${row.val || ''}</div>`;
+            }
+            
+            html += `</div></div>`;
+        });
+        
+        html += '</div>';
+        return html;
+    }
+
+    const questions = [
+        // Q1: Identifying Ratio
+        {
+            text: "1. What is the ratio of Apple Juice (Blue) to Grape Juice (Orange)?",
+            visual: createTapeDiagram([
+                { label: "Apple", count: 3 },
+                { label: "Grape", count: 4, colorClass: "color-2" }
+            ]),
+            options: ["3 to 7", "4 to 3", "3 to 4", "7 to 4"],
+            correct: 2,
+            explanation: "There are 3 blocks for Apple and 4 blocks for Grape. The ratio is 3:4."
+        },
+
+        // Q2: Total Given
+        {
+            text: "2. The total number of students is 30. Use the diagram to find how many are Boys.",
+            visual: createTapeDiagram([
+                { label: "Boys", count: 2 },
+                { label: "Girls", count: 3, colorClass: "color-2" }
+            ]),
+            options: ["6 students", "12 students", "18 students", "20 students"],
+            correct: 1,
+            explanation: "Total blocks = 5. Total students = 30. <br>Value of one block = 30 ÷ 5 = 6. <br>Boys have 2 blocks: 2 × 6 = 12."
+        },
+
+        // Q3: Part Given
+        {
+            text: "3. There are 20 Red Marbles. How many Green Marbles are there?",
+            visual: createTapeDiagram([
+                { label: "Red", count: 4, val: "?" },
+                { label: "Green", count: 1, colorClass: "color-3" }
+            ]),
+            options: ["4", "5", "10", "20"],
+            correct: 1,
+            explanation: "Red has 4 blocks equal to 20 marbles. <br>One block = 20 ÷ 4 = 5. <br>Green has 1 block, so Green is 5."
+        },
+
+        // Q4: Difference Given
+        {
+            text: "4. There are 15 more Dogs than Cats. How many Cats are there?",
+            visual: createTapeDiagram([
+                { label: "Dogs", count: 5 },
+                { label: "Cats", count: 2, colorClass: "color-2" }
+            ]),
+            options: ["5", "10", "15", "25"],
+            correct: 1,
+            explanation: "Dogs have 3 more blocks than Cats (5 - 2 = 3). <br>Those 3 blocks represent 15 animals. <br>So, 1 block = 15 ÷ 3 = 5. <br>Cats have 2 blocks: 2 × 5 = 10."
+        },
+
+        // Q5: Total Given
+        {
+            text: "5. A prize fund of $80 is split between Alex and Sam. How much does Sam get?",
+            visual: createTapeDiagram([
+                { label: "Alex", count: 3 },
+                { label: "Sam", count: 5, colorClass: "color-3" }
+            ]),
+            options: ["$30", "$40", "$50", "$60"],
+            correct: 2,
+            explanation: "Total blocks = 8. Total money = $80. <br>Each block = $10. <br>Sam has 5 blocks: 5 × $10 = $50."
+        },
+
+        // Q6: Part Given
+        {
+            text: "6. A recipe uses 12 cups of Flour. How much Sugar is needed?",
+            visual: createTapeDiagram([
+                { label: "Flour", count: 3, val: "4" },
+                { label: "Sugar", count: 2, colorClass: "color-2", val: "4" }
+            ]),
+            options: ["4 cups", "6 cups", "8 cups", "10 cups"],
+            correct: 2,
+            explanation: "Flour has 3 blocks = 12 cups. One block is 4 cups (shown in diagram). <br>Sugar has 2 blocks. 2 × 4 = 8 cups."
+        },
+
+        // Q7: Identification
+        {
+            text: "7. Which statement matches this tape diagram?",
+            visual: createTapeDiagram([
+                { label: "Winning", count: 5 },
+                { label: "Losing", count: 1, colorClass: "color-3" }
+            ]),
+            options: [
+                "The ratio of Winning to Losing is 1:5",
+                "For every 5 wins, there is 1 loss",
+                "There are 5 total games",
+                "Losing happens more often"
+            ],
+            correct: 1,
+            explanation: "5 blocks for Winning and 1 block for Losing means 'For every 5 wins, there is 1 loss'."
+        },
+
+        // Q8: Difference Given
+        {
+            text: "8. Andre ran 8 more miles than Noah. How far did Noah run?",
+            visual: createTapeDiagram([
+                { label: "Andre", count: 5 },
+                { label: "Noah", count: 3, colorClass: "color-2" }
+            ]),
+            options: ["4 miles", "8 miles", "12 miles", "20 miles"],
+            correct: 2,
+            explanation: "Andre has 2 more blocks than Noah. <br>Those 2 blocks = 8 miles. <br>1 block = 4 miles. <br>Noah has 3 blocks: 3 × 4 = 12 miles."
+        },
+
+        // Q9: Equivalent Ratio
+        {
+            text: "9. Look at the diagram. If you multiplied the amount of both items by 3, what would the new ratio be?",
+            visual: createTapeDiagram([
+                { label: "A", count: 2 },
+                { label: "B", count: 3, colorClass: "color-3" }
+            ]),
+            options: ["2:3", "6:9", "5:6", "6:6"],
+            correct: 1,
+            explanation: "The current ratio is 2:3. If you multiply both by 3, you get 6:9. (They are equivalent!)."
+        },
+
+        // Q10: Sum of Parts
+        {
+            text: "10. The ratio of goldfish to guppies is shown. If there are 35 fish total, how many are guppies?",
+            visual: createTapeDiagram([
+                { label: "Goldfish", count: 4 },
+                { label: "Guppies", count: 3, colorClass: "color-2" }
+            ]),
+            options: ["15", "20", "25", "30"],
+            correct: 0,
+            explanation: "Total blocks = 7. Total fish = 35. <br>1 block = 35 ÷ 7 = 5. <br>Guppies have 3 blocks: 3 × 5 = 15."
+        },
+
+        // Q11: Conceptual
+        {
+            text: "11. If each block represents 10 people, how many people are represented in total?",
+            visual: createTapeDiagram([
+                { label: "Group A", count: 2, val: "10" },
+                { label: "Group B", count: 4, colorClass: "color-3", val: "10" }
+            ]),
+            options: ["40", "50", "60", "100"],
+            correct: 2,
+            explanation: "There are 6 blocks total. <br>6 blocks × 10 people = 60 people."
+        },
+
+        // Q12: Working Backwards
+        {
+            text: "12. There are 24 more Blue cars than Red cars. How many Red cars are there?",
+            visual: createTapeDiagram([
+                { label: "Blue", count: 7 },
+                { label: "Red", count: 3, colorClass: "color-2" }
+            ]),
+            options: ["6", "12", "18", "24"],
+            correct: 2,
+            explanation: "Blue has 4 more blocks than Red (7 - 3 = 4). <br>4 blocks = 24 cars. <br>1 block = 6 cars. <br>Red has 3 blocks: 3 × 6 = 18."
+        }
+    ];
+
+    let currentScore = 0;
+    const totalQuestions = questions.length;
+
+    function renderQuiz() {
+        const quizArea = document.getElementById('quiz-area');
+        
+        questions.forEach((q, index) => {
+            // Card
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            
+            // Text
+            const qText = document.createElement('div');
+            qText.className = 'question-text';
+            qText.innerHTML = q.text;
+            card.appendChild(qText);
+
+            // Visual
+            const visDiv = document.createElement('div');
+            visDiv.innerHTML = q.visual;
+            card.appendChild(visDiv);
+
+            // Options
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options-grid';
+
+            // Feedback
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback-msg';
+            feedback.id = `feedback-${index}`;
+
+            // Buttons
+            q.options.forEach((opt, optIndex) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(index, optIndex, btn, q.correct, feedback);
+                optionsDiv.appendChild(btn);
+            });
+
+            card.appendChild(optionsDiv);
+            card.appendChild(feedback);
+            quizArea.appendChild(card);
+        });
+    }
+
+    function handleAnswer(qIndex, optIndex, btn, correctIndex, feedbackEl) {
+        // Disable buttons
+        const parent = btn.parentElement;
+        const buttons = parent.getElementsByTagName('button');
+        for (let b of buttons) {
+            b.disabled = true;
+        }
+
+        if (optIndex === correctIndex) {
+            btn.classList.add('correct');
+            feedbackEl.style.display = 'block';
+            feedbackEl.style.backgroundColor = '#d4edda';
+            feedbackEl.style.border = '1px solid #c3e6cb';
+            feedbackEl.style.color = '#155724';
+            feedbackEl.innerHTML = "✅ <b>Correct!</b> " + questions[qIndex].explanation;
+            currentScore++;
+        } else {
+            btn.classList.add('wrong');
+            buttons[correctIndex].classList.add('correct'); 
+            feedbackEl.style.display = 'block';
+            feedbackEl.style.backgroundColor = '#f8d7da';
+            feedbackEl.style.border = '1px solid #f5c6cb';
+            feedbackEl.style.color = '#721c24';
+            feedbackEl.innerHTML = "❌ <b>Incorrect.</b> " + questions[qIndex].explanation;
+        }
+
+        updateScoreBar();
+    }
+
+    function updateScoreBar() {
+        document.getElementById('score-text').innerText = `Score: ${currentScore} / ${totalQuestions}`;
+        const percentage = (currentScore / totalQuestions) * 100;
+        const triangle = document.getElementById('triangle-pointer');
+        triangle.style.left = percentage + '%';
+    }
+
+    // Initialize
+    renderQuiz();
+
+</script>
+
+</body>
+</html>
