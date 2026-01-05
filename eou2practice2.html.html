@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Ratio Practice</title>
+    <style>
+        :root {
+            --primary: #2980b9;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --wrong: #c0392b;
+            --bg: #ecf0f1;
+            --card: #ffffff;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 2.2em;
+        }
+
+        p.subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        /* SCORE BAR */
+        .score-container {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            margin-bottom: 40px;
+        }
+
+        .score-track {
+            height: 24px;
+            background: linear-gradient(90deg, #ff9f43 0%, #feca57 50%, #2ecc71 100%);
+            border-radius: 12px;
+            position: relative;
+            margin-top: 15px;
+            border: 1px solid #bdc3c7;
+        }
+
+        .score-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 0.95em;
+            color: #7f8c8d;
+        }
+
+        #triangle-pointer {
+            width: 0; 
+            height: 0; 
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 18px solid #2c3e50;
+            position: absolute;
+            top: -14px;
+            left: 0%; 
+            transform: translateX(-50%);
+            transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+
+        .score-text {
+            text-align: center;
+            margin-top: 12px;
+            font-weight: 800;
+            font-size: 1.4em;
+            color: var(--primary);
+        }
+
+        /* QUESTION CARDS */
+        .question-card {
+            background: var(--card);
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 16px;
+            border-left: 10px solid var(--secondary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .question-text {
+            font-size: 1.25em;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .visual-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid #eee;
+        }
+
+        /* TABLE STYLES */
+        .ratio-table {
+            width: 100%;
+            max-width: 450px;
+            border-collapse: collapse;
+            font-size: 1.1em;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .ratio-table th, .ratio-table td {
+            border: 2px solid #bdc3c7;
+            padding: 12px;
+            text-align: center;
+        }
+        .ratio-table th {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        .missing-box {
+            display: inline-block;
+            background-color: #ffeaa7;
+            border: 2px dashed #fdcb6e;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #d35400;
+        }
+
+        /* OPTIONS */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        button.option-btn {
+            padding: 18px 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.2s ease;
+        }
+
+        button.option-btn:hover:not(:disabled) {
+            background: #e3f2fd;
+            border-color: #90caf9;
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* FEEDBACK */
+        button.correct {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724 !important;
+        }
+
+        button.wrong {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24 !important;
+            opacity: 0.7;
+        }
+
+        .feedback-msg {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* SVG STYLES */
+        svg text {
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>Visual Ratios & Tables</h1>
+        <p class="subtitle">Look at the drawings and fill in the blanks!</p>
+    </header>
+
+    <div class="score-container">
+        <div class="score-labels">
+            <span>Starting Out</span>
+            <span>Making Progress 🔥</span>
+            <span>Expert Level 🚀</span>
+        </div>
+        <div class="score-track">
+            <div id="triangle-pointer"></div>
+        </div>
+        <div class="score-text" id="score-text">Score: 0 / 10</div>
+    </div>
+
+    <div id="quiz-area"></div>
+
+</div>
+
+<script>
+    // --- SVG GENERATOR FUNCTIONS ---
+    
+    // Creates a double number line SVG string
+    function createDoubleLineSVG(label1, label2, ticks) {
+        // ticks is an array of objects: { val1: "0", val2: "0", highlight: false, question: 1 or 2 }
+        // question: 1 means top value is missing, 2 means bottom is missing
+        
+        let svgContent = '';
+        const width = 500;
+        const startX = 50;
+        const endX = 450;
+        const spacing = (endX - startX) / (ticks.length - 1);
+
+        // Labels
+        svgContent += `<text x="10" y="30" font-weight="bold" font-size="14" fill="#333">${label1}</text>`;
+        svgContent += `<text x="10" y="110" font-weight="bold" font-size="14" fill="#333">${label2}</text>`;
+
+        // Lines with arrows
+        svgContent += `<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#333" /></marker></defs>`;
+        svgContent += `<line x1="${startX}" y1="45" x2="${endX}" y2="45" stroke="#333" stroke-width="3" marker-end="url(#arrow)" />`;
+        svgContent += `<line x1="${startX}" y1="95" x2="${endX}" y2="95" stroke="#333" stroke-width="3" marker-end="url(#arrow)" />`;
+
+        // Ticks
+        ticks.forEach((tick, i) => {
+            const x = startX + (i * spacing);
+            
+            // Top Tick
+            svgContent += `<line x1="${x}" y1="40" x2="${x}" y2="50" stroke="#333" stroke-width="2" />`;
+            // Bottom Tick
+            svgContent += `<line x1="${x}" y1="90" x2="${x}" y2="100" stroke="#333" stroke-width="2" />`;
+
+            // Top Value
+            if(tick.question === 1) {
+                // Draw Box with Question Mark
+                svgContent += `<rect x="${x-18}" y="10" width="36" height="25" fill="#ffeaa7" stroke="#e67e22" stroke-width="2" rx="4" />`;
+                svgContent += `<text x="${x}" y="28" text-anchor="middle" font-weight="bold" fill="#d35400" font-size="16">?</text>`;
+            } else {
+                svgContent += `<text x="${x}" y="30" text-anchor="middle" fill="#555" font-size="14">${tick.val1}</text>`;
+            }
+
+            // Bottom Value
+            if(tick.question === 2) {
+                // Draw Box with Question Mark
+                svgContent += `<rect x="${x-18}" y="105" width="36" height="25" fill="#ffeaa7" stroke="#e67e22" stroke-width="2" rx="4" />`;
+                svgContent += `<text x="${x}" y="123" text-anchor="middle" font-weight="bold" fill="#d35400" font-size="16">?</text>`;
+            } else {
+                svgContent += `<text x="${x}" y="125" text-anchor="middle" fill="#555" font-size="14">${tick.val2}</text>`;
+            }
+        });
+
+        return `<svg viewBox="0 0 520 140" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="background:white; border-radius:8px;">${svgContent}</svg>`;
+    }
+
+    const questions = [
+        // --- 1. DOUBLE NUMBER LINE (Paint) ---
+        {
+            text: "<b>1. Mixing Paint:</b> The double number line shows the ratio of Red Paint to Blue Paint. How many cups of Red Paint do you need for 20 cups of Blue Paint?",
+            visual: createDoubleLineSVG("Red", "Blue", [
+                {val1: "0", val2: "0"},
+                {val1: "4", val2: "5"},
+                {val1: "8", val2: "10"},
+                {val1: "?", val2: "20", question: 1}
+            ]),
+            options: ["12 cups", "16 cups", "18 cups", "24 cups"],
+            correct: 1,
+            explanation: "Look at the pattern. Blue goes 5 -> 10 -> 20. <br>To get from 5 to 20, you multiply by 4.<br>So multiply Red (4) by 4 to get <b>16</b>."
+        },
+
+        // --- 2. DOUBLE NUMBER LINE (Miles/Hours) ---
+        {
+            text: "<b>2. Road Trip:</b> This double number line shows how far a car travels over time. How many miles does the car travel in 3 hours?",
+            visual: createDoubleLineSVG("Miles", "Hours", [
+                {val1: "0", val2: "0"},
+                {val1: "70", val2: "1"},
+                {val1: "140", val2: "2"},
+                {val1: "?", val2: "3", question: 1}
+            ]),
+            options: ["180 miles", "200 miles", "210 miles", "240 miles"],
+            correct: 2,
+            explanation: "The car travels 70 miles every 1 hour.<br>For 3 hours: 70 × 3 = <b>210 miles</b>."
+        },
+
+        // --- 3. TABLE PROBLEM ---
+        {
+            text: "<b>3. Recipe Table:</b> A recipe calls for sugar and flour. Fill in the missing box for Sugar.",
+            visual: `
+                <table class="ratio-table">
+                    <tr><th>Sugar (cups)</th><th>Flour (cups)</th></tr>
+                    <tr><td>2</td><td>3</td></tr>
+                    <tr><td>4</td><td>6</td></tr>
+                    <tr><td class="missing-box">?</td><td>15</td></tr>
+                </table>
+            `,
+            options: ["8", "10", "12", "14"],
+            correct: 1,
+            explanation: "The ratio is 2:3. <br>To get from 3 flour to 15 flour, multiply by 5.<br>Do the same for sugar: 2 × 5 = <b>10</b>."
+        },
+
+        // --- 4. DOUBLE NUMBER LINE (Cost) ---
+        {
+            text: "<b>4. Buying Tickets:</b> The number line shows the cost of movie tickets. How much do 4 tickets cost?",
+            visual: createDoubleLineSVG("Cost ($)", "Tickets", [
+                {val1: "0", val2: "0"},
+                {val1: "15", val2: "2"},
+                {val1: "?", val2: "4", question: 1},
+                {val1: "45", val2: "6"}
+            ]),
+            options: ["$25", "$30", "$35", "$40"],
+            correct: 1,
+            explanation: "2 tickets cost $15. <br>4 tickets is double the amount of tickets, so double the cost: $15 × 2 = <b>$30</b>."
+        },
+
+        // --- 5. DOUBLE NUMBER LINE (Weight) ---
+        {
+            text: "<b>5. Bag Weight:</b> The weight of bags of sand is shown. What is the weight of 1 bag?",
+            visual: createDoubleLineSVG("Kg", "Bags", [
+                {val1: "0", val2: "0"},
+                {val1: "?", val2: "1", question: 1},
+                {val1: "100", val2: "5"},
+                {val1: "200", val2: "10"}
+            ]),
+            options: ["10 kg", "20 kg", "25 kg", "50 kg"],
+            correct: 1,
+            explanation: "5 bags weigh 100 kg.<br>To find 1 bag, divide by 5: 100 ÷ 5 = <b>20 kg</b>."
+        },
+
+        // --- 6. TABLE PROBLEM ---
+        {
+            text: "<b>6. Running Speed:</b> Noah runs at a constant speed.",
+            visual: `
+                <table class="ratio-table">
+                    <tr><th>Distance (m)</th><th>Time (sec)</th></tr>
+                    <tr><td>10</td><td>2</td></tr>
+                    <tr><td>50</td><td>10</td></tr>
+                    <tr><td>100</td><td class="missing-box">?</td></tr>
+                </table>
+            `,
+            options: ["15 sec", "20 sec", "25 sec", "50 sec"],
+            correct: 1,
+            explanation: "Noah runs 10m in 2s (which is 5 m/s).<br>To run 100m, it takes 10 times as long as 10m: 2 × 10 = <b>20 seconds</b>."
+        },
+
+        // --- 7. DOUBLE NUMBER LINE (Juice) ---
+        {
+            text: "<b>7. Fruit Punch:</b> The ratio of Ginger Ale to Juice is shown. How much Juice for 6 cups of Ginger Ale?",
+            visual: createDoubleLineSVG("Ginger Ale", "Juice", [
+                {val1: "0", val2: "0"},
+                {val1: "2", val2: "3"},
+                {val1: "4", val2: "6"},
+                {val1: "6", val2: "?", question: 2}
+            ]),
+            options: ["8 cups", "9 cups", "10 cups", "12 cups"],
+            correct: 1,
+            explanation: "Ginger Ale pattern: 2, 4, 6 (counting by 2s).<br>Juice pattern needs to count by 3s: 3, 6, <b>9</b>."
+        },
+
+        // --- 8. DOUBLE NUMBER LINE (Work) ---
+        {
+            text: "<b>8. Earnings:</b> Han earns money for mowing lawns. How many lawns must he mow to earn $80?",
+            visual: createDoubleLineSVG("Dollars", "Lawns", [
+                {val1: "0", val2: "0"},
+                {val1: "20", val2: "1"},
+                {val1: "40", val2: "2"},
+                {val1: "80", val2: "?", question: 2}
+            ]),
+            options: ["3 lawns", "4 lawns", "5 lawns", "6 lawns"],
+            correct: 1,
+            explanation: "He earns $20 per lawn.<br>$80 is 4 times $20. So he needs 1 × 4 = <b>4 lawns</b>."
+        },
+
+        // --- 9. TABLE PROBLEM ---
+        {
+            text: "<b>9. Shopping:</b> Apples are on sale.",
+            visual: `
+                <table class="ratio-table">
+                    <tr><th>Apples</th><th>Cost ($)</th></tr>
+                    <tr><td>3</td><td>$1.50</td></tr>
+                    <tr><td>6</td><td>$3.00</td></tr>
+                    <tr><td>12</td><td class="missing-box">?</td></tr>
+                </table>
+            `,
+            options: ["$4.50", "$5.00", "$6.00", "$7.00"],
+            correct: 2,
+            explanation: "6 apples cost $3.00.<br>12 apples is double that amount, so double the cost: $3.00 × 2 = <b>$6.00</b>."
+        },
+
+         // --- 10. DOUBLE NUMBER LINE (Percentages/Fractions Logic) ---
+         {
+            text: "<b>10. Centimeters & Meters:</b> Converting length.",
+            visual: createDoubleLineSVG("Meters", "Centimeters", [
+                {val1: "0", val2: "0"},
+                {val1: "1", val2: "100"},
+                {val1: "2", val2: "200"},
+                {val1: "?", val2: "350", question: 1}
+            ]),
+            options: ["3 m", "3.5 m", "35 m", "350 m"],
+            correct: 1,
+            explanation: "1 meter is 100 cm. The ratio is 1 to 100.<br>For 350 cm, divide by 100: <b>3.5 meters</b>."
+        }
+    ];
+
+    let currentScore = 0;
+    const totalQuestions = questions.length;
+
+    function renderQuiz() {
+        const quizArea = document.getElementById('quiz-area');
+        quizArea.innerHTML = ""; 
+        
+        questions.forEach((q, index) => {
+            // Card
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            
+            // Text
+            const qText = document.createElement('div');
+            qText.className = 'question-text';
+            qText.innerHTML = q.text;
+            card.appendChild(qText);
+
+            // Visual (SVG or Table)
+            const visContainer = document.createElement('div');
+            visContainer.className = 'visual-container';
+            visContainer.innerHTML = q.visual;
+            card.appendChild(visContainer);
+
+            // Options
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options-grid';
+
+            // Feedback
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback-msg';
+            feedback.id = `feedback-${index}`;
+
+            // Buttons
+            q.options.forEach((opt, optIndex) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(index, optIndex, btn, q.correct, feedback);
+                optionsDiv.appendChild(btn);
+            });
+
+            card.appendChild(optionsDiv);
+            card.appendChild(feedback);
+            quizArea.appendChild(card);
+        });
+    }
+
+    function handleAnswer(qIndex, optIndex, btn, correctIndex, feedbackEl) {
+        // Disable buttons
+        const parent = btn.parentElement;
+        const buttons = parent.getElementsByTagName('button');
+        for (let b of buttons) {
+            b.disabled = true;
+        }
+
+        if (optIndex === correctIndex) {
+            btn.classList.add('correct');
+            feedbackEl.style.display = 'block';
+            feedbackEl.style.backgroundColor = '#d4edda';
+            feedbackEl.style.border = '1px solid #c3e6cb';
+            feedbackEl.style.color = '#155724';
+            feedbackEl.innerHTML = "✅ <b>Correct!</b> " + questions[qIndex].explanation;
+            currentScore++;
+        } else {
+            btn.classList.add('wrong');
+            buttons[correctIndex].classList.add('correct'); 
+            feedbackEl.style.display = 'block';
+            feedbackEl.style.backgroundColor = '#f8d7da';
+            feedbackEl.style.border = '1px solid #f5c6cb';
+            feedbackEl.style.color = '#721c24';
+            feedbackEl.innerHTML = "❌ <b>Incorrect.</b> " + questions[qIndex].explanation;
+        }
+
+        updateScoreBar();
+    }
+
+    function updateScoreBar() {
+        document.getElementById('score-text').innerText = `Score: ${currentScore} / ${totalQuestions}`;
+        const percentage = (currentScore / totalQuestions) * 100;
+        const triangle = document.getElementById('triangle-pointer');
+        triangle.style.left = percentage + '%';
+    }
+
+    // Initialize
+    renderQuiz();
+
+</script>
+
+</body>
+</html>
