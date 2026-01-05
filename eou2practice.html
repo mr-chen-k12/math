@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 6 Ratio Practice Test</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --success: #2ecc71;
+            --wrong: #e74c3c;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0;
+        }
+
+        p.subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        /* SCORE BAR STYLES */
+        .score-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            margin-bottom: 30px;
+        }
+
+        .score-track {
+            height: 20px;
+            background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 33%, #a18cd1 66%, #30cfd0 100%);
+            border-radius: 10px;
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .score-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        #triangle-pointer {
+            width: 0; 
+            height: 0; 
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid #333;
+            position: absolute;
+            top: -10px; /* Sits on top of the bar */
+            left: 0%; /* Dynamic */
+            transform: translateX(-50%);
+            transition: left 0.5s ease-in-out;
+        }
+
+        .score-text {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        /* QUESTION STYLES */
+        .question-card {
+            background: var(--card);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            border-left: 6px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .question-text {
+            font-size: 1.15em;
+            margin-bottom: 15px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        button.option-btn {
+            padding: 12px 15px;
+            text-align: left;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.2s;
+        }
+
+        button.option-btn:hover:not(:disabled) {
+            background: #e2e6ea;
+            border-color: #cbd3da;
+        }
+
+        /* Feedback States */
+        button.correct {
+            background-color: #d4edda !important;
+            border-color: var(--success) !important;
+            color: #155724;
+        }
+
+        button.wrong {
+            background-color: #f8d7da !important;
+            border-color: var(--wrong) !important;
+            color: #721c24;
+        }
+
+        .feedback-msg {
+            margin-top: 15px;
+            font-weight: bold;
+            display: none;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>Unit 2: Ratios & Rates Challenge</h1>
+        <p class="subtitle">Can you reach "Show Off" status?</p>
+    </header>
+
+    <div class="score-container">
+        <div class="score-labels">
+            <span>Trying / Good Effort</span>
+            <span>Lit 🔥</span>
+            <span>Show Off 🚀</span>
+        </div>
+        <div class="score-track">
+            <div id="triangle-pointer"></div>
+        </div>
+        <div class="score-text" id="score-text">Score: 0 / 20</div>
+    </div>
+
+    <div id="quiz-area">
+        </div>
+
+</div>
+
+<script>
+    // Questions based on the PDF content provided
+    const questions = [
+        {
+            text: "1. Look at the shapes (Imagine 6 Smileys, 2 Triangles, 4 Squares). What is the ratio of Triangles to Squares?",
+            options: ["2 to 4", "4 to 2", "6 to 4", "2 to 6"],
+            correct: 0,
+            explanation: "There are 2 triangles and 4 squares. The ratio is 2 to 4."
+        },
+        {
+            text: "2. Which ratio is equivalent to 8:6?",
+            options: ["3:4", "4:3", "7:5", "10:8"],
+            correct: 1,
+            explanation: "If you divide both 8 and 6 by 2, you get 4:3."
+        },
+        {
+            text: "3. A purple paint mixture uses 6 teaspoons of red and 15 teaspoons of blue. If you use 35 teaspoons of blue, how much red do you need? (Hint: Find the unit rate or scale up/down).",
+            options: ["12 teaspoons", "14 teaspoons", "18 teaspoons", "20 teaspoons"],
+            correct: 1,
+            explanation: "The ratio is 6:15. Simplify to 2:5 (divide by 3). If Blue is 35 (5 x 7), then Red is 2 x 7 = 14."
+        },
+        {
+            text: "4. Lin rode her bike 2 miles in 8 minutes. If she rides at a constant speed, how long does it take to go 1 mile?",
+            options: ["2 minutes", "3 minutes", "4 minutes", "5 minutes"],
+            correct: 2,
+            explanation: "2 miles in 8 minutes means 1 mile in 4 minutes (8 ÷ 2)."
+        },
+        {
+            text: "5. Three movie tickets cost $36. What is the cost per ticket?",
+            options: ["$10", "$11", "$12", "$13"],
+            correct: 2,
+            explanation: "$36 divided by 3 tickets = $12 per ticket."
+        },
+        {
+            text: "6. Three ice cream cones cost $8.25. How much do 2 ice cream cones cost?",
+            options: ["$2.75", "$5.50", "$6.00", "$4.50"],
+            correct: 1,
+            explanation: "Unit price: $8.25 ÷ 3 = $2.75. For 2 cones: $2.75 × 2 = $5.50."
+        },
+        {
+            text: "7. A bag contains 120 marbles. There are 19 red marbles for every 1 black marble. How many red marbles are there?",
+            options: ["100", "110", "114", "19"],
+            correct: 2,
+            explanation: "Ratio is 19:1. Total parts = 20. 120 ÷ 20 = 6 per part. Red = 19 × 6 = 114."
+        },
+        {
+            text: "8. Noah mixes 4 scoops of powder with 6 cups of water. Andre mixes 5 scoops of powder with 8 cups of water. Which mixture is stronger (more chocolatey)?",
+            options: ["Noah's mixture", "Andre's mixture", "They are the same", "Cannot tell"],
+            correct: 0,
+            explanation: "Noah: 4/6 = 0.66 scoops/cup. Andre: 5/8 = 0.625 scoops/cup. Noah's is stronger."
+        },
+        {
+            text: "9. Select the ratio that is NOT equivalent to 10:5.",
+            options: ["2:1", "20:10", "3:2", "100:50"],
+            correct: 2,
+            explanation: "10:5 simplifies to 2:1. 3:2 is a different ratio."
+        },
+        {
+            text: "10. If 3 bananas cost $0.99, how much do 5 bananas cost?",
+            options: ["$1.50", "$1.65", "$1.99", "$2.00"],
+            correct: 1,
+            explanation: "$0.99 ÷ 3 = $0.33 per banana. $0.33 × 5 = $1.65."
+        },
+        {
+            text: "11. To make green paint, you mix 2 cups of yellow and 3 cups of blue. If you use 9 cups of blue, how much yellow do you need?",
+            options: ["4 cups", "5 cups", "6 cups", "9 cups"],
+            correct: 2,
+            explanation: "Blue went from 3 to 9 (×3). So Yellow must be 2 × 3 = 6."
+        },
+        {
+            text: "12. A car travels 150 miles in 3 hours. What is the speed in miles per hour?",
+            options: ["40 mph", "45 mph", "50 mph", "60 mph"],
+            correct: 2,
+            explanation: "150 ÷ 3 = 50 miles per hour."
+        },
+        {
+            text: "13. There are 5 boys for every 6 girls in a class. If there are 30 girls, how many boys are there?",
+            options: ["20", "25", "30", "35"],
+            correct: 1,
+            explanation: "Girls: 6 × 5 = 30. Boys: 5 × 5 = 25."
+        },
+        {
+            text: "14. Which statement describes a ratio of 3:1?",
+            options: ["For every 3 apples, there is 1 orange.", "For every 1 apple, there are 3 oranges.", "There are 3 fruits total.", "The ratio is equal to 1:3."],
+            correct: 0,
+            explanation: "Order matters! 3:1 means the first item is 3 and the second is 1."
+        },
+        {
+            text: "15. Select the true statement about the ratio 4:12.",
+            options: ["It is equivalent to 1:3", "It is equivalent to 2:8", "It is equivalent to 8:16", "It is equivalent to 3:1"],
+            correct: 0,
+            explanation: "Divide both sides by 4. 4÷4=1 and 12÷4=3. So 1:3."
+        },
+        {
+            text: "16. A recipe needs 2 cups of flour for every 3 eggs. If you use 12 cups of flour, how many eggs do you need?",
+            options: ["12 eggs", "15 eggs", "18 eggs", "24 eggs"],
+            correct: 2,
+            explanation: "Flour: 2 × 6 = 12. Eggs: 3 × 6 = 18."
+        },
+        {
+            text: "17. If a runner runs 4 laps in 10 minutes, how many minutes will it take to run 6 laps at the same pace?",
+            options: ["12 minutes", "14 minutes", "15 minutes", "16 minutes"],
+            correct: 2,
+            explanation: "4 laps in 10 mins = 2.5 mins per lap. 6 laps × 2.5 = 15 mins."
+        },
+        {
+            text: "18. What is the missing number in the table? <br>Distance: 2, 4, ? <br>Time: 5, 10, 20",
+            options: ["6", "8", "10", "12"],
+            correct: 1,
+            explanation: "The ratio is 2:5. When time is 20 (5×4), distance must be 2×4 = 8."
+        },
+        {
+            text: "19. A petting zoo has 3 goats for every 4 sheep. If there are 28 total animals, how many are goats?",
+            options: ["10", "12", "14", "16"],
+            correct: 1,
+            explanation: "Ratio 3:4. Total parts = 7. 28 ÷ 7 = 4 animals per part. Goats = 3 × 4 = 12."
+        },
+        {
+            text: "20. Which price is the best deal (lowest unit price)?",
+            options: ["4 sodas for $4.00", "6 sodas for $5.40", "5 sodas for $6.00", "1 soda for $1.50"],
+            correct: 1,
+            explanation: "A: $1.00/ea. B: $0.90/ea. C: $1.20/ea. B is the cheapest."
+        }
+    ];
+
+    let currentScore = 0;
+    const totalQuestions = questions.length;
+
+    function renderQuiz() {
+        const quizArea = document.getElementById('quiz-area');
+        
+        questions.forEach((q, index) => {
+            // Create Card
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            
+            // Question Text
+            const qText = document.createElement('div');
+            qText.className = 'question-text';
+            qText.innerHTML = q.text; // Using innerHTML to allow <br>
+            card.appendChild(qText);
+
+            // Options Container
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options-grid';
+
+            // Feedback Area
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback-msg';
+            feedback.id = `feedback-${index}`;
+
+            // Create Buttons
+            q.options.forEach((opt, optIndex) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(index, optIndex, btn, q.correct, feedback);
+                optionsDiv.appendChild(btn);
+            });
+
+            card.appendChild(optionsDiv);
+            card.appendChild(feedback);
+            quizArea.appendChild(card);
+        });
+    }
+
+    function handleAnswer(qIndex, optIndex, btn, correctIndex, feedbackEl) {
+        // Disable all buttons in this card to prevent re-answering
+        const parent = btn.parentElement;
+        const buttons = parent.getElementsByTagName('button');
+        for (let b of buttons) {
+            b.disabled = true;
+        }
+
+        if (optIndex === correctIndex) {
+            btn.classList.add('correct');
+            feedbackEl.style.display = 'block';
+            feedbackEl.style.backgroundColor = '#d4edda';
+            feedbackEl.style.color = '#155724';
+            feedbackEl.innerText = "Correct! " + questions[qIndex].explanation;
+            currentScore++;
+        } else {
+            btn.classList.add('wrong');
+            // Highlight the correct one
+            buttons[correctIndex].classList.add('correct');
+            feedbackEl.style.display = 'block';
+            feedbackEl.style.backgroundColor = '#f8d7da';
+            feedbackEl.style.color = '#721c24';
+            feedbackEl.innerText = "Incorrect. " + questions[qIndex].explanation;
+        }
+
+        updateScoreBar();
+    }
+
+    function updateScoreBar() {
+        // Update Text
+        document.getElementById('score-text').innerText = `Score: ${currentScore} / ${totalQuestions}`;
+
+        // Calculate Percentage
+        const percentage = (currentScore / totalQuestions) * 100;
+        
+        // Move Triangle
+        const triangle = document.getElementById('triangle-pointer');
+        triangle.style.left = percentage + '%';
+    }
+
+    // Initialize
+    renderQuiz();
+
+</script>
+
+</body>
+</html>
