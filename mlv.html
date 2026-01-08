@@ -61,11 +61,17 @@
             transition: transform 0.2s, box-shadow 0.2s;
             font-weight: bold;
             color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
         .btn-length { background-color: #FF9F1C; }
         .btn-volume { background-color: #2EC4B6; }
         .btn-mass { background-color: #E71D36; }
+        /* New Random Button Style */
+        .btn-random { 
+            background: linear-gradient(45deg, #8E2DE2, #4A00E0); 
+            margin-top: 20px;
+        }
 
         .category-btn:hover {
             transform: translateY(-3px);
@@ -135,8 +141,8 @@
             border-right: 10px solid transparent;
             border-bottom: 15px solid #333;
             position: absolute;
-            bottom: 20px; /* Aligned with top of text */
-            left: 0%; /* Dynamic */
+            bottom: 20px;
+            left: 0%;
             transition: left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform: translateX(-50%);
         }
@@ -172,7 +178,32 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
-            margin-top: 20px;
+            margin-top: 10px;
+        }
+
+        /* --- Share Link Box --- */
+        .share-box {
+            margin: 20px 0; 
+            padding: 20px; 
+            background: #e8f4fd; 
+            border-radius: 10px; 
+            border: 2px dashed #4A90E2;
+        }
+        
+        .share-link {
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background: #27ae60;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+        .share-link:hover {
+            transform: scale(1.05);
+            background: #219150;
         }
 
         /* Mobile Adjustments */
@@ -190,11 +221,13 @@
     <button class="category-btn btn-length" onclick="startGame('length')">Length 📏</button>
     <button class="category-btn btn-volume" onclick="startGame('volume')">Volume 🥛</button>
     <button class="category-btn btn-mass" onclick="startGame('mass')">Weight / Mass 🏋️</button>
+    <button class="category-btn btn-random" onclick="startGame('random')">Random Mix 🎲</button>
 </div>
 
 <div class="container" id="game-screen">
     <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#888;">
         <span id="q-progress">Question 1/20</span>
+        <span id="q-category-label" style="font-size:0.8rem; font-weight:bold; background:#eee; padding:2px 8px; border-radius:4px;"></span>
     </div>
 
     <div class="question-box" id="question-text">Loading...</div>
@@ -216,8 +249,14 @@
 <div class="container" id="result-screen">
     <h1>Game Over!</h1>
     <h2 id="final-score-text"></h2>
-    <div id="emoji-feedback" style="font-size: 3rem; margin-bottom: 20px;"></div>
+    <div id="emoji-feedback" style="font-size: 3rem; margin-bottom: 10px;"></div>
     
+    <div class="share-box">
+        <p style="margin:0 0 5px 0; font-weight:bold; color:#4A90E2; font-size:1.1rem;">📸 Show off your success!</p>
+        <p style="font-size:0.9rem; margin-bottom:10px;">Take a screenshot of your score and upload it here:</p>
+        <a href="https://tinyurl.com/sharelitscreen" target="_blank" class="share-link">Upload Screenshot 📤</a>
+    </div>
+
     <button class="nav-btn" id="review-btn" onclick="showReview()">Review Wrong Answers</button>
     <br>
     <button class="nav-btn" style="background-color: #666;" onclick="location.reload()">Play Again</button>
@@ -276,11 +315,22 @@
     }
 
     function generateQuestionSet(category) {
-        const sourceData = gameData[category];
         const questions = [];
 
         for (let i = 0; i < totalQuestions; i++) {
-            // Pick a random fact from the source
+            
+            // Determine which category to pull from for this specific question
+            let selectedCatKey = category;
+            
+            // If the user chose Random, pick a random category for this specific question iteration
+            if (category === 'random') {
+                const keys = ['length', 'volume', 'mass'];
+                selectedCatKey = keys[Math.floor(Math.random() * keys.length)];
+            }
+
+            const sourceData = gameData[selectedCatKey];
+            
+            // Pick a random fact from the chosen source
             const correctFact = sourceData[Math.floor(Math.random() * sourceData.length)];
             
             // Randomly decide direction: Ask for Unit OR Ask for Object
@@ -291,16 +341,16 @@
             let questionText, correctAnswer;
             let distractors = [];
 
+            // We filter distractors from the SAME sourceData to ensure difficult/relevant options
+            // (e.g. if asking about length, don't give liters as options)
             if (type === 0) {
                 questionText = `What is about ${correctFact.about}?`;
                 correctAnswer = correctFact.unit;
-                // Get 3 wrong units
                 const others = sourceData.filter(d => d.unit !== correctFact.unit);
                 distractors = shuffleArray(others).slice(0, 3).map(d => d.unit);
             } else {
                 questionText = `${correctFact.unit} is about...`;
                 correctAnswer = correctFact.about;
-                // Get 3 wrong objects
                 const others = sourceData.filter(d => d.unit !== correctFact.unit);
                 distractors = shuffleArray(others).slice(0, 3).map(d => d.about);
             }
@@ -312,7 +362,8 @@
             questions.push({
                 q: questionText,
                 a: correctAnswer,
-                options: options
+                options: options,
+                catLabel: selectedCatKey.toUpperCase() // Save label for UI
             });
         }
         return questions;
@@ -339,6 +390,10 @@
 
         const qData = currentQuestions[currentQuestionIndex];
         document.getElementById('q-progress').innerText = `Question ${currentQuestionIndex + 1}/${totalQuestions}`;
+        
+        // Show category label if playing Random mode so they know context, otherwise hide or keep static
+        document.getElementById('q-category-label').innerText = qData.catLabel;
+
         document.getElementById('question-text').innerText = qData.q;
         
         const container = document.getElementById('options-container');
@@ -372,13 +427,8 @@
     }
 
     function updateLitMeter() {
-        // Calculate percentage (based on current progress vs score)
-        // If we want it to just track total score out of 20:
         const percentage = (score / totalQuestions) * 100;
-        
-        // Clamp between 0 and 100
         const safePercent = Math.min(Math.max(percentage, 0), 100);
-        
         document.getElementById('lit-pointer').style.left = safePercent + '%';
     }
 
