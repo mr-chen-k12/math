@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Measurement Master: The Lit Meter</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --secondary: #50E3C2;
+            --accent: #FF6B6B;
+            --bg: #F0F4F8;
+            --text: #333;
+            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* --- Menu Buttons --- */
+        .category-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-length { background-color: #FF9F1C; }
+        .btn-volume { background-color: #2EC4B6; }
+        .btn-mass { background-color: #E71D36; }
+
+        .category-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* --- Game Area --- */
+        #game-screen, #result-screen, #review-screen {
+            display: none;
+        }
+
+        .question-box {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: #eef2f5;
+            border: 2px solid #cbd2d9;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* --- The Lit Meter --- */
+        .meter-wrapper {
+            margin: 30px 0 10px 0;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .meter-bar {
+            height: 25px;
+            background: linear-gradient(90deg, #ffcc00 0%, #ff6b6b 50%, #9b59b6 100%);
+            border-radius: 15px;
+            width: 100%;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .meter-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .pointer {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid #333;
+            position: absolute;
+            bottom: 20px; /* Aligned with top of text */
+            left: 0%; /* Dynamic */
+            transition: left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateX(-50%);
+        }
+
+        .pointer::after {
+            content: "YOUR SCORE";
+            position: absolute;
+            top: 20px;
+            left: -35px;
+            width: 70px;
+            font-size: 0.7rem;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* --- Review Section --- */
+        .review-item {
+            background: #ffebeb;
+            border-left: 5px solid #ff4d4d;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: left;
+            border-radius: 4px;
+        }
+        .review-q { font-weight: bold; margin-bottom: 5px; }
+        .review-a { color: #27ae60; font-weight: bold;}
+
+        .nav-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 500px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container" id="menu-screen">
+    <h1>📏 Measurement Master ⚖️</h1>
+    <h2>Choose your challenge!</h2>
+    <button class="category-btn btn-length" onclick="startGame('length')">Length 📏</button>
+    <button class="category-btn btn-volume" onclick="startGame('volume')">Volume 🥛</button>
+    <button class="category-btn btn-mass" onclick="startGame('mass')">Weight / Mass 🏋️</button>
+</div>
+
+<div class="container" id="game-screen">
+    <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#888;">
+        <span id="q-progress">Question 1/20</span>
+    </div>
+
+    <div class="question-box" id="question-text">Loading...</div>
+    
+    <div class="options-grid" id="options-container">
+        </div>
+
+    <div class="meter-wrapper">
+        <div class="meter-bar"></div>
+        <div class="pointer" id="lit-pointer"></div>
+        <div class="meter-labels">
+            <span>Trying...</span>
+            <span>Good</span>
+            <span>🔥 LIT 🔥</span>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="result-screen">
+    <h1>Game Over!</h1>
+    <h2 id="final-score-text"></h2>
+    <div id="emoji-feedback" style="font-size: 3rem; margin-bottom: 20px;"></div>
+    
+    <button class="nav-btn" id="review-btn" onclick="showReview()">Review Wrong Answers</button>
+    <br>
+    <button class="nav-btn" style="background-color: #666;" onclick="location.reload()">Play Again</button>
+</div>
+
+<div class="container" id="review-screen">
+    <h1>Review Time 🧐</h1>
+    <div id="review-list" style="max-height: 300px; overflow-y: auto;">
+        </div>
+    <button class="nav-btn" onclick="location.reload()">Play Again</button>
+</div>
+
+<script>
+    // --- Data from the Images ---
+    const gameData = {
+        length: [
+            { unit: "1 millimeter", about: "the thickness of a dime" },
+            { unit: "1 centimeter", about: "the width of a pinky finger" },
+            { unit: "1 inch", about: "the length from tip of thumb to first knuckle" },
+            { unit: "1 foot", about: "the length of a football" },
+            { unit: "1 yard", about: "the length of a baseball bat" },
+            { unit: "1 meter", about: "the length of a baseball bat and ball" },
+            { unit: "1 kilometer", about: "the distance someone walks in 10 minutes" },
+            { unit: "1 mile", about: "the distance someone runs in 10 minutes" }
+        ],
+        volume: [
+            { unit: "1 milliliter", about: "the volume of an eyedropper" },
+            { unit: "1 cup", about: "the volume of a school milk carton" },
+            { unit: "1 quart", about: "the volume of a large bottle of sports drink" },
+            { unit: "1 liter", about: "the volume of a reusable water bottle" },
+            { unit: "1 gallon", about: "the volume of a large milk jug" }
+        ],
+        mass: [
+            { unit: "1 gram", about: "the mass of a raisin" },
+            { unit: "1 ounce", about: "the weight of a slice of bread" },
+            { unit: "1 pound", about: "the weight of a loaf of bread" },
+            { unit: "1 kilogram", about: "the mass of a textbook" },
+            { unit: "1 ton", about: "the weight of a small car" }
+        ]
+    };
+
+    // --- Game State ---
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let wrongAnswers = [];
+    const totalQuestions = 20;
+
+    // --- Utilities ---
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function generateQuestionSet(category) {
+        const sourceData = gameData[category];
+        const questions = [];
+
+        for (let i = 0; i < totalQuestions; i++) {
+            // Pick a random fact from the source
+            const correctFact = sourceData[Math.floor(Math.random() * sourceData.length)];
+            
+            // Randomly decide direction: Ask for Unit OR Ask for Object
+            // 0 = "What is about [Object]?" -> Unit
+            // 1 = "[Unit] is about...?" -> Object
+            const type = Math.random() > 0.5 ? 0 : 1;
+            
+            let questionText, correctAnswer;
+            let distractors = [];
+
+            if (type === 0) {
+                questionText = `What is about ${correctFact.about}?`;
+                correctAnswer = correctFact.unit;
+                // Get 3 wrong units
+                const others = sourceData.filter(d => d.unit !== correctFact.unit);
+                distractors = shuffleArray(others).slice(0, 3).map(d => d.unit);
+            } else {
+                questionText = `${correctFact.unit} is about...`;
+                correctAnswer = correctFact.about;
+                // Get 3 wrong objects
+                const others = sourceData.filter(d => d.unit !== correctFact.unit);
+                distractors = shuffleArray(others).slice(0, 3).map(d => d.about);
+            }
+
+            // Combine and shuffle options
+            let options = [...distractors, correctAnswer];
+            options = shuffleArray(options);
+
+            questions.push({
+                q: questionText,
+                a: correctAnswer,
+                options: options
+            });
+        }
+        return questions;
+    }
+
+    // --- Game Logic ---
+    function startGame(category) {
+        currentQuestions = generateQuestionSet(category);
+        currentQuestionIndex = 0;
+        score = 0;
+        wrongAnswers = [];
+        
+        document.getElementById('menu-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        updateLitMeter();
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (currentQuestionIndex >= totalQuestions) {
+            endGame();
+            return;
+        }
+
+        const qData = currentQuestions[currentQuestionIndex];
+        document.getElementById('q-progress').innerText = `Question ${currentQuestionIndex + 1}/${totalQuestions}`;
+        document.getElementById('question-text').innerText = qData.q;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = ''; // Clear old buttons
+
+        qData.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(opt);
+            container.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(selected) {
+        const currentQ = currentQuestions[currentQuestionIndex];
+        
+        if (selected === currentQ.a) {
+            score++;
+        } else {
+            wrongAnswers.push({
+                question: currentQ.q,
+                correct: currentQ.a,
+                youPicked: selected
+            });
+        }
+
+        currentQuestionIndex++;
+        updateLitMeter();
+        loadQuestion();
+    }
+
+    function updateLitMeter() {
+        // Calculate percentage (based on current progress vs score)
+        // If we want it to just track total score out of 20:
+        const percentage = (score / totalQuestions) * 100;
+        
+        // Clamp between 0 and 100
+        const safePercent = Math.min(Math.max(percentage, 0), 100);
+        
+        document.getElementById('lit-pointer').style.left = safePercent + '%';
+    }
+
+    function endGame() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        
+        const finalPercent = (score / totalQuestions) * 100;
+        document.getElementById('final-score-text').innerText = `You scored ${score} out of ${totalQuestions}`;
+        
+        const emojiDiv = document.getElementById('emoji-feedback');
+        if (finalPercent === 100) emojiDiv.innerText = "🔥🔥 LIT! 🔥🔥";
+        else if (finalPercent >= 80) emojiDiv.innerText = "🎉 Awesome! 🎉";
+        else if (finalPercent >= 50) emojiDiv.innerText = "👍 Good Job!";
+        else emojiDiv.innerText = "📚 Keep Practicing!";
+
+        // Hide review button if perfect score
+        const reviewBtn = document.getElementById('review-btn');
+        if (wrongAnswers.length === 0) {
+            reviewBtn.style.display = 'none';
+        } else {
+            reviewBtn.style.display = 'inline-block';
+        }
+    }
+
+    function showReview() {
+        document.getElementById('result-screen').style.display = 'none';
+        document.getElementById('review-screen').style.display = 'block';
+        
+        const list = document.getElementById('review-list');
+        list.innerHTML = '';
+
+        wrongAnswers.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'review-item';
+            div.innerHTML = `
+                <div class="review-q">Q: ${item.question}</div>
+                <div>❌ You picked: ${item.youPicked}</div>
+                <div class="review-a">✅ Correct: ${item.correct}</div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+</script>
+
+</body>
+</html>
