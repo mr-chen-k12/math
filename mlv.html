@@ -67,9 +67,11 @@
         .btn-length { background-color: #FF9F1C; }
         .btn-volume { background-color: #2EC4B6; }
         .btn-mass { background-color: #E71D36; }
-        /* New Random Button Style */
+        .btn-symbols { background-color: #9b59b6; } /* Purple for Symbols */
+        
+        /* Gradient for Random */
         .btn-random { 
-            background: linear-gradient(45deg, #8E2DE2, #4A00E0); 
+            background: linear-gradient(45deg, #4A90E2, #00C6FF); 
             margin-top: 20px;
         }
 
@@ -84,9 +86,17 @@
         }
 
         .question-box {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             margin-bottom: 25px;
             font-weight: bold;
+        }
+        
+        /* Make symbol questions pop */
+        .symbol-highlight {
+            font-size: 2.5rem;
+            color: var(--primary);
+            display: block;
+            margin: 10px 0;
         }
 
         .options-grid {
@@ -94,6 +104,8 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
+        
+        /* 3-column grid specifically for symbol mode answers if needed, but 2 col works fine */
 
         .option-btn {
             background-color: #eef2f5;
@@ -101,8 +113,9 @@
             padding: 15px;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 1.1rem;
             transition: all 0.2s;
+            font-weight: 500;
         }
 
         .option-btn:hover {
@@ -206,7 +219,6 @@
             background: #219150;
         }
 
-        /* Mobile Adjustments */
         @media (max-width: 500px) {
             .options-grid { grid-template-columns: 1fr; }
         }
@@ -221,6 +233,7 @@
     <button class="category-btn btn-length" onclick="startGame('length')">Length 📏</button>
     <button class="category-btn btn-volume" onclick="startGame('volume')">Volume 🥛</button>
     <button class="category-btn btn-mass" onclick="startGame('mass')">Weight / Mass 🏋️</button>
+    <button class="category-btn btn-symbols" onclick="startGame('symbols')">Unit Symbols 🔣 (in³, kg, L)</button>
     <button class="category-btn btn-random" onclick="startGame('random')">Random Mix 🎲</button>
 </div>
 
@@ -264,13 +277,12 @@
 
 <div class="container" id="review-screen">
     <h1>Review Time 🧐</h1>
-    <div id="review-list" style="max-height: 300px; overflow-y: auto;">
-        </div>
+    <div id="review-list" style="max-height: 300px; overflow-y: auto;"></div>
     <button class="nav-btn" onclick="location.reload()">Play Again</button>
 </div>
 
 <script>
-    // --- Data from the Images ---
+    // --- Data ---
     const gameData = {
         length: [
             { unit: "1 millimeter", about: "the thickness of a dime" },
@@ -295,8 +307,28 @@
             { unit: "1 pound", about: "the weight of a loaf of bread" },
             { unit: "1 kilogram", about: "the mass of a textbook" },
             { unit: "1 ton", about: "the weight of a small car" }
+        ],
+        // New Data for Symbols
+        symbols: [
+            { s: "in³", t: "Volume" },
+            { s: "cm³", t: "Volume" },
+            { s: "liter", t: "Volume" },
+            { s: "mL", t: "Volume" },
+            { s: "gal", t: "Volume" },
+            { s: "kg", t: "Weight / Mass" },
+            { s: "g", t: "Weight / Mass" },
+            { s: "lbs", t: "Weight / Mass" },
+            { s: "oz", t: "Weight / Mass" },
+            { s: "mg", t: "Weight / Mass" },
+            { s: "cm", t: "Length" },
+            { s: "ft", t: "Length" },
+            { s: "mm", t: "Length" },
+            { s: "mi", t: "Length" },
+            { s: "km", t: "Length" },
         ]
     };
+
+    const symbolOptions = ["Length", "Volume", "Weight / Mass"];
 
     // --- Game State ---
     let currentQuestions = [];
@@ -316,55 +348,58 @@
 
     function generateQuestionSet(category) {
         const questions = [];
+        const keys = ['length', 'volume', 'mass', 'symbols'];
 
         for (let i = 0; i < totalQuestions; i++) {
             
-            // Determine which category to pull from for this specific question
+            // 1. Determine Category
             let selectedCatKey = category;
-            
-            // If the user chose Random, pick a random category for this specific question iteration
             if (category === 'random') {
-                const keys = ['length', 'volume', 'mass'];
                 selectedCatKey = keys[Math.floor(Math.random() * keys.length)];
             }
 
-            const sourceData = gameData[selectedCatKey];
-            
-            // Pick a random fact from the chosen source
-            const correctFact = sourceData[Math.floor(Math.random() * sourceData.length)];
-            
-            // Randomly decide direction: Ask for Unit OR Ask for Object
-            // 0 = "What is about [Object]?" -> Unit
-            // 1 = "[Unit] is about...?" -> Object
-            const type = Math.random() > 0.5 ? 0 : 1;
-            
-            let questionText, correctAnswer;
-            let distractors = [];
+            // 2. Build Question based on Type
+            if (selectedCatKey === 'symbols') {
+                // Logic for Symbol Recognition
+                const data = gameData.symbols;
+                const item = data[Math.floor(Math.random() * data.length)];
+                
+                questions.push({
+                    q: `What does this measure?<br><span class="symbol-highlight">${item.s}</span>`,
+                    a: item.t,
+                    options: symbolOptions, // Fixed options for this mode
+                    catLabel: "SYMBOLS"
+                });
 
-            // We filter distractors from the SAME sourceData to ensure difficult/relevant options
-            // (e.g. if asking about length, don't give liters as options)
-            if (type === 0) {
-                questionText = `What is about ${correctFact.about}?`;
-                correctAnswer = correctFact.unit;
-                const others = sourceData.filter(d => d.unit !== correctFact.unit);
-                distractors = shuffleArray(others).slice(0, 3).map(d => d.unit);
             } else {
-                questionText = `${correctFact.unit} is about...`;
-                correctAnswer = correctFact.about;
-                const others = sourceData.filter(d => d.unit !== correctFact.unit);
-                distractors = shuffleArray(others).slice(0, 3).map(d => d.about);
+                // Logic for Comparison (Fact vs Unit)
+                const sourceData = gameData[selectedCatKey];
+                const correctFact = sourceData[Math.floor(Math.random() * sourceData.length)];
+                const type = Math.random() > 0.5 ? 0 : 1;
+                
+                let questionText, correctAnswer, distractors;
+
+                if (type === 0) {
+                    questionText = `What is about ${correctFact.about}?`;
+                    correctAnswer = correctFact.unit;
+                    const others = sourceData.filter(d => d.unit !== correctFact.unit);
+                    distractors = shuffleArray(others).slice(0, 3).map(d => d.unit);
+                } else {
+                    questionText = `${correctFact.unit} is about...`;
+                    correctAnswer = correctFact.about;
+                    const others = sourceData.filter(d => d.unit !== correctFact.unit);
+                    distractors = shuffleArray(others).slice(0, 3).map(d => d.about);
+                }
+
+                let options = shuffleArray([...distractors, correctAnswer]);
+
+                questions.push({
+                    q: questionText,
+                    a: correctAnswer,
+                    options: options,
+                    catLabel: selectedCatKey.toUpperCase()
+                });
             }
-
-            // Combine and shuffle options
-            let options = [...distractors, correctAnswer];
-            options = shuffleArray(options);
-
-            questions.push({
-                q: questionText,
-                a: correctAnswer,
-                options: options,
-                catLabel: selectedCatKey.toUpperCase() // Save label for UI
-            });
         }
         return questions;
     }
@@ -390,14 +425,21 @@
 
         const qData = currentQuestions[currentQuestionIndex];
         document.getElementById('q-progress').innerText = `Question ${currentQuestionIndex + 1}/${totalQuestions}`;
-        
-        // Show category label if playing Random mode so they know context, otherwise hide or keep static
         document.getElementById('q-category-label').innerText = qData.catLabel;
-
-        document.getElementById('question-text').innerText = qData.q;
+        document.getElementById('question-text').innerHTML = qData.q; // Use innerHTML for formatting
         
         const container = document.getElementById('options-container');
-        container.innerHTML = ''; // Clear old buttons
+        container.innerHTML = ''; 
+
+        // Adjust grid for symbols (3 options) vs standard (4 options)
+        if(qData.catLabel === "SYMBOLS") {
+             container.style.gridTemplateColumns = "1fr 1fr 1fr"; 
+             // On mobile, force column
+             if(window.innerWidth < 500) container.style.gridTemplateColumns = "1fr";
+        } else {
+             container.style.gridTemplateColumns = "1fr 1fr";
+             if(window.innerWidth < 500) container.style.gridTemplateColumns = "1fr";
+        }
 
         qData.options.forEach(opt => {
             const btn = document.createElement('button');
@@ -414,8 +456,10 @@
         if (selected === currentQ.a) {
             score++;
         } else {
+            // Remove HTML tags for clean review text
+            const cleanQ = currentQ.q.replace(/<[^>]*>/g, " ");
             wrongAnswers.push({
-                question: currentQ.q,
+                question: cleanQ,
                 correct: currentQ.a,
                 youPicked: selected
             });
@@ -445,7 +489,6 @@
         else if (finalPercent >= 50) emojiDiv.innerText = "👍 Good Job!";
         else emojiDiv.innerText = "📚 Keep Practicing!";
 
-        // Hide review button if perfect score
         const reviewBtn = document.getElementById('review-btn');
         if (wrongAnswers.length === 0) {
             reviewBtn.style.display = 'none';
