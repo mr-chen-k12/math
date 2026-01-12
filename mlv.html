@@ -12,6 +12,8 @@
             --bg: #F0F4F8;
             --text: #333;
             --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --correct: #27ae60;
+            --wrong: #e74c3c;
         }
 
         body {
@@ -37,16 +39,8 @@
             text-align: center;
         }
 
-        h1 {
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-
-        h2 {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 20px;
-        }
+        h1 { color: var(--primary); margin-bottom: 10px; }
+        h2 { font-size: 1.2rem; color: #666; margin-bottom: 20px; }
 
         /* --- Menu Buttons --- */
         .category-btn {
@@ -67,13 +61,8 @@
         .btn-length { background-color: #FF9F1C; }
         .btn-volume { background-color: #2EC4B6; }
         .btn-mass { background-color: #E71D36; }
-        .btn-symbols { background-color: #9b59b6; } /* Purple for Symbols */
-        
-        /* Gradient for Random */
-        .btn-random { 
-            background: linear-gradient(45deg, #4A90E2, #00C6FF); 
-            margin-top: 20px;
-        }
+        .btn-symbols { background-color: #9b59b6; }
+        .btn-random { background: linear-gradient(45deg, #4A90E2, #00C6FF); margin-top: 20px; }
 
         .category-btn:hover {
             transform: translateY(-3px);
@@ -81,9 +70,7 @@
         }
 
         /* --- Game Area --- */
-        #game-screen, #result-screen, #review-screen {
-            display: none;
-        }
+        #game-screen, #result-screen, #review-screen { display: none; }
 
         .question-box {
             font-size: 1.5rem;
@@ -91,7 +78,6 @@
             font-weight: bold;
         }
         
-        /* Make symbol questions pop */
         .symbol-highlight {
             font-size: 2.5rem;
             color: var(--primary);
@@ -104,8 +90,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
-        
-        /* 3-column grid specifically for symbol mode answers if needed, but 2 col works fine */
 
         .option-btn {
             background-color: #eef2f5;
@@ -171,6 +155,40 @@
             font-weight: bold;
         }
 
+        /* --- Immediate Feedback Modal --- */
+        #feedback-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .feedback-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        #feedback-title { font-size: 2rem; margin: 0 0 10px 0; }
+        #feedback-text { font-size: 1.2rem; margin-bottom: 25px; line-height: 1.5; color: #555;}
+        
+        .fb-correct { color: var(--correct); }
+        .fb-wrong { color: var(--wrong); }
+
         /* --- Review Section --- */
         .review-item {
             background: #ffebeb;
@@ -187,11 +205,12 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 1.1rem;
             margin-top: 10px;
+            font-weight: bold;
         }
 
         /* --- Share Link Box --- */
@@ -214,10 +233,7 @@
             margin-top: 10px;
             transition: transform 0.2s;
         }
-        .share-link:hover {
-            transform: scale(1.05);
-            background: #219150;
-        }
+        .share-link:hover { transform: scale(1.05); background: #219150; }
 
         @media (max-width: 500px) {
             .options-grid { grid-template-columns: 1fr; }
@@ -226,6 +242,14 @@
     </style>
 </head>
 <body>
+
+<div id="feedback-overlay">
+    <div class="feedback-content">
+        <h2 id="feedback-title"></h2>
+        <p id="feedback-text"></p>
+        <button class="nav-btn" onclick="nextQuestion()">Next Question ➡️</button>
+    </div>
+</div>
 
 <div class="container" id="menu-screen">
     <h1>📏 Measurement Master ⚖️</h1>
@@ -308,23 +332,23 @@
             { unit: "1 kilogram", about: "the mass of a textbook" },
             { unit: "1 ton", about: "the weight of a small car" }
         ],
-        // New Data for Symbols
+        // Updated Symbols with Names (n) for better feedback
         symbols: [
-            { s: "in³", t: "Volume" },
-            { s: "cm³", t: "Volume" },
-            { s: "liter", t: "Volume" },
-            { s: "mL", t: "Volume" },
-            { s: "gal", t: "Volume" },
-            { s: "kg", t: "Weight / Mass" },
-            { s: "g", t: "Weight / Mass" },
-            { s: "lbs", t: "Weight / Mass" },
-            { s: "oz", t: "Weight / Mass" },
-            { s: "mg", t: "Weight / Mass" },
-            { s: "cm", t: "Length" },
-            { s: "ft", t: "Length" },
-            { s: "mm", t: "Length" },
-            { s: "mi", t: "Length" },
-            { s: "km", t: "Length" },
+            { s: "in³", t: "Volume", n: "Cubic Inches" },
+            { s: "cm³", t: "Volume", n: "Cubic Centimeters" },
+            { s: "liter", t: "Volume", n: "Liter" },
+            { s: "mL", t: "Volume", n: "Milliliter" },
+            { s: "gal", t: "Volume", n: "Gallon" },
+            { s: "kg", t: "Weight / Mass", n: "Kilogram" },
+            { s: "g", t: "Weight / Mass", n: "Gram" },
+            { s: "lbs", t: "Weight / Mass", n: "Pounds" },
+            { s: "oz", t: "Weight / Mass", n: "Ounce" },
+            { s: "mg", t: "Weight / Mass", n: "Milligram" },
+            { s: "cm", t: "Length", n: "Centimeter" },
+            { s: "ft", t: "Length", n: "Foot" },
+            { s: "mm", t: "Length", n: "Millimeter" },
+            { s: "mi", t: "Length", n: "Mile" },
+            { s: "km", t: "Length", n: "Kilometer" },
         ]
     };
 
@@ -352,27 +376,26 @@
 
         for (let i = 0; i < totalQuestions; i++) {
             
-            // 1. Determine Category
             let selectedCatKey = category;
             if (category === 'random') {
                 selectedCatKey = keys[Math.floor(Math.random() * keys.length)];
             }
 
-            // 2. Build Question based on Type
             if (selectedCatKey === 'symbols') {
-                // Logic for Symbol Recognition
+                // Symbol Logic
                 const data = gameData.symbols;
                 const item = data[Math.floor(Math.random() * data.length)];
                 
                 questions.push({
                     q: `What does this measure?<br><span class="symbol-highlight">${item.s}</span>`,
                     a: item.t,
-                    options: symbolOptions, // Fixed options for this mode
-                    catLabel: "SYMBOLS"
+                    options: symbolOptions,
+                    catLabel: "SYMBOLS",
+                    originalItem: item // Pass full item for explanation
                 });
 
             } else {
-                // Logic for Comparison (Fact vs Unit)
+                // Comparison Logic
                 const sourceData = gameData[selectedCatKey];
                 const correctFact = sourceData[Math.floor(Math.random() * sourceData.length)];
                 const type = Math.random() > 0.5 ? 0 : 1;
@@ -397,7 +420,8 @@
                     q: questionText,
                     a: correctAnswer,
                     options: options,
-                    catLabel: selectedCatKey.toUpperCase()
+                    catLabel: selectedCatKey.toUpperCase(),
+                    originalItem: correctFact // Pass full item for explanation
                 });
             }
         }
@@ -418,6 +442,7 @@
     }
 
     function loadQuestion() {
+        // Reset check
         if (currentQuestionIndex >= totalQuestions) {
             endGame();
             return;
@@ -426,15 +451,14 @@
         const qData = currentQuestions[currentQuestionIndex];
         document.getElementById('q-progress').innerText = `Question ${currentQuestionIndex + 1}/${totalQuestions}`;
         document.getElementById('q-category-label').innerText = qData.catLabel;
-        document.getElementById('question-text').innerHTML = qData.q; // Use innerHTML for formatting
+        document.getElementById('question-text').innerHTML = qData.q;
         
         const container = document.getElementById('options-container');
         container.innerHTML = ''; 
 
-        // Adjust grid for symbols (3 options) vs standard (4 options)
+        // Adjust grid for symbols
         if(qData.catLabel === "SYMBOLS") {
              container.style.gridTemplateColumns = "1fr 1fr 1fr"; 
-             // On mobile, force column
              if(window.innerWidth < 500) container.style.gridTemplateColumns = "1fr";
         } else {
              container.style.gridTemplateColumns = "1fr 1fr";
@@ -452,11 +476,12 @@
 
     function handleAnswer(selected) {
         const currentQ = currentQuestions[currentQuestionIndex];
+        const isCorrect = (selected === currentQ.a);
         
-        if (selected === currentQ.a) {
+        // 1. Update Score Data
+        if (isCorrect) {
             score++;
         } else {
-            // Remove HTML tags for clean review text
             const cleanQ = currentQ.q.replace(/<[^>]*>/g, " ");
             wrongAnswers.push({
                 question: cleanQ,
@@ -464,9 +489,35 @@
                 youPicked: selected
             });
         }
-
-        currentQuestionIndex++;
+        
         updateLitMeter();
+
+        // 2. Generate Explanation Text
+        let feedbackTitle = isCorrect ? "✅ Correct!" : "❌ Not quite!";
+        let feedbackClass = isCorrect ? "fb-correct" : "fb-wrong";
+        let explanation = "";
+
+        if (currentQ.catLabel === "SYMBOLS") {
+            const item = currentQ.originalItem;
+            explanation = `<strong>${item.s}</strong> is the symbol for <strong>${item.n}</strong>.<br>It measures <strong>${item.t}</strong>.`;
+        } else {
+            const item = currentQ.originalItem;
+            explanation = `Remember:<br><strong>${item.unit}</strong> is about <strong>${item.about}</strong>.`;
+        }
+
+        // 3. Show Overlay
+        const titleEl = document.getElementById('feedback-title');
+        titleEl.innerText = feedbackTitle;
+        titleEl.className = feedbackClass; // Apply color
+        
+        document.getElementById('feedback-text').innerHTML = explanation;
+        document.getElementById('feedback-overlay').style.display = 'flex';
+    }
+
+    function nextQuestion() {
+        // Hide overlay and move to next
+        document.getElementById('feedback-overlay').style.display = 'none';
+        currentQuestionIndex++;
         loadQuestion();
     }
 
