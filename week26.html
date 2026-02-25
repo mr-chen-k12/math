@@ -253,7 +253,7 @@
         
         <a href="https://tinyurl.com/mathscreenshot" target="_blank" class="submit-link">📸 Submit Your Screenshot Here!</a>
         <br>
-        <button class="action-btn" onclick="location.reload()">Back to Main Menu</button>
+        <button class="action-btn" onclick="returnToMenu()">Back to Main Menu</button>
     </div>
 </div>
 
@@ -398,9 +398,14 @@
         if (percentage < 2) percentage = 2;
         if (percentage > 98) percentage = 98;
 
+        // Reset the marker to 0 first so the animation plays correctly
+        document.getElementById('triangle-marker').style.transition = 'none';
+        document.getElementById('triangle-marker').style.left = '2%';
+        
         setTimeout(() => {
+            document.getElementById('triangle-marker').style.transition = 'left 1.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
             document.getElementById('triangle-marker').style.left = percentage + '%';
-        }, 300);
+        }, 50);
 
         // Final Feedback Text
         let msg = "";
@@ -412,6 +417,19 @@
             msg = "You are absolutely <strong>LIT!</strong> Amazing job mastering this section!";
         }
         document.getElementById('feedback-msg').innerHTML = msg;
+    }
+
+    // Function to handle returning to the main menu cleanly
+    function returnToMenu() {
+        // Hide the scoreboard
+        document.getElementById('scoreboard').classList.add('hidden');
+        
+        // Show the intro menu
+        document.getElementById('intro-screen').classList.remove('hidden');
+        
+        // Reset the live score visually back to 0 just in case
+        document.getElementById('live-score').innerText = '0';
+        document.getElementById('live-triangle-marker').style.left = '2%';
     }
 </script>
 
