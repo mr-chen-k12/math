@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Percent Mastery Game</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --secondary: #2ecc71;
+            --bg: #F5F7FA;
+            --text: #333333;
+            --card: #FFFFFF;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-container {
+            background-color: var(--card);
+            max-width: 800px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+        }
+        h1 { color: var(--primary); }
+        .section-title {
+            font-size: 0.9em;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        #question-text {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            min-height: 60px;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #e2e8f0;
+            border: 2px solid transparent;
+            padding: 15px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { background-color: #cbd5e1; }
+        button.correct {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+        }
+        button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        button:disabled { cursor: not-allowed; }
+        
+        /* Action Buttons */
+        .action-btn {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 25px;
+            margin: 10px;
+            display: inline-block;
+        }
+        .action-btn:hover { background-color: #357ABD; }
+        #next-btn { display: none; }
+        
+        /* Menu Buttons */
+        .menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        .menu-btn {
+            background-color: #f1f5f9;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .menu-btn:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Live Scoreboard inside Quiz */
+        #live-scoreboard {
+            margin: 10px auto 40px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .live-score-text {
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: var(--primary);
+        }
+        .live-scale-container {
+            position: relative;
+            margin: 0 auto;
+            width: 90%;
+            height: 15px;
+            background: linear-gradient(to right, #ff4e50, #f9d423, #00E676);
+            border-radius: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #live-triangle-marker {
+            position: absolute;
+            top: -22px;
+            left: 2%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            color: #333;
+            transition: left 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .live-scale-labels {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            width: 100%;
+            top: 20px;
+            font-size: 0.75em;
+            font-weight: bold;
+            color: #555;
+        }
+        .live-scale-labels span { width: 33%; text-align: center; }
+
+        /* Final Scoreboard */
+        #scoreboard { display: none; }
+        .scale-container {
+            position: relative;
+            margin: 60px auto 40px;
+            width: 90%;
+            height: 40px;
+            background: linear-gradient(to right, #ff4e50, #f9d423, #00E676);
+            border-radius: 20px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #triangle-marker {
+            position: absolute;
+            top: -35px;
+            left: 2%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            color: #333;
+            transition: left 1.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            width: 100%;
+            top: 45px;
+            font-weight: bold;
+            color: #555;
+        }
+        .scale-labels span { width: 33%; text-align: center; }
+        
+        .submit-link {
+            display: inline-block;
+            background-color: var(--secondary);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: background 0.2s;
+        }
+        .submit-link:hover { background-color: #27ae60; }
+        .hidden { display: none !important; }
+        
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="intro-screen">
+        <h1>Percentage Power-Up!</h1>
+        <p>Choose your mission. Each section has 10 questions.</p>
+        <div class="menu-grid">
+            <button class="menu-btn" onclick="startGame(1)">Section 1: Fractions & Decimals</button>
+            <button class="menu-btn" onclick="startGame(2)">Section 2: Representations</button>
+            <button class="menu-btn" onclick="startGame(3)">Section 3: Ratio to 100</button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div class="section-title" id="section-title">Section Title</div>
+        
+        <div id="live-scoreboard">
+            <div class="live-score-text">Current Score: <span id="live-score">0</span> / 10 | Question <span id="q-num">1</span> of 10</div>
+            <div class="live-scale-container">
+                <div id="live-triangle-marker">▼</div>
+                <div class="live-scale-labels">
+                    <span>BEGIN</span>
+                    <span>GOOD WORK</span>
+                    <span>LIT!</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="question-text">Question goes here</div>
+        <div class="options-grid" id="options-container">
+            </div>
+        <button id="next-btn" class="action-btn" onclick="nextQuestion()">Next</button>
+    </div>
+
+    <div id="scoreboard" class="hidden">
+        <h1>Mission Complete!</h1>
+        <h2>Final Score: <span id="final-score">0</span> / 10</h2>
+        
+        <div class="scale-container">
+            <div id="triangle-marker">▼</div>
+            <div class="scale-labels">
+                <span>BEGIN<br>(0-3)</span>
+                <span>GOOD WORK<br>(4-7)</span>
+                <span>LIT!<br>(8-10)</span>
+            </div>
+        </div>
+        <br><br>
+        <p id="feedback-msg"></p>
+        
+        <a href="https://tinyurl.com/mathscreenshot" target="_blank" class="submit-link">📸 Submit Your Screenshot Here!</a>
+        <br>
+        <button class="action-btn" onclick="location.reload()">Back to Main Menu</button>
+    </div>
+</div>
+
+<script>
+    // Database of 30 Questions
+    const allQuestions = [
+        // SECTION 1: Calculating percentages using fractions & decimals
+        { sec: 1, text: "Finding 50% of a number is the same as multiplying it by which fraction?", options: ["\\(\\frac{1}{4}\\)", "\\(\\frac{1}{2}\\)", "\\(\\frac{1}{5}\\)", "\\(\\frac{1}{10}\\)"], answer: 1 },
+        { sec: 1, text: "If you want to find 1% of 400, which decimal should you multiply 400 by?", options: ["0.1", "0.01", "0.001", "1.0"], answer: 1 },
+        { sec: 1, text: "What is 25% written as a decimal?", options: ["2.5", "0.025", "0.25", "25.0"], answer: 2 },
+        { sec: 1, text: "Calculating 20% of a quantity is equivalent to multiplying that quantity by what fraction?", options: ["\\(\\frac{1}{5}\\)", "\\(\\frac{1}{2}\\)", "\\(\\frac{1}{4}\\)", "\\(\\frac{1}{20}\\)"], answer: 0 },
+        { sec: 1, text: "To find 10% of a number quickly, you can multiply the number by:", options: ["0.01", "0.10", "1.0", "10.0"], answer: 1 },
+        { sec: 1, text: "Which mathematical expression represents 75% of 80?", options: ["\\(\\frac{3}{4} \\times 80\\)", "\\(0.075 \\times 80\\)", "\\(\\frac{1}{4} \\times 80\\)", "\\(7.5 \\times 80\\)"], answer: 0 },
+        { sec: 1, text: "What decimal is equivalent to \\(\\frac{3}{10}\\), or 30%?", options: ["0.03", "3.0", "0.30", "0.33"], answer: 2 },
+        { sec: 1, text: "If a student knows that 5% is equivalent to \\(\\frac{5}{100}\\), what is this fraction simplified?", options: ["\\(\\frac{1}{25}\\)", "\\(\\frac{1}{5}\\)", "\\(\\frac{1}{20}\\)", "\\(\\frac{1}{50}\\)"], answer: 2 },
+        { sec: 1, text: "Multiplying a number by 0.05 is the same as finding what percentage of that number?", options: ["50%", "0.5%", "5%", "500%"], answer: 2 },
+        { sec: 1, text: "Which of the following is NOT equivalent to 40%?", options: ["\\(\\frac{4}{10}\\)", "0.40", "\\(\\frac{2}{5}\\)", "0.04"], answer: 3 },
+
+        // SECTION 2: Justifying choice of representations
+        { sec: 2, text: "If you need to find 30% of a number by breaking it down into 10% chunks, which visual model is most naturally divided into 10 equal parts?", options: ["A circle graph", "A tape diagram", "A scatter plot", "A tally chart"], answer: 1 },
+        { sec: 2, text: "To show the relationship between miles driven and the percentage of a trip completed at multiple different checkpoints, which model is best?", options: ["A double number line", "A single bar model", "A pie chart", "A Venn diagram"], answer: 0 },
+        { sec: 2, text: "Why might a student choose a table instead of a tape diagram to find 15% of $80?", options: ["Tables are more colorful.", "Tables easily show scaling rules (e.g., finding 10%, then 5%, then adding them).", "Tape diagrams cannot show percentages.", "Tables require less math."], answer: 1 },
+        { sec: 2, text: "In a tape diagram representing 100%, if the tape is cut into 4 equal segments, each segment represents:", options: ["20%", "25%", "33%", "40%"], answer: 1 },
+        { sec: 2, text: "A double number line aligns 0% to 0 and 100% to 500. What number aligns with 10%?", options: ["10", "50", "100", "5"], answer: 1 },
+        { sec: 2, text: "If a problem involves complex, non-standard percentages (like 17.5%), which representation allows for the most flexible numeric scaling?", options: ["A ratio table", "A 10x10 grid", "A tape diagram cut into 5 pieces", "A pie chart"], answer: 0 },
+        { sec: 2, text: "A student uses a double number line to find 60% of 120. They align 100% with 120. Which step makes the most sense next?", options: ["Divide by 10 to find 10%, then multiply by 6.", "Add 60 to 120.", "Divide 120 by 60.", "Multiply 120 by 100."], answer: 0 },
+        { sec: 2, text: "When is a 10x10 grid the best representation to use?", options: ["When tracking continuous growth over time.", "When comparing infinite quantities.", "When visualizing 1% or parts of 100 visually.", "When calculating distances in miles."], answer: 2 },
+        { sec: 2, text: "A tape diagram is best used when a problem can be easily divided into:", options: ["Equal, manageable fractional parts.", "Decimals out to the thousandths.", "Variables like x and y.", "Exponential growth curves."], answer: 0 },
+        { sec: 2, text: "A table shows: 100% = 40, 50% = 20, 10% = 4. How can you use this table to find 60%?", options: ["Multiply 40 by 60.", "Add the values for 50% and 10% (20 + 4 = 24).", "Subtract 10% from 100%.", "Divide 40 by 6."], answer: 1 },
+
+        // SECTION 3: Percent as a ratio of a quantity to 100
+        { sec: 3, text: "The word 'percent' translates to:", options: ["For every ten", "For every one hundred", "Out of one thousand", "Part of a whole"], answer: 1 },
+        { sec: 3, text: "If a student says '72 percent of the class passed', they mean the ratio of passing students to total students is equivalent to:", options: ["72 to 10", "72 to 100", "7.2 to 100", "72 to 1000"], answer: 1 },
+        { sec: 3, text: "Which sentence accurately uses the term 'percent' as a ratio?", options: ["The car drove 50 percent fast.", "We have 100 percent of apples.", "A 15% discount means $15 off for every $100 spent.", "Percent means a number is getting larger."], answer: 2 },
+        { sec: 3, text: "In an oral explanation, how should you define 8%", options: ["8 items out of every 10 items.", "8 items out of every 100 items.", "80 items out of every 100 items.", "0.8 items out of every 10 items."], answer: 1 },
+        { sec: 3, text: "If 45 out of 100 grid squares are shaded, how is this ratio written as a percent?", options: ["0.45%", "45%", "450%", "4.5%"], answer: 1 },
+        { sec: 3, text: "A student writes: 'The ratio of winning games to total games is 60:100.' What is this as a percent?", options: ["6%", "600%", "60%", "160%"], answer: 2 },
+        { sec: 3, text: "When explaining why \\(\\frac{3}{4}\\) is 75%, a student should say:", options: ["Because 3 plus 4 is 7.", "Because 3 is 75 less than 100.", "Because the ratio 3 to 4 is equivalent to the ratio 75 to 100.", "Because 4 times 20 is 80."], answer: 2 },
+        { sec: 3, text: "What is the denominator of a fraction when it represents a percent directly?", options: ["1", "10", "100", "1000"], answer: 2 },
+        { sec: 3, text: "If a batter has a success rate of 30%, it means:", options: ["They hit the ball 30 times total.", "For every 100 pitches, they are expected to succeed 30 times.", "They miss 30 times out of 100.", "They succeed 3 times out of 100."], answer: 1 },
+        { sec: 3, text: "How would you correctly complete this sentence? 'A percentage is simply a ratio where the whole is always ________.'", options: ["Unknown", "10", "100", "1"], answer: 2 }
+    ];
+
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    function startGame(sectionNum) {
+        currentQuestions = allQuestions.filter(q => q.sec === sectionNum);
+        currentQuestionIndex = 0;
+        score = 0;
+
+        document.getElementById('intro-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        
+        updateLiveScoreboard();
+        loadQuestion();
+    }
+
+    function updateLiveScoreboard() {
+        document.getElementById('live-score').innerText = score;
+        
+        let percentage = (score / 10) * 100;
+        if (percentage < 2) percentage = 2; // keep within bounds visually
+        if (percentage > 98) percentage = 98;
+        
+        document.getElementById('live-triangle-marker').style.left = percentage + '%';
+    }
+
+    function loadQuestion() {
+        answered = false;
+        document.getElementById('next-btn').style.display = 'none';
+        
+        const q = currentQuestions[currentQuestionIndex];
+        
+        // Update headers
+        let sectionName = "";
+        if(q.sec === 1) sectionName = "Section 1: Fractions & Decimals";
+        else if (q.sec === 2) sectionName = "Section 2: Representations";
+        else sectionName = "Section 3: Ratio to 100";
+        
+        document.getElementById('section-title').innerText = sectionName;
+        document.getElementById('q-num').innerText = currentQuestionIndex + 1;
+        document.getElementById('question-text').innerHTML = q.text;
+
+        // Load Options
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.innerHTML = opt;
+            btn.onclick = () => selectOption(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+
+        // Tell MathJax to render formulas
+        MathJax.typesetPromise();
+    }
+
+    function selectOption(selectedIndex, btnElement) {
+        if (answered) return; 
+        answered = true;
+        
+        const q = currentQuestions[currentQuestionIndex];
+        const buttons = document.getElementById('options-container').querySelectorAll('button');
+        
+        buttons.forEach((btn, index) => {
+            btn.disabled = true;
+            if (index === q.answer) {
+                btn.classList.add('correct');
+            } else if (index === selectedIndex) {
+                btn.classList.add('incorrect');
+            }
+        });
+
+        if (selectedIndex === q.answer) {
+            score++;
+            updateLiveScoreboard(); // Move the arrow immediately!
+        }
+
+        document.getElementById('next-btn').style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentQuestions.length) {
+            loadQuestion();
+        } else {
+            showFinalScoreboard();
+        }
+    }
+
+    function showFinalScoreboard() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('scoreboard').classList.remove('hidden');
+        
+        document.getElementById('final-score').innerText = score;
+        
+        let percentage = (score / 10) * 100;
+        if (percentage < 2) percentage = 2;
+        if (percentage > 98) percentage = 98;
+
+        setTimeout(() => {
+            document.getElementById('triangle-marker').style.left = percentage + '%';
+        }, 300);
+
+        // Final Feedback Text
+        let msg = "";
+        if (score <= 3) {
+            msg = "You are at the <strong>BEGIN</strong> stage! Keep practicing this section to grow your skills.";
+        } else if (score <= 7) {
+            msg = "<strong>GOOD WORK!</strong> You have a solid grasp, just brush up on a few missing pieces.";
+        } else {
+            msg = "You are absolutely <strong>LIT!</strong> Amazing job mastering this section!";
+        }
+        document.getElementById('feedback-msg').innerHTML = msg;
+    }
+</script>
+
+</body>
+</html>
