@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&P 500 Investment Growth Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            background: #eef2f5;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        .disclaimer {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #fff3cd;
+            border-left: 6px solid #ffecb5;
+            color: #856404;
+            border-radius: 4px;
+        }
+        .disclaimer h3 {
+            margin-top: 0;
+            color: #664d03;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Watch Your S&P 500 Investment Grow</h1>
+    
+    <div class="controls">
+        <div class="input-group">
+            <label for="initialAmount">Initial Investment ($):</label>
+            <input type="number" id="initialAmount" value="1000" min="0" oninput="updateChart()">
+        </div>
+        <div class="input-group">
+            <label for="monthlyContribution">Monthly Contribution ($):</label>
+            <input type="number" id="monthlyContribution" value="100" min="0" oninput="updateChart()">
+        </div>
+        <div class="input-group">
+            <label for="years">Years to Grow:</label>
+            <input type="number" id="years" value="30" min="1" max="50" oninput="updateChart()">
+        </div>
+        <div class="input-group">
+            <label for="interestRate">Estimated Annual Return (%):</label>
+            <input type="number" id="interestRate" value="8" min="1" max="20" step="0.1" oninput="updateChart()">
+            <small style="color: #666; margin-top: 4px;">Historical S&P 500 average is ~8-10%</small>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="growthChart"></canvas>
+    </div>
+
+    <div class="disclaimer">
+        <h3>💡 Important Rule for Investing: Play the Long Game</h3>
+        <p>Before you invest a single dollar, remember this golden rule: <strong>The money you put into the stock market should not be money you need tomorrow.</strong></p>
+        <ul>
+            <li><strong>Not for groceries or daily needs:</strong> Your investments are separate from your checking account. Keep your daily living expenses safely out of the stock market.</li>
+            <li><strong>Not for rainy days:</strong> Always build an emergency fund (3 to 6 months of living expenses) in a safe, high-yield savings account before investing heavily. If your car breaks down, you shouldn't have to sell your stocks to fix it.</li>
+            <li><strong>Think 5, 10, or 30 years out:</strong> The S&P 500 fluctuates daily, weekly, and yearly. True wealth is built by letting your money sit and compound over decades. Set it, forget it, and let time do the heavy lifting!</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    let growthChart;
+
+    function calculateData() {
+        const initial = parseFloat(document.getElementById('initialAmount').value) || 0;
+        const monthly = parseFloat(document.getElementById('monthlyContribution').value) || 0;
+        const years = parseInt(document.getElementById('years').value) || 0;
+        const annualRate = parseFloat(document.getElementById('interestRate').value) || 0;
+        
+        const monthlyRate = annualRate / 100 / 12;
+        
+        let labels = [];
+        let principalData = [];
+        let interestData = [];
+
+        let currentPrincipal = initial;
+        let totalBalance = initial;
+
+        // Add Year 0
+        labels.push("Year 0");
+        principalData.push(currentPrincipal);
+        interestData.push(0);
+
+        for (let y = 1; y <= years; y++) {
+            for (let m = 1; m <= 12; m++) {
+                totalBalance = totalBalance * (1 + monthlyRate) + monthly;
+                currentPrincipal += monthly;
+            }
+            labels.push("Year " + y);
+            principalData.push(currentPrincipal);
+            interestData.push(totalBalance - currentPrincipal);
+        }
+
+        return { labels, principalData, interestData };
+    }
+
+    function updateChart() {
+        const data = calculateData();
+
+        if (growthChart) {
+            growthChart.data.labels = data.labels;
+            growthChart.data.datasets[0].data = data.principalData;
+            growthChart.data.datasets[1].data = data.interestData;
+            growthChart.update();
+        } else {
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            growthChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Total Contributions ($)',
+                            data: data.principalData,
+                            backgroundColor: '#3498db',
+                            stack: 'Stack 0'
+                        },
+                        {
+                            label: 'Compound Interest Earned ($)',
+                            data: data.interestData,
+                            backgroundColor: '#2ecc71',
+                            stack: 'Stack 0'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Initialize chart on page load
+    window.onload = updateChart;
+</script>
+
+</body>
+</html>
