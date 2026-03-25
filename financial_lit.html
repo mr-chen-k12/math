@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Literacy for Students</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #10b981;
+            --bg: #f3f4f6;
+            --text: #1f2937;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .lesson-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        canvas {
+            max-width: 100%;
+            margin-top: 20px;
+        }
+        /* Sticky Top Bar for Progress & Score */
+        #sticky-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #score-board {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        #progress-container {
+            width: 50%;
+            background: #e5e7eb;
+            border-radius: 20px;
+            overflow: hidden;
+            height: 25px;
+            position: relative;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--secondary);
+            transition: width 0.3s;
+        }
+        #progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+        /* Quiz Styles */
+        .question-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .question-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .option-btn {
+            padding: 10px 15px;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .option-btn:hover {
+            border-color: var(--primary);
+            background: #eef2ff;
+        }
+        .option-btn.correct {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .option-btn.wrong {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        /* Submit Screenshot Button */
+        #submit-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 1000;
+        }
+        #submit-btn:hover {
+            background: #4338ca;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Level Up Your Money 🚀</h1>
+        <p>Learn the basics of saving, investing, and growing your wealth!</p>
+    </header>
+
+    <div id="sticky-header">
+        <div id="score-board">Score: <span id="score">0</span> / 50</div>
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+            <div id="progress-text">Start</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="lesson-box">
+            <h2>The Magic of Investing</h2>
+            <p>Investing isn't gambling. Gambling is based on pure luck where the "house" usually wins. Investing is putting your money into real businesses that build real products. Over time, as those businesses grow, your money grows.</p>
+            <p><strong>The Secret Math: Compound Interest</strong></p>
+            <p>Albert Einstein reportedly called compound interest the "eighth wonder of the world." Here is the math behind how your money grows:</p>
+            <div style="font-size: 1.2rem; text-align: center; margin: 15px 0;">
+                $$ A = P \left(1 + \frac{r}{n}\right)^{nt} $$
+            </div>
+            <ul style="font-size: 0.9rem;">
+                <li><strong>A</strong> = The total money you'll have</li>
+                <li><strong>P</strong> = The principal (starting money)</li>
+                <li><strong>r</strong> = The annual interest rate/return</li>
+                <li><strong>n</strong> = Number of times interest is compounded per year</li>
+                <li><strong>t</strong> = Time (in years)</li>
+            </ul>
+            <p><strong>The S&P 500 Historical Growth</strong></p>
+            <p>If you put $1,000 into the S&P 500 (which averages around a 10% return per year over the long term), watch how it grows over 40 years!</p>
+            <canvas id="growthChart"></canvas>
+        </div>
+
+        <div id="quiz-container">
+            </div>
+    </div>
+
+    <button id="submit-btn" onclick="takeScreenshot()">📸 Submit Screenshot</button>
+
+    <script>
+        // --- Chart.js Setup ---
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        const years = Array.from({length: 9}, (_, i) => i * 5); // 0, 5, 10... 40
+        const values = years.map(year => 1000 * Math.pow(1.10, year));
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years.map(y => y + ' Years'),
+                datasets: [{
+                    label: 'Growth of $1,000 at 10% Annual Return',
+                    data: values,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // --- Quiz Data (50 Questions) ---
+        const questions = [
+            // Basics & Necessities (1-5)
+            { q: "Before investing, what is the FIRST thing you should build?", options: ["A massive stock portfolio", "An emergency fund (savings for surprises)", "A crypto wallet", "A loan to buy a nice car"], answer: 1 },
+            { q: "Which of these is a true 'necessity of life'?", options: ["Designer shoes", "Food, shelter, and clothing", "The latest smartphone", "Video game subscriptions"], answer: 1 },
+            { q: "Why shouldn't you invest money you need for rent next week?", options: ["Because the market could drop temporarily and you'd lose money you need immediately", "Because your landlord won't accept stocks", "Because investing is illegal", "Because rent is tax-deductible"], answer: 0 },
+            { q: "If you have a credit card with 25% interest debt, what should you do?", options: ["Invest in the S&P 500 first", "Buy Bitcoin", "Pay off the credit card debt first", "Ignore it"], answer: 2 },
+            { q: "What is an emergency fund usually meant to cover?", options: ["A vacation", "3 to 6 months of living expenses", "Buying a new gaming PC", "Holiday gifts"], answer: 1 },
+            
+            // Stock vs ETF (6-10)
+            { q: "What is a stock?", options: ["A piece of ownership in a single company", "A loan to the government", "A type of crypto", "A bank account"], answer: 0 },
+            { q: "What does ETF stand for?", options: ["Electronic Trade File", "Exchange Traded Fund", "Extra Time Finance", "Equity Trading Format"], answer: 1 },
+            { q: "What is the main difference between a Stock and an ETF?", options: ["Stocks are illegal, ETFs are not", "A stock is one company; an ETF is a basket of many companies", "ETFs are only for rich people", "Stocks don't make money"], answer: 1 },
+            { q: "Why do many investors prefer ETFs over picking individual stocks?", options: ["They are guaranteed to never lose money", "They provide instant diversification (spreading the risk)", "They cost millions of dollars", "You get free gifts"], answer: 1 },
+            { q: "If you buy an ETF that holds 500 companies, and one company goes bankrupt, what happens?", options: ["You lose all your money", "You lose a tiny fraction, but the other 499 companies keep you safe", "You owe the company money", "The ETF gets cancelled"], answer: 1 },
+
+            // S&P 500 & Returns (11-15)
+            { q: "What is the S&P 500?", options: ["A race car event", "An index of the 500 largest public companies in the USA", "A special tax code", "A new tech gadget"], answer: 1 },
+            { q: "Historically, what is the average annual return of the S&P 500 over the long term?", options: ["About 2%", "About 10%", "About 50%", "About -5%"], answer: 1 },
+            { q: "Over the past 20 years, despite recessions, what has the S&P 500 generally done?", options: ["Gone straight down", "Stayed exactly the same", "Trended upwards, returning around 9-10% annually", "Crashed to zero"], answer: 2 },
+            { q: "If you want to 'buy the S&P 500', you can buy shares of an ETF. Which of these are popular S&P 500 ETF ticker symbols?", options: ["AAPL and TSLA", "SPY and VOO", "BTC and ETH", "GOLD and SLV"], answer: 1 },
+            { q: "What does 'buying VOO' actually mean?", options: ["Buying virtual reality gear", "Putting money into an ETF that tracks the S&P 500", "Buying a single company named Voo", "Paying a fee to a bank"], answer: 1 },
+
+            // Investing vs Gambling vs Risk (16-20)
+            { q: "How is investing different from gambling?", options: ["Gambling is based on math and business growth", "In gambling, the odds are against you (house edge). In investing, historically, the market grows as the economy grows.", "They are exactly the same", "Investing is faster"], answer: 1 },
+            { q: "What is 'Risk' in investing?", options: ["The chance that your investment's value will go up and down (volatility)", "A guarantee you will lose everything", "A board game", "A fee charged by the broker"], answer: 0 },
+            { q: "True or False: A higher potential return usually comes with higher risk.", options: ["True", "False", "Only on Tuesdays", "Risk and return are not related"], answer: 0 },
+            { q: "If you invest in the stock market, are your returns guaranteed every single year?", options: ["Yes, the government guarantees it", "No, some years it goes down, but over decades it tends to go up", "Yes, your broker guarantees it", "No, you will definitely lose money"], answer: 1 },
+            { q: "What is 'Diversification'?", options: ["Putting all your eggs in one basket", "Spreading your money across different investments to lower risk", "Only buying tech stocks", "Hiding money under your mattress"], answer: 1 },
+
+            // Platforms & Qualifications (21-25)
+            { q: "Who is legally qualified to open their own brokerage account to trade stocks/ETFs in the US?", options: ["Anyone at any age", "Only people over 25", "Someone who is 18 or older", "Only people with college degrees"], answer: 2 },
+            { q: "If you are under 18, how can you invest?", options: ["You can't", "Through a Custodial Account set up by a parent/guardian", "By using a fake ID", "By mailing cash to Wall Street"], answer: 1 },
+            { q: "Which of these is a list of popular, legitimate investing platforms (brokerages)?", options: ["Instagram, TikTok, Snapchat", "Fidelity, Charles Schwab, Vanguard, Robinhood", "Target, Walmart, Costco", "Netflix, Hulu, Disney+"], answer: 1 },
+            { q: "What is a 'brokerage account'?", options: ["An account used specifically to buy and sell investments", "A standard checking account", "An account to buy groceries", "A point system for video games"], answer: 0 },
+            { q: "Many modern platforms charge $0 for what?", options: ["Buying houses", "Commission fees when trading standard stocks/ETFs", "Taxes", "Buying cars"], answer: 1 },
+
+            // Bitcoin vs Stocks (26-30)
+            { q: "What backs the value of a stock?", options: ["Nothing", "The actual company, its products, and its earnings (profits)", "Gold", "The government"], answer: 1 },
+            { q: "What backs the value of Bitcoin?", options: ["Profits and factories", "Digital scarcity and what people are willing to pay for it on a decentralized network", "The US Dollar", "Real estate"], answer: 1 },
+            { q: "Which is generally considered more volatile (price jumps up and down wildly)?", options: ["An S&P 500 ETF", "Bitcoin/Cryptocurrency", "A savings account", "US Treasury Bonds"], answer: 1 },
+            { q: "Does Bitcoin pay 'dividends' (a share of profits paid to owners)?", options: ["Yes, every month", "No, because it is not a profit-generating business", "Yes, at the end of the year", "Yes, if you ask nicely"], answer: 1 },
+            { q: "Is it a good idea to put your entire life savings into crypto?", options: ["Yes, it always goes up", "No, it is highly risky and should only be a small part of a portfolio if at all", "Yes, banks are fake", "Yes, your friends did it"], answer: 1 },
+
+            // Key Terms (31-40)
+            { q: "What does 'Volatility' mean?", options: ["How loud a stock is", "How much a stock's price swings up and down", "The volume of shares traded", "A tax term"], answer: 1 },
+            { q: "What is 'Market Cap' (Market Capitalization)?", options: ["A hat worn by traders", "The total dollar market value of a company's outstanding shares", "The maximum amount of money a company can make", "The maximum number of employees"], answer: 1 },
+            { q: "What is generally considered 'Long-term' investing?", options: ["Holding an investment for a few hours", "Holding an investment for days or weeks", "Holding an investment for years or decades", "Selling before lunch"], answer: 2 },
+            { q: "What is 'Short-term' trading (Day trading)?", options: ["Buying and holding for 10 years", "Buying and selling stocks quickly (days/hours) to guess price moves", "Investing in small companies", "Only buying bonds"], answer: 1 },
+            { q: "What is a 'Dividend'?", options: ["A penalty fee", "A portion of a company's profit paid directly back to shareholders", "A math problem", "The cost of a stock"], answer: 1 },
+            { q: "What does 'Bull Market' mean?", options: ["A market where prices are falling", "A market where prices are rising", "A market for livestock", "A market that is closed"], answer: 1 },
+            { q: "What does 'Bear Market' mean?", options: ["A market where prices are rising", "A market where prices are falling by 20% or more", "A strong economy", "Investing in wildlife"], answer: 1 },
+            { q: "What is a 'Ticker Symbol'?", options: ["A clock on Wall Street", "A short string of letters used to identify a stock (e.g., AAPL)", "A secret password", "The price of the stock"], answer: 1 },
+            { q: "What does 'Portfolio' mean in investing?", options: ["An artist's drawings", "Your complete collection of investments", "A type of stock", "A briefcase"], answer: 1 },
+            { q: "What is 'Dollar-Cost Averaging'?", options: ["Buying exactly one dollar of a stock", "Investing a set amount of money regularly (e.g., $50 a month) no matter the price", "Only buying when prices are low", "Converting euros to dollars"], answer: 1 },
+
+            // Practical Scenarios (41-50)
+            { q: "You have $100. The S&P 500 drops by 5% today. Should you panic and sell?", options: ["Yes, sell before it goes to zero", "No, market drops are normal. Think long-term.", "Yes, and buy lottery tickets instead", "Yes, and bury the money"], answer: 1 },
+            { q: "Your friend says they found a 'secret stock' that will double tomorrow. This is likely:", options: ["A sure thing", "Highly speculative and risky (possibly a scam)", "A great ETF", "A government bond"], answer: 1 },
+            { q: "Why is starting to invest at age 18 better than starting at age 40?", options: ["Because stocks are cheaper for teenagers", "Because you have more time for 'Compound Interest' to grow your money", "Because 40-year-olds can't use apps", "It isn't better"], answer: 1 },
+            { q: "If you buy a slice of pizza instead of investing $5, what happens to that $5?", options: ["It grows at 10% a year", "It is gone forever (consumed)", "It goes into your emergency fund", "It becomes a stock"], answer: 1 },
+            { q: "Is it okay to spend money on pizza and fun things?", options: ["No, never", "Yes, balance is key! Budget for needs, investing, AND fun.", "Only if you are a millionaire", "Yes, spend it all on fun"], answer: 1 },
+            { q: "You want to buy Apple, Microsoft, Amazon, and Google all at once. What's the easiest way?", options: ["Buy them one by one", "Buy an S&P 500 ETF (like VOO or SPY)", "Ask the CEO for shares", "Buy Bitcoin"], answer: 1 },
+            { q: "When you buy SPY, where does your money go?", options: ["To a spy agency", "It is distributed proportionally across the 500 companies in the index", "To the government", "To a bank's vault"], answer: 1 },
+            { q: "If inflation (cost of living) rises by 3% a year, and your cash is under your bed, what happens?", options: ["Your money grows", "Your money's purchasing power decreases (it buys less over time)", "Nothing", "The bank pays you"], answer: 1 },
+            { q: "Why do we invest in the stock market?", options: ["To beat inflation and grow our wealth over time", "To get rich overnight", "Because it's a fun video game", "To lose money"], answer: 0 },
+            { q: "What is the ultimate goal of financial literacy?", options: ["To memorize math formulas", "To achieve financial freedom so you can make choices in life without money stress", "To buy an expensive watch", "To work forever"], answer: 1 }
+        ];
+
+        let currentScore = 0;
+        let answeredQuestions = 0;
+
+        function updateProgress() {
+            const progress = (answeredQuestions / 50) * 100;
+            const bar = document.getElementById('progress-bar');
+            const text = document.getElementById('progress-text');
+            
+            bar.style.width = progress + '%';
+            
+            // Progress Logic
+            if(answeredQuestions === 0) { text.innerText = "Start"; bar.style.background = "#9ca3af"; }
+            else if(answeredQuestions <= 15) { text.innerText = "Trying"; bar.style.background = "#f59e0b"; }
+            else if(answeredQuestions <= 40) { text.innerText = "Good Work"; bar.style.background = "#3b82f6"; }
+            else { text.innerText = "🔥 Lit! 🔥"; bar.style.background = "#10b981"; }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('quiz-container');
+            questions.forEach((qObj, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'question-card';
+                qCard.id = `q-${index}`;
+
+                const qTitle = document.createElement('div');
+                qTitle.className = 'question-title';
+                qTitle.innerText = `${index + 1}. ${qObj.q}`;
+                qCard.appendChild(qTitle);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'options';
+
+                qObj.options.forEach((opt, optIndex) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => handleAnswer(index, optIndex, btn, optionsDiv);
+                    optionsDiv.appendChild(btn);
+                });
+
+                qCard.appendChild(optionsDiv);
+                container.appendChild(qCard);
+            });
+        }
+
+        function handleAnswer(qIndex, selectedOption, btn, optionsDiv) {
+            const correctOption = questions[qIndex].answer;
+            const allBtns = optionsDiv.querySelectorAll('button');
+            
+            // Disable all buttons in this question
+            allBtns.forEach(b => b.disabled = true);
+            answeredQuestions++;
+
+            if (selectedOption === correctOption) {
+                btn.classList.add('correct');
+                currentScore++;
+            } else {
+                btn.classList.add('wrong');
+                // Highlight the correct one
+                allBtns[correctOption].classList.add('correct');
+            }
+
+            document.getElementById('score').innerText = currentScore;
+            updateProgress();
+        }
+
+        function takeScreenshot() {
+            alert("Awesome job! Your score is " + currentScore + "/50. \n\nTo submit: Press 'Print Screen' (Windows) or 'Cmd+Shift+3' (Mac) to capture your progress, then submit the image to your teacher!");
+        }
+
+        // Initialize
+        renderQuestions();
+    </script>
+</body>
+</html>
