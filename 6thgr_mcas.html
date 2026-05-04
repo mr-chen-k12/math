@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6th Grade Math Challenge!</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #85FFBD;
+            background-image: linear-gradient(45deg, #85FFBD 0%, #FFFB7D 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            color: #FF5722;
+            text-shadow: 2px 2px 0px #FFF;
+            font-size: 3rem;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        #quiz-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 650px;
+            padding: 30px;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 0 #388E3C;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            background-color: #45a049;
+            box-shadow: 0 7px 0 #388E3C;
+        }
+
+        .option-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #388E3C;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        .feedback {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: none;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .feedback.correct {
+            display: block;
+            background-color: #C8E6C9;
+            color: #2E7D32;
+            border: 2px dashed #4CAF50;
+        }
+
+        .feedback.wrong {
+            display: block;
+            background-color: #FFCDD2;
+            color: #C62828;
+            border: 2px dashed #F44336;
+        }
+
+        #next-btn {
+            display: none;
+            margin-top: 20px;
+            background-color: #2196F3;
+            box-shadow: 0 5px 0 #1976D2;
+            width: 100%;
+        }
+
+        #next-btn:hover {
+            background-color: #1E88E5;
+            box-shadow: 0 7px 0 #1976D2;
+        }
+
+        /* Canvas for confetti layer */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .progress {
+            text-align: center;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <h1>🌟 MCAS Math Master! 🌟</h1>
+
+    <div id="quiz-container">
+        <div class="progress" id="progress-text">Question 1 of 4</div>
+        <div class="question-text" id="question-text">Loading question...</div>
+        
+        <div class="options-container" id="options-container">
+            </div>
+
+        <div id="feedback-message" class="feedback"></div>
+
+        <button id="next-btn" class="option-btn" onclick="nextQuestion()">Next Question ➡️</button>
+    </div>
+
+    <script>
+        // Questions extracted from the MCAS 2025 Grade 6 Math Release
+        const quizData = [
+            {
+                question: "What is the greatest common factor of 48 and 60?",
+                options: ["2", "6", "12", "24"],
+                correctAnswerIndex: 2,
+                successMsg: "Fantastic! 12 is the largest number that divides evenly into both 48 and 60.",
+                failMsg: "Oops! Try again. Hint: Think of the biggest number you can divide both 48 and 60 by without a remainder."
+            },
+            {
+                question: "Which of the following expressions has a value of 243?",
+                options: ["\\( 3^3 \\)", "\\( 3^4 \\)", "\\( 3^5 \\)", "\\( 3^6 \\)"],
+                correctAnswerIndex: 2,
+                successMsg: "Awesome job! \\( 3 \\times 3 \\times 3 \\times 3 \\times 3 = 243 \\).",
+                failMsg: "Not quite! Try multiplying 3 by itself and see how many times it takes to reach 243."
+            },
+            {
+                question: "Consider this expression:<br><br> \\( 15n - 9 \\) <br><br> Which of the following word expressions is exactly the same as the math expression?",
+                options: [
+                    "nine less than the sum of fifteen and \\( n \\)",
+                    "nine less than the product of fifteen and \\( n \\)",
+                    "nine less than the quotient of fifteen and \\( n \\)",
+                    "nine less than the difference of fifteen and \\( n \\)"
+                ],
+                correctAnswerIndex: 1,
+                successMsg: "You got it! 'Product' means multiply (15 times n), and 'nine less' means you subtract 9.",
+                failMsg: "That's not it. Hint: When a number is right next to a letter like \\( 15n \\), it means they are being multiplied!"
+            },
+            {
+                question: "A teacher asks the students in her class four questions about the school play they attended. Which of the teacher's questions is a <b>statistical question</b>?",
+                options: [
+                    "Who was your favorite actor in the play?",
+                    "How many actors were in the play?",
+                    "At what time did the play begin?",
+                    "What was the title of the play?"
+                ],
+                correctAnswerIndex: 0,
+                successMsg: "Super smart! A statistical question has answers that can vary from person to person.",
+                failMsg: "Try again! Remember, a statistical question means you expect to get lots of different answers from different people."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+
+        const questionText = document.getElementById("question-text");
+        const optionsContainer = document.getElementById("options-container");
+        const feedbackMessage = document.getElementById("feedback-message");
+        const nextBtn = document.getElementById("next-btn");
+        const progressText = document.getElementById("progress-text");
+
+        function loadQuestion() {
+            // Reset UI
+            feedbackMessage.className = "feedback";
+            feedbackMessage.innerHTML = "";
+            nextBtn.style.display = "none";
+            optionsContainer.innerHTML = "";
+            
+            const currentQuestion = quizData[currentQuestionIndex];
+            progressText.innerText = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+            questionText.innerHTML = currentQuestion.question;
+
+            // Generate buttons
+            currentQuestion.options.forEach((option, index) => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.innerHTML = option;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            // Tell MathJax to re-render the math equations we just injected
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function checkAnswer(selectedIndex, clickedBtn) {
+            const currentQuestion = quizData[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll(".option-btn");
+
+            // Disable all buttons after clicking
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === currentQuestion.correctAnswerIndex) {
+                // Correct Answer!
+                clickedBtn.style.backgroundColor = "#4CAF50";
+                feedbackMessage.innerHTML = "✅ " + currentQuestion.successMsg;
+                feedbackMessage.className = "feedback correct";
+                fireConfetti(); // Trigger the HTML5 Canvas Confetti!
+                nextBtn.style.display = "block";
+                
+                // Re-render math in feedback if any
+                if (window.MathJax) MathJax.typesetPromise();
+            } else {
+                // Wrong Answer!
+                clickedBtn.style.backgroundColor = "#F44336"; // Turn clicked red
+                clickedBtn.style.boxShadow = "0 5px 0 #c62828";
+                feedbackMessage.innerHTML = "❌ " + currentQuestion.failMsg;
+                feedbackMessage.className = "feedback wrong";
+                
+                // Allow them to try again after 2 seconds
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.backgroundColor = ""; 
+                        btn.style.boxShadow = "";
+                    });
+                    feedbackMessage.className = "feedback";
+                }, 2500);
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                // End of quiz
+                progressText.innerText = "All Done!";
+                questionText.innerHTML = "🎉 You've completed the MCAS Math Challenge! 🎉";
+                optionsContainer.innerHTML = "";
+                feedbackMessage.className = "feedback";
+                nextBtn.style.display = "none";
+                fireConfetti(true); // Big finale confetti
+            }
+        }
+
+        // ==========================================
+        // HTML5 CANVAS CONFETTI ENGINE FOR KIDS
+        // ==========================================
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let animationTimer = null;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function fireConfetti(isFinale = false) {
+            const particleCount = isFinale ? 300 : 100;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2 + 100,
+                    r: Math.random() * 8 + 4, // size
+                    dx: Math.random() * 20 - 10, // horizontal speed
+                    dy: Math.random() * -20 - 5, // vertical speed (shooting up)
+                    color: `hsl(${Math.random() * 360}, 100%, 60%)`, // bright colors
+                    tilt: Math.random() * 10 - 10,
+                    tiltAngle: 0,
+                    tiltAngleInc: (Math.random() * 0.07) + 0.05
+                });
+            }
+            if (!animationTimer) {
+                animateConfetti();
+            }
+        }
+
+        function animateConfetti() {
+            requestAnimationFrame(animateConfetti);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach((p, index) => {
+                p.tiltAngle += p.tiltAngleInc;
+                p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                p.x += Math.sin(p.tiltAngle) * 2 + p.dx;
+                p.dy += 0.2; // Gravity
+                p.y += p.dy;
+
+                // Draw the confetti piece
+                ctx.beginPath();
+                ctx.lineWidth = p.r;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+                ctx.stroke();
+
+                // Remove particles that fall off screen
+                if (p.y > canvas.height) {
+                    particles.splice(index, 1);
+                }
+            });
+        }
+
+        // Initialize the first question
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
