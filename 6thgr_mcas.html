@@ -1,469 +1,693 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>6th Grade Math Challenge!</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grade 6 Math — Comprehensive Review Quiz</title>
+  
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['$', '$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f7f7fb; 
+      --card: #ffffff; 
+      --ink: #1f2937; 
+      --muted: #5b6472;
+      --accent: #2563eb; 
+      --accent2: #f59e0b; 
+      --good: #15803d; 
+      --line: #d8deea;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    header {
+      background: #111827;
+      color: white;
+      padding: 28px 18px 10px;
+      text-align: center;
+    }
+    header h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.6rem); }
+    header p { margin: 0.5rem auto 0; max-width: 850px; color: #e5e7eb; }
     
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    /* School Board Scoreboard */
+    .scoreboard-wrap {
+      background: #1e293b; /* Chalkboard dark slate */
+      color: white;
+      padding: 15px 20px 25px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 4px solid #0f172a;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .score-container {
+      max-width: 1050px;
+      margin: 0 auto;
+    }
+    .score-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: "Comic Sans MS", cursive, sans-serif; /* Playful chalkboard feel */
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+    .gauge-wrap {
+      position: relative;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .label-trying { color: #fca5a5; }
+    .label-good { color: #fde047; }
+    .label-lit { color: #86efac; }
+    
+    .gauge-bar {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #ef4444 0%, #eab308 50%, #22c55e 100%);
+      width: 100%;
+      position: relative;
+    }
+    .triangle-pointer {
+      position: absolute;
+      top: 10px;
+      left: 0%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      color: white;
+      text-shadow: 0 -2px 4px rgba(0,0,0,0.5);
+      transition: left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
-
-        body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #85FFBD;
-            background-image: linear-gradient(45deg, #85FFBD 0%, #FFFB7D 100%);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        h1 {
-            font-family: 'Fredoka One', cursive;
-            color: #FF5722;
-            text-shadow: 2px 2px 0px #FFF;
-            font-size: 3rem;
-            margin-top: 30px;
-            text-align: center;
-        }
-
-        #quiz-container {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 650px;
-            padding: 30px;
-            margin-bottom: 50px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .question-text {
-            font-size: 1.5rem;
-            color: #333;
-            font-weight: bold;
-            margin-bottom: 25px;
-            text-align: center;
-        }
-
-        .options-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .option-btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 15px 20px;
-            font-size: 1.2rem;
-            font-family: 'Nunito', sans-serif;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
-            box-shadow: 0 5px 0 #388E3C;
-        }
-
-        .option-btn:hover {
-            transform: translateY(-2px);
-            background-color: #45a049;
-            box-shadow: 0 7px 0 #388E3C;
-        }
-
-        .option-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 #388E3C;
-        }
-
-        .option-btn:disabled {
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-            opacity: 0.7;
-        }
-
-        .feedback {
-            margin-top: 25px;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 1.3rem;
-            font-weight: bold;
-            display: none;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .feedback.correct {
-            display: block;
-            background-color: #C8E6C9;
-            color: #2E7D32;
-            border: 2px dashed #4CAF50;
-        }
-
-        .feedback.wrong {
-            display: block;
-            background-color: #FFCDD2;
-            color: #C62828;
-            border: 2px dashed #F44336;
-        }
-
-        #next-btn {
-            display: none;
-            margin-top: 20px;
-            background-color: #2196F3;
-            box-shadow: 0 5px 0 #1976D2;
-            width: 100%;
-        }
-
-        #next-btn:hover {
-            background-color: #1E88E5;
-            box-shadow: 0 7px 0 #1976D2;
-        }
-
-        /* Canvas for confetti layer */
-        #confetti-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .progress {
-            text-align: center;
-            font-weight: bold;
-            color: #555;
-            margin-bottom: 15px;
-        }
-    </style>
+    main { max-width: 1050px; margin: 0 auto; padding: 22px 14px 60px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 22px;
+      margin: 18px 0;
+      box-shadow: 0 8px 22px rgba(15,23,42,.06);
+    }
+    .qtop { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+    .qnum {
+      display: inline-grid;
+      place-items: center;
+      min-width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #111827;
+      color: #fff;
+      font-weight: 900;
+    }
+    h2 { font-size: 1.25rem; margin: 0 0 8px; }
+    .prompt { font-size: 1.05rem; margin: 10px 0 16px; }
+    .choices { display: grid; gap: 9px; margin: 14px 0; }
+    label.choice {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 11px 12px; border: 1px solid var(--line);
+      border-radius: 12px; background: #fbfdff; cursor: pointer;
+    }
+    label.choice:hover { border-color: #93c5fd; background: #eff6ff; }
+    input[type="radio"], input[type="checkbox"] { margin-top: 4px; transform: scale(1.12); }
+    input[type="text"], input[type="number"] {
+      font-size: 1rem; padding: 10px; border: 1px solid var(--line);
+      border-radius: 10px; width: 150px;
+    }
+    .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    button {
+      border: 0; border-radius: 12px; padding: 10px 14px;
+      font-weight: 800; cursor: pointer; background: var(--accent); color: white;
+    }
+    button.secondary { background: #374151; }
+    button:hover { filter: brightness(0.96); }
+    .feedback { margin-top: 12px; font-weight: 800; min-height: 1.4em; }
+    .feedback.good { color: var(--good); } 
+    .feedback.bad { color: #b91c1c; }
+    .explanation {
+      display: none; margin-top: 14px; padding: 14px;
+      border-left: 5px solid var(--accent2); background: #fffbeb; border-radius: 12px;
+    }
+    .answer { font-weight: 900; color: #111827; }
+    .canvas-wrap { display: flex; justify-content: center; margin: 12px 0 18px; overflow: auto; }
+    canvas { background: white; border: 1px solid #cbd5e1; border-radius: 12px; max-width: 100%; height: auto; }
+    .pill { display: inline-block; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 999px; padding: 3px 10px; font-weight: 800; color: #3730a3; }
+    .grid2 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    
+    /* Success Card Styles */
+    .success-card { text-align: center; background: #eff6ff; border-color: #bfdbfe; }
+    .success-card h2 { font-size: 1.8rem; color: #1e3a8a; }
+    .success-card p { font-size: 1.1rem; color: #3b82f6; font-weight: 500; }
+    .submit-link {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: filter 0.2s;
+    }
+    .submit-link:hover { filter: brightness(0.96); }
+    .btn-green { background: #10b981; }
+    
+    @media(min-width: 860px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+    footer { text-align: center; color: #6b7280; padding: 30px; }
+  </style>
 </head>
 <body>
 
-    <canvas id="confetti-canvas"></canvas>
+<header>
+  <h1>Grade 6 Math Practice Quiz</h1>
+  <p>Test your knowledge! Answer each question and hit <strong>Check My Answer</strong>. Try to get your score to LIT 🔥!</p>
+</header>
 
-    <h1>🌟 MCAS Math Master! 🌟</h1>
-
-    <div id="quiz-container">
-        <div class="progress" id="progress-text">Question 1 of 4</div>
-        <div class="question-text" id="question-text">Loading question...</div>
-        
-        <div class="options-container" id="options-container">
-            </div>
-
-        <div id="feedback-message" class="feedback"></div>
-
-        <button id="next-btn" class="option-btn" onclick="nextQuestion()">Next Question ➡️</button>
+<div class="scoreboard-wrap" id="capture-board">
+  <div class="score-container">
+    <div class="score-header">
+      <span>Class Scoreboard</span>
+      <span>Score: <span id="scoreText">0</span> / 18</span>
     </div>
+    <div class="gauge-wrap">
+      <div class="gauge-labels">
+        <span class="label-trying">Trying...</span>
+        <span class="label-good">Good Work!</span>
+        <span class="label-lit">LIT 🔥</span>
+      </div>
+      <div class="gauge-bar"></div>
+      <div class="triangle-pointer" id="pointer">▲</div>
+    </div>
+  </div>
+</div>
 
-    <script>
-        // Questions extracted from the MCAS 2025 Grade 6 Math Release
-        
-const quizData = [
-    {
-        "question": "What is the greatest common factor of 48 and 60?",
-        "options": ["2", "6", "12", "24"],
-        "correctAnswerIndex": 2,
-        "successMsg": "Fantastic! 12 is the largest number that divides evenly into both 48 and 60.",
-        "failMsg": "Oops! Try again. Hint: Think of the biggest number you can divide both 48 and 60 by without a remainder."
-    },
-    {
-        "question": "Which of the following expressions has a value of 243?",
-        "options": ["\\( 3^3 \\)", "\\( 3^4 \\)", "\\( 3^5 \\)", "\\( 3^6 \\)"],
-        "correctAnswerIndex": 2,
-        "successMsg": "Awesome job! \\( 3 \\times 3 \\times 3 \\times 3 \\times 3 = 243 \\).",
-        "failMsg": "Not quite! Try multiplying 3 by itself and see how many times it takes to reach 243."
-    },
-    {
-        "question": "A student has 8 marbles. 3 of the marbles are green. All the other marbles are yellow. What is the ratio of green marbles to yellow marbles?",
-        "options": ["8:3", "3:5", "3:8", "5:8"],
-        "correctAnswerIndex": 1,
-        "successMsg": "Correct! If 3 are green out of 8 total, then 5 must be yellow. So the ratio of green to yellow is 3:5.",
-        "failMsg": "Try again! First, figure out exactly how many yellow marbles there are."
-    },
-    {
-        "question": "What is the value of a point if it is located exactly halfway between 1 and 2 on a number line?",
-        "options": ["\\( \\frac{1}{2} \\)", "\\( 1 \\frac{1}{2} \\)", "\\( 2 \\frac{1}{2} \\)", "\\( \\frac{3}{4} \\)"],
-        "correctAnswerIndex": 1,
-        "successMsg": "Great job! Halfway between 1 and 2 is 1.5, or 1 and 1/2.",
-        "failMsg": "Not quite! Think about what number falls directly in the middle of 1 and 2."
-    },
-    {
-        "question": "Which of the following division equations is true?",
-        "options": ["87 &divide; 3 = 27", "96 &divide; 4 = 23", "600 &divide; 5 = 12", "924 &divide; 6 = 154"],
-        "correctAnswerIndex": 3,
-        "successMsg": "Spot on! 924 divided by 6 is exactly 154.",
-        "failMsg": "Double-check your division math. Try multiplying the answer by the divisor to see if you get the first number!"
-    },
-    {
-        "question": "A bakery sells boxes of cupcakes for $5.00 each. A teacher uses a coupon for $2.50 off her total order. If her total cost after the coupon is $47.50, how many boxes did she buy?",
-        "options": ["8 boxes", "9 boxes", "10 boxes", "11 boxes"],
-        "correctAnswerIndex": 2,
-        "successMsg": "You got it! Her total before the coupon was $50.00. Since $50 &divide; $5 = 10, she bought 10 boxes.",
-        "failMsg": "Almost! Try adding the $2.50 coupon back to the $47.50 first, then divide by the cost of one box."
-    },
-    {
-        "question": "A carpenter has a block of wood with a volume of 96 cubic inches and a mass of 4 kilograms. He cuts it to make a new shape with a mass of 2 kilograms. Assuming the wood is the same throughout, what is the volume of the new shape?",
-        "options": ["24 cubic inches", "36 cubic inches", "48 cubic inches", "96 cubic inches"],
-        "correctAnswerIndex": 2,
-        "successMsg": "Perfect! Because 2 kilograms is half of 4 kilograms, the volume is also halved (96 &divide; 2 = 48).",
-        "failMsg": "Try again! If the mass is cut exactly in half, what should happen to the volume?"
-    },
-    {
-        "question": "A teacher asks the students in her class four questions about the school play they attended. Which of the teacher's questions is a <b>statistical question</b>?",
-        "options": ["Who was your favorite actor in the play?", "How many actors were in the play?", "At what time did the play begin?", "What was the title of the play?"],
-        "correctAnswerIndex": 0,
-        "successMsg": "Super smart! A statistical question has answers that can vary from person to person.",
-        "failMsg": "Try again! Remember, a statistical question means you expect to get lots of different answers from different people."
-    },
-    {
-        "question": "Consider this expression:<br><br> \\( 15n - 9 \\) <br><br> Which of the following word expressions is equivalent to the expression?",
-        "options": ["nine less than the sum of fifteen and \\( n \\)", "nine less than the product of fifteen and \\( n \\)", "nine less than the quotient of fifteen and \\( n \\)", "nine less than the difference of fifteen and \\( n \\)"],
-        "correctAnswerIndex": 1,
-        "successMsg": "You got it! 'Product' means multiply (15 times n), and 'nine less' means you subtract 9.",
-        "failMsg": "That's not it. Hint: When a number is right next to a letter like \\( 15n \\), it means they are being multiplied!"
-    },
-    {
-        "question": "A triangular prism is made of two triangular bases (each with an area of 24 sq cm) and three rectangular faces (with areas of 60, 80, and 100 sq cm). What is the total surface area of the prism?",
-        "options": ["264 square centimeters", "288 square centimeters", "300 square centimeters", "312 square centimeters"],
-        "correctAnswerIndex": 1,
-        "successMsg": "Excellent! 24 + 24 + 60 + 80 + 100 = 288.",
-        "failMsg": "Not quite! Make sure to add up the areas of ALL the faces, including BOTH triangular bases."
-    },
-    {
-        "question": "Point Q is located at (2, 7) on a coordinate plane. Which of the following ordered pairs represents a point that is a distance of exactly 4 units from point Q?",
-        "options": ["(-2, -1)", "(-2, 7)", "(2, 11)", "(6, 11)"],
-        "correctAnswerIndex": 2,
-        "successMsg": "Great job! Moving 4 units up from (2, 7) on the y-axis lands you exactly at (2, 11).",
-        "failMsg": "Try again! Think about adding or subtracting 4 from the x-coordinate or the y-coordinate."
-    },
-    {
-        "question": "A survey asked students how many books they read last year. 5 students read 0-4 books, 8 students read 5-9 books, and 4 students read 10-14 books. What is the total number of students surveyed?",
-        "options": ["12 students", "15 students", "17 students", "20 students"],
-        "correctAnswerIndex": 2,
-        "successMsg": "Correct! 5 + 8 + 4 = 17 total students.",
-        "failMsg": "Oops! Try adding all the groups of students together."
-    },
-    {
-        "question": "A grocery store sells 4 apples for $2.40. What is the unit rate per apple?",
-        "options": ["$0.40", "$0.50", "$0.60", "$0.80"],
-        "correctAnswerIndex": 2,
-        "successMsg": "Right on the money! $2.40 divided by 4 equals $0.60 per apple.",
-        "failMsg": "Not quite. Try dividing the total cost by the number of apples to find the cost of just one."
-    },
-    {
-        "question": "Solve the following division of fractions:<br><br> \\( \\frac{3}{4} \\div \\frac{1}{8} \\)",
-        "options": ["4", "6", "8", "12"],
-        "correctAnswerIndex": 1,
-        "successMsg": "Amazing! Keep-Change-Flip: \\( \\frac{3}{4} \\times \\frac{8}{1} = \\frac{24}{4} = 6 \\).",
-        "failMsg": "Try again! Remember the rule for dividing fractions: Keep the first, change to multiply, and flip the second!"
-    },
-    {
-        "question": "What is the distance between the points (3, -2) and (3, 5) on a coordinate plane?",
-        "options": ["3 units", "5 units", "7 units", "10 units"],
-        "correctAnswerIndex": 2,
-        "successMsg": "Awesome! The distance from -2 to 0 is 2, and from 0 to 5 is 5. 2 + 5 = 7 units.",
-        "failMsg": "Try again! Since the x-coordinates are the same, just count the spaces between -2 and 5 on the y-axis."
-    },
-    {
-        "question": "Which of the following rational numbers is between -4 and 0?",
-        "options": ["-5", "-2.5", "1", "4"],
-        "correctAnswerIndex": 1,
-        "successMsg": "Nailed it! -2.5 is greater than -4 but less than 0.",
-        "failMsg": "Oops! Think about a number line. You need a negative number that is closer to zero than -4."
-    },
-    {
-        "question": "A car travels at a constant speed of 60 miles per hour. Which equation represents the relationship between the distance (d) in miles and the time (t) in hours?",
-        "options": ["\\( d = 60 + t \\)", "\\( d = 60 \\div t \\)", "\\( d = 60t \\)", "\\( t = 60d \\)"],
-        "correctAnswerIndex": 2,
-        "successMsg": "Perfect! Distance equals rate times time (d = 60 x t).",
-        "failMsg": "Not quite. Think about how you find total distance: you multiply your speed by how long you travel."
-    },
-    {
-        "question": "The test scores of 5 students are 80, 85, 90, 95, and 100. What is the <b>median</b> score?",
-        "options": ["85", "90", "95", "100"],
-        "correctAnswerIndex": 1,
-        "successMsg": "Spot on! The median is the number exactly in the middle of a sorted list, which is 90.",
-        "failMsg": "Try again! The median is the middle value when all the numbers are lined up in order."
-    },
-    {
-        "question": "A rectangular prism has edge lengths of \\( \\frac{1}{2} \\) in, \\( 2 \\) in, and \\( 3 \\) in. What is the volume of the prism?",
-        "options": ["3 cubic inches", "5.5 cubic inches", "6 cubic inches", "12 cubic inches"],
-        "correctAnswerIndex": 0,
-        "successMsg": "Incredible! Volume = length &times; width &times; height. \\( \\frac{1}{2} \\times 2 = 1 \\), and \\( 1 \\times 3 = 3 \\).",
-        "failMsg": "Try again! To find the volume, you need to multiply all three numbers together."
-    },
-    {
-        "question": "Which of the following is <b>NOT</b> a statistical question?",
-        "options": ["How tall are the students in 6th grade?", "How many days are in January?", "How many pets do your classmates own?", "What are the favorite colors of students in your school?"],
-        "correctAnswerIndex": 1,
-        "successMsg": "Great logic! Everyone knows January has exactly 31 days, so there's no variety in the answers.",
-        "failMsg": "Not quite! Remember, a question that is NOT statistical has only one correct, factual answer with no variation."
-    }
-];
+<main id="quiz">
 
-        let currentQuestionIndex = 0;
+<section class="card" data-q="1" data-type="radio" data-answer="C">
+  <div class="qtop"><div><span class="qnum">1</span></div><div style="flex:1"><h2>Greatest common factor</h2>
+  <p class="prompt">What is the greatest common factor of \(48\) and \(60\)?</p></div></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q1" value="A"> A. \(2\)</label>
+    <label class="choice"><input type="radio" name="q1" value="B"> B. \(6\)</label>
+    <label class="choice"><input type="radio" name="q1" value="C"> C. \(12\)</label>
+    <label class="choice"><input type="radio" name="q1" value="D"> D. \(24\)</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: C, \(12\).</span></p><p>Factors of \(48\) include \(1,2,3,4,6,8,12,16,24,48\). Factors of \(60\) include \(1,2,3,4,5,6,10,12,15,20,30,60\). The greatest factor they share is \(12\).</p></div>
+</section>
 
-        const questionText = document.getElementById("question-text");
-        const optionsContainer = document.getElementById("options-container");
-        const feedbackMessage = document.getElementById("feedback-message");
-        const nextBtn = document.getElementById("next-btn");
-        const progressText = document.getElementById("progress-text");
+<section class="card" data-q="2" data-type="radio" data-answer="C">
+  <div class="qtop"><div><span class="qnum">2</span></div><div style="flex:1"><h2>Powers of 3</h2>
+  <p class="prompt">Which expression has a value of \(243\)?</p></div></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q2" value="A"> A. \(3^3\)</label>
+    <label class="choice"><input type="radio" name="q2" value="B"> B. \(3^4\)</label>
+    <label class="choice"><input type="radio" name="q2" value="C"> C. \(3^5\)</label>
+    <label class="choice"><input type="radio" name="q2" value="D"> D. \(3^6\)</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: C, \(3^5\).</span></p><p>\(3^5=3\times3\times3\times3\times3=243\).</p></div>
+</section>
 
-        function loadQuestion() {
-            // Reset UI
-            feedbackMessage.className = "feedback";
-            feedbackMessage.innerHTML = "";
-            nextBtn.style.display = "none";
-            optionsContainer.innerHTML = "";
-            
-            const currentQuestion = quizData[currentQuestionIndex];
-            progressText.innerText = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
-            questionText.innerHTML = currentQuestion.question;
+<section class="card" data-q="3" data-type="checkbox" data-answer="B,D,E">
+  <div class="qtop"><div><span class="qnum">3</span></div><div style="flex:1"><h2>Ratios with marbles</h2>
+  <p class="prompt">A student has \(8\) marbles. \(3\) are green, and all the other marbles are yellow. Select the <strong>three</strong> true ratio statements.</p></div></div>
+  <div class="choices">
+    <label class="choice"><input type="checkbox" name="q3" value="A"> A. green to yellow is \(8:3\)</label>
+    <label class="choice"><input type="checkbox" name="q3" value="B"> B. green to yellow is \(3:5\)</label>
+    <label class="choice"><input type="checkbox" name="q3" value="C"> C. yellow to all is \(3:5\)</label>
+    <label class="choice"><input type="checkbox" name="q3" value="D"> D. yellow to all is \(5:8\)</label>
+    <label class="choice"><input type="checkbox" name="q3" value="E"> E. all to green is \(8:3\)</label>
+    <label class="choice"><input type="checkbox" name="q3" value="F"> F. all to green is \(5:8\)</label>
+  </div>
+  <div class="btnrow"><button onclick="checkCheckbox(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answers: B, D, and E.</span></p><p>There are \(3\) green marbles and \(8-3=5\) yellow marbles. Therefore, green to yellow is \(3:5\), yellow to all marbles is \(5:8\), and all marbles to green marbles is \(8:3\).</p></div>
+</section>
 
-            // Generate buttons
-            currentQuestion.options.forEach((option, index) => {
-                const btn = document.createElement("button");
-                btn.className = "option-btn";
-                btn.innerHTML = option;
-                btn.onclick = () => checkAnswer(index, btn);
-                optionsContainer.appendChild(btn);
-            });
+<section class="card" data-q="4" data-type="radio" data-answer="B">
+  <div class="qtop"><div><span class="qnum">4</span></div><div style="flex:1"><h2>Point on a number line</h2>
+  <p class="prompt">Which choice best represents the location of point \(K\) on the number line?</p></div></div>
+  <div class="canvas-wrap"><canvas id="numberLine" width="760" height="160" aria-label="Number line from 0 to 3 with K at seven-fourths"></canvas></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q4" value="A"> A. \(\frac{7}{8}\)</label>
+    <label class="choice"><input type="radio" name="q4" value="B"> B. \(\frac{7}{4}\)</label>
+    <label class="choice"><input type="radio" name="q4" value="C"> C. \(\frac{3}{4}\)</label>
+    <label class="choice"><input type="radio" name="q4" value="D"> D. \(\frac{4}{3}\)</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: B, \(\frac{7}{4}\).</span></p><p>The number line is divided into fourths. Point \(K\) is at \(1\frac{3}{4}\), which is \(\frac{7}{4}\).</p></div>
+</section>
 
-            // Tell MathJax to re-render the math equations we just injected
-            if (window.MathJax) {
-                MathJax.typesetPromise();
-            }
-        }
+<section class="card" data-q="5" data-type="checkbox" data-answer="D,E">
+  <div class="qtop"><div><span class="qnum">5</span></div><div style="flex:1"><h2>True division equations</h2>
+  <p class="prompt">Which division equations are true? Select the <strong>two</strong> correct answers.</p></div></div>
+  <div class="choices">
+    <label class="choice"><input type="checkbox" name="q5" value="A"> A. \(87\div3=27\)</label>
+    <label class="choice"><input type="checkbox" name="q5" value="B"> B. \(96\div4=23\)</label>
+    <label class="choice"><input type="checkbox" name="q5" value="C"> C. \(600\div5=12\)</label>
+    <label class="choice"><input type="checkbox" name="q5" value="D"> D. \(924\div6=154\)</label>
+    <label class="choice"><input type="checkbox" name="q5" value="E"> E. \(870\div15=58\)</label>
+  </div>
+  <div class="btnrow"><button onclick="checkCheckbox(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answers: D and E.</span></p><p>Check by multiplying: \(154\times6=924\), so D is true. Also, \(58\times15=870\), so E is true. The others do not match when checked.</p></div>
+</section>
 
-        function checkAnswer(selectedIndex, clickedBtn) {
-            const currentQuestion = quizData[currentQuestionIndex];
-            const buttons = optionsContainer.querySelectorAll(".option-btn");
+<section class="card" data-q="6" data-type="multiText">
+  <div class="qtop"><div><span class="qnum">6</span></div><div style="flex:1"><h2>Cupcake expressions</h2>
+  <p class="prompt">A bakery sells boxes of cupcakes. Each box costs \(\$5.00\). Answer all four parts.</p></div></div>
+  <div class="grid2">
+    <p>A. What is the total cost of \(8\) boxes?<br><input type="number" name="q6a" placeholder="ex: 40"></p>
+    <p>B. Write an expression for the total cost of \(c\) boxes.<br><input type="text" name="q6b" placeholder="ex: 5c"></p>
+    <p>C. A coupon gives \(\$2.50\) off one purchase. Write an expression for total cost of \(c\) boxes with coupon.<br><input type="text" name="q6c" placeholder="ex: 5c - 2.50"></p>
+    <p>D. A teacher plans to spend \(\$47.50\) using the coupon. How many boxes can she purchase?<br><input type="number" name="q6d" placeholder="number"></p>
+  </div>
+  <div class="btnrow"><button onclick="checkQ6(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answers:</span><br>A. \(8\times5=40\), so the cost is \(\$40\).<br>B. \(5c\).<br>C. \(5c-2.50\).<br>D. Solve \(5c-2.50=47.50\). Add \(2.50\): \(5c=50\). Divide by \(5\): \(c=10\). She can purchase <strong>10 boxes</strong>.</p></div>
+</section>
 
-            // Disable all buttons after clicking
-            buttons.forEach(btn => btn.disabled = true);
+<section class="card" data-q="7" data-type="radio" data-answer="D">
+  <div class="qtop"><div><span class="qnum">7</span></div><div style="flex:1"><h2>Volume and mass of a prism</h2>
+  <p class="prompt">A rectangular prism block has dimensions \(4\) in. by \(12\) in. by \(2\) in. and mass \(4\) kg. A new shape has mass \(2\) kg. Which shape could <strong>not</strong> be the shape cut from the block?</p></div></div>
+  <div class="canvas-wrap"><canvas id="prisms" width="860" height="430" aria-label="Rectangular prism options"></canvas></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q7" value="A"> A. Shape A</label>
+    <label class="choice"><input type="radio" name="q7" value="B"> B. Shape B</label>
+    <label class="choice"><input type="radio" name="q7" value="C"> C. Shape C</label>
+    <label class="choice"><input type="radio" name="q7" value="D"> D. Shape D</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: D.</span></p><p>The original volume is \(4\times12\times2=96\) cubic inches. A mass of \(2\) kg is half of \(4\) kg, so the new shape should have half the volume: \(96\div2=48\) cubic inches. Choices A, B, and C each have volume \(48\). Choice D has volume \(2\times6\times1=12\) cubic inches, so it could not have mass \(2\) kg.</p></div>
+</section>
 
-            if (selectedIndex === currentQuestion.correctAnswerIndex) {
-                // Correct Answer!
-                clickedBtn.style.backgroundColor = "#4CAF50";
-                feedbackMessage.innerHTML = "✅ " + currentQuestion.successMsg;
-                feedbackMessage.className = "feedback correct";
-                fireConfetti(); // Trigger the HTML5 Canvas Confetti!
-                nextBtn.style.display = "block";
-                
-                // Re-render math in feedback if any
-                if (window.MathJax) MathJax.typesetPromise();
-            } else {
-                // Wrong Answer!
-                clickedBtn.style.backgroundColor = "#F44336"; // Turn clicked red
-                clickedBtn.style.boxShadow = "0 5px 0 #c62828";
-                feedbackMessage.innerHTML = "❌ " + currentQuestion.failMsg;
-                feedbackMessage.className = "feedback wrong";
-                
-                // Allow them to try again after 2 seconds
-                setTimeout(() => {
-                    buttons.forEach(btn => {
-                        btn.disabled = false;
-                        btn.style.backgroundColor = ""; 
-                        btn.style.boxShadow = "";
-                    });
-                    feedbackMessage.className = "feedback";
-                }, 2500);
-            }
-        }
+<section class="card" data-q="8" data-type="radio" data-answer="A">
+  <div class="qtop"><div><span class="qnum">8</span></div><div style="flex:1"><h2>Statistical question</h2>
+  <p class="prompt">A teacher asks students four questions about a school play. Which question is a statistical question?</p></div></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q8" value="A"> A. Who was your favorite actor in the play?</label>
+    <label class="choice"><input type="radio" name="q8" value="B"> B. How many actors were in the play?</label>
+    <label class="choice"><input type="radio" name="q8" value="C"> C. At what time did the play begin?</label>
+    <label class="choice"><input type="radio" name="q8" value="D"> D. What was the title of the play?</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: A.</span></p><p>A statistical question expects answers that vary. Different students may have different favorite actors. The other choices ask for one fixed fact about the play.</p></div>
+</section>
 
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < quizData.length) {
-                loadQuestion();
-            } else {
-                // End of quiz
-                progressText.innerText = "All Done!";
-                questionText.innerHTML = "🎉 You've completed the MCAS Math Challenge! 🎉";
-                optionsContainer.innerHTML = "";
-                feedbackMessage.className = "feedback";
-                nextBtn.style.display = "none";
-                fireConfetti(true); // Big finale confetti
-            }
-        }
+<section class="card" data-q="9" data-type="radio" data-answer="B">
+  <div class="qtop"><div><span class="qnum">9</span></div><div style="flex:1"><h2>Word expression</h2>
+  <p class="prompt">Consider the expression \(15n-9\). Which word expression is equivalent?</p></div></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q9" value="A"> A. nine less than the sum of fifteen and \(n\)</label>
+    <label class="choice"><input type="radio" name="q9" value="B"> B. nine less than the product of fifteen and \(n\)</label>
+    <label class="choice"><input type="radio" name="q9" value="C"> C. nine less than the quotient of fifteen and \(n\)</label>
+    <label class="choice"><input type="radio" name="q9" value="D"> D. nine less than the difference of fifteen and \(n\)</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: B.</span></p><p>\(15n\) means the product of \(15\) and \(n\). Then subtracting \(9\) means “nine less than” that product.</p></div>
+</section>
 
-        // ==========================================
-        // HTML5 CANVAS CONFETTI ENGINE FOR KIDS
-        // ==========================================
-        const canvas = document.getElementById('confetti-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let animationTimer = null;
+<section class="card" data-q="10" data-type="radio" data-answer="C">
+  <div class="qtop"><div><span class="qnum">10</span></div><div style="flex:1"><h2>Surface area of a triangular prism</h2>
+  <p class="prompt">A net of a triangular prism is shown. What is the total surface area?</p></div></div>
+  <div class="canvas-wrap"><canvas id="triNet" width="840" height="360" aria-label="Triangular prism net"></canvas></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q10" value="A"> A. \(198\) square centimeters</label>
+    <label class="choice"><input type="radio" name="q10" value="B"> B. \(360\) square centimeters</label>
+    <label class="choice"><input type="radio" name="q10" value="C"> C. \(408\) square centimeters</label>
+    <label class="choice"><input type="radio" name="q10" value="D"> D. \(456\) square centimeters</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: C, \(408\) square centimeters.</span></p><p>The three rectangles have areas \(15\times10=150\), \(15\times8=120\), and \(15\times6=90\). Their total is \(360\). Each triangle has area \(\frac12\times8\times6=24\), so two triangles have area \(48\). Total surface area: \(360+48=408\) square centimeters.</p></div>
+</section>
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+<section class="card" data-q="11" data-type="radio" data-answer="C">
+  <div class="qtop"><div><span class="qnum">11</span></div><div style="flex:1"><h2>Coordinate Plane Distance</h2><p class="prompt">Point \(Q\) is shown on the coordinate plane. Which ordered pair represents a point that is exactly 4 units from point \(Q\)?</p></div></div>
+  <div class="canvas-wrap"><canvas id="q11canvas" width="430" height="430" aria-label="Coordinate plane with point Q at 2, 3"></canvas></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q11" value="A"> A. \((-2,-1)\)</label>
+    <label class="choice"><input type="radio" name="q11" value="B"> B. \((-2,7)\)</label>
+    <label class="choice"><input type="radio" name="q11" value="C"> C. \((2,7)\)</label>
+    <label class="choice"><input type="radio" name="q11" value="D"> D. \((6,7)\)</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: C, \((2,7)\).</span></p><p>Point \(Q\) is at \((2,3)\). The point \((2,7)\) has the same \(x\)-coordinate, so it is directly above \(Q\). The distance is \(7-3=4\) units.</p></div>
+</section>
 
-        function fireConfetti(isFinale = false) {
-            const particleCount = isFinale ? 300 : 100;
-            for (let i = 0; i < particleCount; i++) {
-                particles.push({
-                    x: canvas.width / 2,
-                    y: canvas.height / 2 + 100,
-                    r: Math.random() * 8 + 4, // size
-                    dx: Math.random() * 20 - 10, // horizontal speed
-                    dy: Math.random() * -20 - 5, // vertical speed (shooting up)
-                    color: `hsl(${Math.random() * 360}, 100%, 60%)`, // bright colors
-                    tilt: Math.random() * 10 - 10,
-                    tiltAngle: 0,
-                    tiltAngleInc: (Math.random() * 0.07) + 0.05
-                });
-            }
-            if (!animationTimer) {
-                animateConfetti();
-            }
-        }
+<section class="card" data-q="12" data-type="number" data-answer="37">
+  <div class="qtop"><div><span class="qnum">12</span></div><div style="flex:1"><h2>Histogram Total</h2><p class="prompt">The histogram shows how many books students read last year. What is the total number of students who were asked?</p></div></div>
+  <div class="canvas-wrap"><canvas id="q12canvas" width="520" height="410" aria-label="Histogram of books read last year"></canvas></div>
+  <p>Enter the total: <input type="number" name="q12" placeholder="answer"></p>
+  <div class="btnrow"><button onclick="checkNumber(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: 37 students.</span></p><p>Add the heights of all bars: \(10+12+5+8+2=37\).</p></div>
+</section>
 
-        function animateConfetti() {
-            requestAnimationFrame(animateConfetti);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            particles.forEach((p, index) => {
-                p.tiltAngle += p.tiltAngleInc;
-                p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
-                p.x += Math.sin(p.tiltAngle) * 2 + p.dx;
-                p.dy += 0.2; // Gravity
-                p.y += p.dy;
+<section class="card" data-q="13" data-type="multiText" data-answer="3/10|15|40|18">
+  <div class="qtop"><div><span class="qnum">13</span></div><div style="flex:1"><h2>Percents, Fractions, and States</h2><p class="prompt">Aaron visited 30% of the 50 states in the United States. Answer all four parts.</p></div></div>
+  <div class="grid2">
+    <p>A. What fraction of the states did Aaron visit?<br><input type="text" name="q13a" placeholder="ex: 3/10"></p>
+    <p>B. How many states did Aaron visit?<br><input type="number" name="q13b" placeholder="number"></p>
+    <p>C. After 5 more states, what percent will he have visited?<br><input type="number" name="q13c" placeholder="percent"></p>
+    <p>D. After Part C, how many additional states are needed to reach exactly 76%?<br><input type="number" name="q13d" placeholder="number"></p>
+  </div>
+  <div class="btnrow"><button onclick="checkQ13(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answers: A. \(\frac{3}{10}\), B. 15 states, C. 40%, D. 18 states.</span></p><p>Since \(30\%=\frac{30}{100}=\frac{3}{10}\), Aaron visited \(0.30\times50=15\) states. After 5 more, he will have visited \(15+5=20\) states. Since \(20\div50=0.40\), that is 40%. To reach 76%, he needs \(0.76\times50=38\) states total. From 20 states, he needs \(38-20=18\) more states.</p></div>
+</section>
 
-                // Draw the confetti piece
-                ctx.beginPath();
-                ctx.lineWidth = p.r;
-                ctx.strokeStyle = p.color;
-                ctx.moveTo(p.x + p.tilt + p.r, p.y);
-                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
-                ctx.stroke();
+<section class="card" data-q="14" data-type="radio" data-answer="C">
+  <div class="qtop"><div><span class="qnum">14</span></div><div style="flex:1"><h2>Dividing Fractions</h2><p class="prompt">Which expression is equivalent to \(\frac{3}{4}\div\frac{2}{3}\)?</p></div></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q14" value="A"> A. \(\frac{1}{2}\)</label>
+    <label class="choice"><input type="radio" name="q14" value="B"> B. \(\frac{8}{9}\)</label>
+    <label class="choice"><input type="radio" name="q14" value="C"> C. \(1\frac{1}{8}\)</label>
+    <label class="choice"><input type="radio" name="q14" value="D"> D. \(2\)</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: C, \(1\frac{1}{8}\).</span></p><p>Dividing by a fraction means multiplying by its reciprocal: \(\frac{3}{4}\div\frac{2}{3}=\frac{3}{4}\times\frac{3}{2}=\frac{9}{8}=1\frac{1}{8}\).</p></div>
+</section>
 
-                // Remove particles that fall off screen
-                if (p.y > canvas.height) {
-                    particles.splice(index, 1);
-                }
-            });
-        }
+<section class="card" data-q="15" data-type="number" data-answer="4">
+  <div class="qtop"><div><span class="qnum">15</span></div><div style="flex:1"><h2>Rectangle on a Coordinate Plane</h2><p class="prompt">Hakeem plotted points \(S\), \(T\), and \(U\). Point \(V\) will be plotted so rectangle \(STUV\) is formed. What is the length of side \(UV\)?</p></div></div>
+  <div class="canvas-wrap"><canvas id="q15canvas" width="620" height="560" aria-label="Coordinate plane with S, T, U, and dashed V"></canvas></div>
+  <p>Length of \(UV\): <input type="number" name="q15" placeholder="units"></p>
+  <div class="btnrow"><button onclick="checkNumber(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: 4 units.</span></p><p>The points are \(S(-2,-6)\), \(T(-2,-2)\), and \(U(6,-2)\). To make rectangle \(STUV\), point \(V\) must be at \((6,-6)\). Side \(UV\) goes from \((6,-2)\) down to \((6,-6)\), so the length is \(|-2-(-6)|=4\) units.</p></div>
+</section>
 
-        // Initialize the first question
-        window.onload = loadQuestion;
-    </script>
+<section class="card" data-q="16" data-type="radio" data-answer="B">
+  <div class="qtop"><div><span class="qnum">16</span></div><div style="flex:1"><h2>Mean, Median, Mode, and Range</h2><p class="prompt">Jared recorded these points: <span class="pill">2, 3, 4, 5, 7, 7, 9, 9, 9, 10</span>. Which statement is true?</p></div></div>
+  <div class="choices">
+    <label class="choice"><input type="radio" name="q16" value="A"> A. The mode is 7 and the mean is 8.</label>
+    <label class="choice"><input type="radio" name="q16" value="B"> B. The median is 7 and the range is 8.</label>
+    <label class="choice"><input type="radio" name="q16" value="C"> C. The mean is 7 and the median is 8.</label>
+    <label class="choice"><input type="radio" name="q16" value="D"> D. The range is 7 and the mode is 8.</label>
+  </div>
+  <div class="btnrow"><button onclick="checkRadio(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answer: B.</span></p><p>There are 10 numbers, so the median is the average of the 5th and 6th numbers: \((7+7)\div2=7\). The range is the greatest minus the least: \(10-2=8\). The mode is 9, and the mean is \(65\div10=6.5\).</p></div>
+</section>
+
+<section class="card" data-q="17" data-type="checkbox" data-answer="C,D">
+  <div class="qtop"><div><span class="qnum">17</span></div><div style="flex:1"><h2>Rectangular Prism Built from Cubes</h2><p class="prompt">The prism is built from cubes with edge length \(\frac{1}{3}\) inch. Select the <strong>two</strong> correct statements.</p></div></div>
+  <div class="canvas-wrap"><canvas id="q19canvas" width="560" height="380" aria-label="Rectangular prism made of unit cubes"></canvas></div>
+  <div class="choices">
+    <label class="choice"><input type="checkbox" name="q17" value="A"> A. The volume of each cube is \(\frac{1}{6}\) cubic inch.</label>
+    <label class="choice"><input type="checkbox" name="q17" value="B"> B. The length of the rectangular prism is \(\frac{1}{3}\) inch.</label>
+    <label class="choice"><input type="checkbox" name="q17" value="C"> C. The width of the rectangular prism is \(\frac{4}{3}\) inches.</label>
+    <label class="choice"><input type="checkbox" name="q17" value="D"> D. The height of the rectangular prism is 1 inch.</label>
+    <label class="choice"><input type="checkbox" name="q17" value="E"> E. The volume of the rectangular prism is \(\frac{20}{3}\) cubic inches.</label>
+  </div>
+  <div class="btnrow"><button onclick="checkCheckbox(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answers: C and D.</span></p><p>The prism is 5 cubes long, 4 cubes wide, and 3 cubes high. Each cube edge is \(\frac{1}{3}\) inch. So the width is \(4\times\frac{1}{3}=\frac{4}{3}\) inches, and the height is \(3\times\frac{1}{3}=1\) inch. Each small cube has volume \(\left(\frac{1}{3}\right)^3=\frac{1}{27}\), not \(\frac{1}{6}\). The whole prism volume is \(\frac{5}{3}\times\frac{4}{3}\times1=\frac{20}{9}\) cubic inches, not \(\frac{20}{3}\).</p></div>
+</section>
+
+<section class="card" data-q="18" data-type="checkbox" data-answer="B,D,E">
+  <div class="qtop"><div><span class="qnum">18</span></div><div style="flex:1"><h2>Statistical Questions</h2><p class="prompt">A student will ask a sample of classmates questions about a local movie theater. Which are statistical questions? Select the <strong>three</strong> statistical questions.</p></div></div>
+  <div class="choices">
+    <label class="choice"><input type="checkbox" name="q18" value="A"> A. What is the address of the theater?</label>
+    <label class="choice"><input type="checkbox" name="q18" value="B"> B. How many action movies did you watch last month?</label>
+    <label class="choice"><input type="checkbox" name="q18" value="C"> C. At what time did the first movie begin last Saturday?</label>
+    <label class="choice"><input type="checkbox" name="q18" value="D"> D. What is the total number of movies you saw at the theater last year?</label>
+    <label class="choice"><input type="checkbox" name="q18" value="E"> E. What kind of snack did you buy the last time you went to the theater?</label>
+  </div>
+  <div class="btnrow"><button onclick="checkCheckbox(this)">Check My Answer</button><button class="secondary" onclick="toggleExplain(this)">Review Explanation</button></div>
+  <div class="feedback"></div>
+  <div class="explanation"><p><span class="answer">Answers: B, D, and E.</span></p><p>A statistical question expects answers that vary from person to person. Classmates could give different answers for how many action movies they watched, how many movies they saw at the theater, and what snack they bought. The theater address and the start time of one specific movie are fixed facts, so they are not statistical questions.</p></div>
+</section>
+
+<section class="card success-card">
+  <h2>Share Your Success! 🎉</h2>
+  <p>Finished the quiz? Take a snapshot of your final score to show your teacher, and submit it using the link below.</p>
+  
+  <div class="btnrow" style="justify-content: center; margin-top: 20px;">
+    <button class="btn-green" onclick="takeBoardScreenshot()">📸 1. Save Scoreboard Image</button>
+    <a href="https://tinyurl.com/mathscreenshot" target="_blank" class="submit-link">📤 2. Submit Screenshot Here</a>
+  </div>
+</section>
+
+</main>
+<footer>Created as a self-checking review page using MathJax and HTML5 Canvas.</footer>
+
+<script>
+// --- Quiz & Score Logic ---
+const completed = new Set();
+const totalQuestions = 18;
+
+function updateProgress() {
+  const score = completed.size;
+  const pct = (score / totalQuestions) * 100;
+  
+  document.getElementById('pointer').style.left = pct + '%';
+  document.getElementById('scoreText').textContent = score;
+}
+
+function cardFrom(btn){ return btn.closest('.card'); }
+
+function mark(card, ok, msg) {
+  const fb = card.querySelector('.feedback');
+  fb.className = 'feedback ' + (ok ? 'good' : 'bad');
+  fb.textContent = msg;
+  if (ok) {
+    completed.add(card.dataset.q);
+    updateProgress();
+    const exp = card.querySelector('.explanation');
+    exp.style.display = 'block';
+    if(window.MathJax) MathJax.typesetPromise([exp]);
+  }
+}
+
+function checkRadio(btn){
+  const card = cardFrom(btn), name = 'q' + card.dataset.q;
+  const selected = card.querySelector('input[name="'+name+'"]:checked');
+  if(!selected) return mark(card, false, 'Choose an answer first.');
+  const isRight = selected.value === card.dataset.answer;
+  mark(card, isRight, isRight ? 'Correct! Awesome job.' : 'Not yet. Try again!');
+}
+
+function checkNumber(btn){
+  const card = cardFrom(btn), input = card.querySelector('input');
+  const val = (input.value || '').trim();
+  const isRight = val === card.dataset.answer;
+  mark(card, isRight, isRight ? 'Correct!' : 'Not quite. Check your calculation and try again.');
+}
+
+function checkCheckbox(btn){
+  const card = cardFrom(btn), name = 'q' + card.dataset.q;
+  const chosen = [...card.querySelectorAll('input[name="'+name+'"]:checked')].map(x=>x.value).sort().join(',');
+  const ans = card.dataset.answer.split(',').sort().join(',');
+  const isRight = chosen === ans;
+  mark(card, isRight, isRight ? 'Correct! Great work.' : 'Not yet. Check your selections carefully.');
+}
+
+function normText(s){ return (s||'').toLowerCase().replace(/\s/g,''); }
+function normFrac(s){ return normText(s).replace('⅗','3/5').replace('3⁄10','3/10'); }
+
+function checkQ6(btn){
+  const card = cardFrom(btn);
+  const a = normText(card.querySelector('[name=q6a]').value);
+  const b = normText(card.querySelector('[name=q6b]').value);
+  const c = normText(card.querySelector('[name=q6c]').value);
+  const d = normText(card.querySelector('[name=q6d]').value);
+  
+  const ok = a === '40' && 
+             (b === '5c' || b === 'c*5' || b === '5*c') && 
+             (c === '5c-2.50' || c === '5c-2.5' || c === '5*c-2.5') && 
+             d === '10';
+             
+  mark(card, ok, ok ? 'Correct! All four parts are right.' : 'Not yet. One or more parts need another look.');
+}
+
+function checkQ13(btn){
+  const card = cardFrom(btn);
+  const a = normFrac(card.querySelector('[name=q13a]').value);
+  const b = (card.querySelector('[name=q13b]').value||'').trim();
+  const c = (card.querySelector('[name=q13c]').value||'').trim().replace('%','');
+  const d = (card.querySelector('[name=q13d]').value||'').trim();
+  
+  const ok = (a === '3/10' || a === '0.3' || a === '30/100') && b === '15' && c === '40' && d === '18';
+  mark(card, ok, ok ? 'Correct! All four parts are right.' : 'Not yet. One or more parts need another look.');
+}
+
+function toggleExplain(btn){
+  const exp = cardFrom(btn).querySelector('.explanation');
+  exp.style.display = exp.style.display === 'block' ? 'none' : 'block';
+  if(window.MathJax) MathJax.typesetPromise([exp]);
+}
+
+// --- Screenshot Feature ---
+function takeBoardScreenshot() {
+  const board = document.getElementById('capture-board');
+  // Use html2canvas to capture the scoreboard div
+  html2canvas(board, { 
+    backgroundColor: '#1e293b', 
+    scale: 2 // Higher resolution
+  }).then(canvas => {
+    // Create an invisible link to trigger the download
+    const link = document.createElement('a');
+    link.download = 'Math-Scoreboard.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }).catch(err => {
+    alert("Oops! Something went wrong taking the screenshot. You can manually screenshot the top of the page!");
+    console.error(err);
+  });
+}
+
+// --- Canvas Drawing Functions ---
+function line(ctx, x1,y1,x2,y2){ ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+
+function arrow(ctx, x1,y1,x2,y2){
+  const a=Math.atan2(y2-y1,x2-x1), h=12;
+  line(ctx,x1,y1,x2,y2);
+  ctx.beginPath(); ctx.moveTo(x2,y2); 
+  ctx.lineTo(x2-h*Math.cos(a-Math.PI/6), y2-h*Math.sin(a-Math.PI/6)); 
+  ctx.lineTo(x2-h*Math.cos(a+Math.PI/6), y2-h*Math.sin(a+Math.PI/6)); 
+  ctx.closePath(); ctx.fill();
+}
+
+function drawNumberLine(){
+  const c=document.getElementById('numberLine'), ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height); ctx.lineWidth=3; ctx.strokeStyle='#111827'; ctx.fillStyle='#111827'; ctx.font='22px system-ui';
+  const x0=120, x3=640, y=78, unit=(x3-x0)/3;
+  arrow(ctx, x0-45,y,x3+45,y); arrow(ctx, x3+45,y,x0-45,y);
+  for(let i=0;i<=12;i++){
+    const x=x0+i*unit/4; const major=i%4===0;
+    line(ctx,x,y-(major?14:9),x,y+(major?14:9));
+    if(major){ ctx.fillText(String(i/4), x-7, y+42); }
+  }
+  const kx=x0+7*(unit/4); ctx.beginPath(); ctx.arc(kx,y,11,0,Math.PI*2); ctx.fill(); ctx.font='bold 26px system-ui'; ctx.fillText('K', kx-10, y-28);
+  ctx.font='18px system-ui'; ctx.fillText('Each whole number is split into fourths.', 125, 138);
+}
+
+function prismBlock(ctx,x,y,w,h,d,label, dims){
+  ctx.lineWidth=3; ctx.strokeStyle='#111827'; ctx.fillStyle='white';
+  ctx.beginPath(); ctx.rect(x,y,w,h); ctx.stroke();
+  line(ctx,x+w,y,x+w+d,y-d); line(ctx,x+w,y+h,x+w+d,y+h-d); line(ctx,x,y,x+d,y-d); 
+  line(ctx,x+d,y-d,x+w+d,y-d); line(ctx,x+w+d,y-d,x+w+d,y+h-d); line(ctx,x+w,y+h,x+w+d,y+h-d);
+  ctx.setLineDash([4,4]); line(ctx,x,y+h,x+d,y+h-d); line(ctx,x+d,y-d,x+d,y+h-d); line(ctx,x+d,y+h-d,x+w+d,y+h-d); ctx.setLineDash([]);
+  ctx.fillStyle='#111827'; ctx.font='bold 22px system-ui'; ctx.fillText(label,x-35,y+20);
+  ctx.font='18px system-ui'; ctx.fillText(dims,x,y+h+d+16);
+}
+
+function drawPrisms(){
+  const c=document.getElementById('prisms'), ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height); ctx.lineWidth=2; ctx.fillStyle='#111827';
+  ctx.font='bold 22px system-ui'; ctx.fillText('Original block: 4 in × 12 in × 2 in',30,30);
+  prismBlock(ctx,95,120,105,55,55,'A','3 × 8 × 2');
+  prismBlock(ctx,345,120,72,55,92,'B','2 × 12 × 2');
+  prismBlock(ctx,95,285,130,55,48,'C','4 × 6 × 2');
+  prismBlock(ctx,380,300,72,35,48,'D','2 × 6 × 1');
+}
+
+function drawTriNet(){
+  const c=document.getElementById('triNet'), ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
+  ctx.lineWidth=3; ctx.strokeStyle='#111827'; ctx.fillStyle='#fff'; ctx.font='18px system-ui';
+  const x=310, y=55, W=220, H1=90, H2=72, H3=54;
+  ctx.strokeRect(x,y,W,H1); ctx.strokeRect(x,y+H1,W,H2); ctx.strokeRect(x,y+H1+H2,W,H3);
+  ctx.beginPath(); ctx.moveTo(x,y+H1); ctx.lineTo(x-92,y+H1+H2); ctx.lineTo(x,y+H1+H2); ctx.closePath(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+W,y+H1); ctx.lineTo(x+W+92,y+H1+H2); ctx.lineTo(x+W,y+H1+H2); ctx.closePath(); ctx.stroke();
+  ctx.setLineDash([6,4]); line(ctx,x,y+H1,x+W,y+H1); line(ctx,x,y+H1+H2,x+W,y+H1+H2); ctx.setLineDash([]);
+  ctx.fillStyle='#111827';
+  ctx.fillText('15 cm', x+82, y-14);
+  ctx.fillText('10 cm', x+W+18, y+50);
+  ctx.fillText('8 cm', x+20, y+H1+44);
+  ctx.fillText('6 cm', x+W+96, y+H1+H2+5);
+  ctx.fillText('6 cm', x-55, y+H1+H2+32);
+}
+
+function drawCoordinate(canvasId, cfg){
+  const c=document.getElementById(canvasId), ctx=c.getContext('2d');
+  const pad=50, w=c.width, h=c.height;
+  const xMin=cfg.xMin,xMax=cfg.xMax,yMin=cfg.yMin,yMax=cfg.yMax;
+  const sx=(w-2*pad)/(xMax-xMin), sy=(h-2*pad)/(yMax-yMin);
+  const X=x=>pad+(x-xMin)*sx, Y=y=>h-pad-(y-yMin)*sy;
+  ctx.clearRect(0,0,w,h); ctx.lineWidth=1; ctx.strokeStyle='#cbd5e1';
+  for(let x=Math.ceil(xMin);x<=xMax;x++){ctx.beginPath();ctx.moveTo(X(x),Y(yMin));ctx.lineTo(X(x),Y(yMax));ctx.stroke();}
+  for(let y=Math.ceil(yMin);y<=yMax;y++){ctx.beginPath();ctx.moveTo(X(xMin),Y(y));ctx.lineTo(X(xMax),Y(y));ctx.stroke();}
+  ctx.strokeStyle='#111827'; ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(X(xMin),Y(0));ctx.lineTo(X(xMax),Y(0));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(X(0),Y(yMin));ctx.lineTo(X(0),Y(yMax));ctx.stroke();
+  function arr(x1,y1,x2,y2){const a=Math.atan2(y2-y1,x2-x1),len=10;ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-len*Math.cos(a-.5),y2-len*Math.sin(a-.5));ctx.lineTo(x2-len*Math.cos(a+.5),y2-len*Math.sin(a+.5));ctx.closePath();ctx.fillStyle='#111827';ctx.fill();}
+  arr(X(xMax)-20,Y(0),X(xMax),Y(0));arr(X(xMin)+20,Y(0),X(xMin),Y(0));arr(X(0),Y(yMax)+20,X(0),Y(yMax));arr(X(0),Y(yMin)-20,X(0),Y(yMin));
+  ctx.fillStyle='#111827';ctx.font='16px Arial';
+  for(let x=Math.ceil(xMin);x<=xMax;x++){if(x!==0){ctx.fillText(x,X(x)-5,Y(0)+20)}}
+  for(let y=Math.ceil(yMin);y<=yMax;y++){if(y!==0){ctx.fillText(y,X(0)-25,Y(y)+5)}}
+  ctx.fillText('0',X(0)-18,Y(0)+20);ctx.font='italic 18px Arial';ctx.fillText('x',X(xMax)+10,Y(0)+5);ctx.fillText('y',X(0)-6,Y(yMax)-10);
+  if(cfg.lines){ctx.save();ctx.setLineDash([8,6]);ctx.strokeStyle='#64748b';ctx.lineWidth=3;cfg.lines.forEach(l=>{ctx.beginPath();ctx.moveTo(X(l[0]),Y(l[1]));ctx.lineTo(X(l[2]),Y(l[3]));ctx.stroke();});ctx.restore();}
+  cfg.points.forEach(p=>{ctx.fillStyle=p.color||'#111827';ctx.beginPath();ctx.arc(X(p.x),Y(p.y),7,0,Math.PI*2);ctx.fill();ctx.font='bold italic 22px Arial';ctx.fillText(p.label,X(p.x)+8,Y(p.y)-8);});
+}
+
+function drawHistogram(){
+  const c=document.getElementById('q12canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);const L=80,B=330,T=40,R=35,W=c.width-L-R,H=B-T;
+  const labels=['0–4','5–9','10–14','15–19','20–24'], vals=[10,12,5,8,2], max=14, bw=W/labels.length;
+  ctx.strokeStyle='#111827';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,B);ctx.lineTo(L+W,B);ctx.stroke();
+  ctx.lineWidth=1;ctx.strokeStyle='#cbd5e1';ctx.font='16px Arial';ctx.fillStyle='#111827';ctx.textAlign='right';
+  for(let y=0;y<=max;y+=2){const yy=B-y/max*H;ctx.beginPath();ctx.moveTo(L,yy);ctx.lineTo(L+W,yy);ctx.stroke();ctx.fillText(y,L-12,yy+5)}
+  ctx.textAlign='center';ctx.font='bold 22px Arial';ctx.fillText('Books Read Last Year',L+W/2,24);
+  ctx.font='15px Arial';
+  vals.forEach((v,i)=>{const x=L+i*bw+8, y=B-v/max*H;ctx.fillStyle=['#d1d5db','#9ca3af','#c5c9cc','#8b8f94','#64676c'][i];ctx.fillRect(x,y,bw-16,B-y);ctx.strokeStyle='#111827';ctx.lineWidth=2;ctx.strokeRect(x,y,bw-16,B-y);ctx.save();ctx.translate(L+i*bw+bw/2,B+42);ctx.rotate(-Math.PI/4);ctx.fillStyle='#111827';ctx.fillText(labels[i],0,0);ctx.restore();});
+  ctx.save();ctx.translate(22,T+H/2);ctx.rotate(-Math.PI/2);ctx.font='18px Arial';ctx.fillText('Number of Students',0,0);ctx.restore();ctx.font='18px Arial';ctx.fillText('Number of Books',L+W/2,395);
+}
+
+function drawUnitPrism(){
+  const c=document.getElementById('q19canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
+  const x0=120,y0=150, cw=42,ch=42, cols=5, rows=3, depth=4, dx=22,dy=-18;
+  ctx.strokeStyle='#111827';ctx.lineWidth=2;ctx.fillStyle='#f8fafc';ctx.fillRect(x0,y0,cols*cw,rows*ch);
+  for(let i=0;i<=cols;i++){ctx.beginPath();ctx.moveTo(x0+i*cw,y0);ctx.lineTo(x0+i*cw,y0+rows*ch);ctx.stroke();}
+  for(let j=0;j<=rows;j++){ctx.beginPath();ctx.moveTo(x0,y0+j*ch);ctx.lineTo(x0+cols*cw,y0+j*ch);ctx.stroke();}
+  for(let d=0;d<=depth;d++){ctx.beginPath();ctx.moveTo(x0+d*dx,y0+d*dy);ctx.lineTo(x0+cols*cw+d*dx,y0+d*dy);ctx.stroke();}
+  for(let i=0;i<=cols;i++){ctx.beginPath();ctx.moveTo(x0+i*cw,y0);ctx.lineTo(x0+i*cw+depth*dx,y0+depth*dy);ctx.stroke();}
+  const xr=x0+cols*cw;
+  for(let d=0;d<=depth;d++){ctx.beginPath();ctx.moveTo(xr+d*dx,y0+d*dy);ctx.lineTo(xr+d*dx,y0+rows*ch+d*dy);ctx.stroke();}
+  for(let j=0;j<=rows;j++){ctx.beginPath();ctx.moveTo(xr,y0+j*ch);ctx.lineTo(xr+depth*dx,y0+j*ch+depth*dy);ctx.stroke();}
+}
+
+window.addEventListener('load', () => {
+  drawNumberLine();
+  drawPrisms();
+  drawTriNet();
+  drawCoordinate('q11canvas',{xMin:-6,xMax:6,yMin:-6,yMax:6,points:[{x:2,y:3,label:'Q'}]});
+  drawHistogram();
+  drawCoordinate('q15canvas',{xMin:-10,xMax:10,yMin:-10,yMax:10,points:[{x:-2,y:-6,label:'S'},{x:-2,y:-2,label:'T'},{x:6,y:-2,label:'U'},{x:6,y:-6,label:'V',color:'#2563eb'}],lines:[[-2,-6,-2,-2],[-2,-2,6,-2],[6,-2,6,-6],[6,-6,-2,-6]]});
+  drawUnitPrism(); 
+  updateProgress();
+});
+</script>
 </body>
 </html>
