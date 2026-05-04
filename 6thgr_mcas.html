@@ -172,46 +172,149 @@
 
     <script>
         // Questions extracted from the MCAS 2025 Grade 6 Math Release
-        const quizData = [
-            {
-                question: "What is the greatest common factor of 48 and 60?",
-                options: ["2", "6", "12", "24"],
-                correctAnswerIndex: 2,
-                successMsg: "Fantastic! 12 is the largest number that divides evenly into both 48 and 60.",
-                failMsg: "Oops! Try again. Hint: Think of the biggest number you can divide both 48 and 60 by without a remainder."
-            },
-            {
-                question: "Which of the following expressions has a value of 243?",
-                options: ["\\( 3^3 \\)", "\\( 3^4 \\)", "\\( 3^5 \\)", "\\( 3^6 \\)"],
-                correctAnswerIndex: 2,
-                successMsg: "Awesome job! \\( 3 \\times 3 \\times 3 \\times 3 \\times 3 = 243 \\).",
-                failMsg: "Not quite! Try multiplying 3 by itself and see how many times it takes to reach 243."
-            },
-            {
-                question: "Consider this expression:<br><br> \\( 15n - 9 \\) <br><br> Which of the following word expressions is exactly the same as the math expression?",
-                options: [
-                    "nine less than the sum of fifteen and \\( n \\)",
-                    "nine less than the product of fifteen and \\( n \\)",
-                    "nine less than the quotient of fifteen and \\( n \\)",
-                    "nine less than the difference of fifteen and \\( n \\)"
-                ],
-                correctAnswerIndex: 1,
-                successMsg: "You got it! 'Product' means multiply (15 times n), and 'nine less' means you subtract 9.",
-                failMsg: "That's not it. Hint: When a number is right next to a letter like \\( 15n \\), it means they are being multiplied!"
-            },
-            {
-                question: "A teacher asks the students in her class four questions about the school play they attended. Which of the teacher's questions is a <b>statistical question</b>?",
-                options: [
-                    "Who was your favorite actor in the play?",
-                    "How many actors were in the play?",
-                    "At what time did the play begin?",
-                    "What was the title of the play?"
-                ],
-                correctAnswerIndex: 0,
-                successMsg: "Super smart! A statistical question has answers that can vary from person to person.",
-                failMsg: "Try again! Remember, a statistical question means you expect to get lots of different answers from different people."
-            }
-        ];
+        
+const quizData = [
+    {
+        "question": "What is the greatest common factor of 48 and 60?",
+        "options": ["2", "6", "12", "24"],
+        "correctAnswerIndex": 2,
+        "successMsg": "Fantastic! 12 is the largest number that divides evenly into both 48 and 60.",
+        "failMsg": "Oops! Try again. Hint: Think of the biggest number you can divide both 48 and 60 by without a remainder."
+    },
+    {
+        "question": "Which of the following expressions has a value of 243?",
+        "options": ["\\( 3^3 \\)", "\\( 3^4 \\)", "\\( 3^5 \\)", "\\( 3^6 \\)"],
+        "correctAnswerIndex": 2,
+        "successMsg": "Awesome job! \\( 3 \\times 3 \\times 3 \\times 3 \\times 3 = 243 \\).",
+        "failMsg": "Not quite! Try multiplying 3 by itself and see how many times it takes to reach 243."
+    },
+    {
+        "question": "A student has 8 marbles. 3 of the marbles are green. All the other marbles are yellow. What is the ratio of green marbles to yellow marbles?",
+        "options": ["8:3", "3:5", "3:8", "5:8"],
+        "correctAnswerIndex": 1,
+        "successMsg": "Correct! If 3 are green out of 8 total, then 5 must be yellow. So the ratio of green to yellow is 3:5.",
+        "failMsg": "Try again! First, figure out exactly how many yellow marbles there are."
+    },
+    {
+        "question": "What is the value of a point if it is located exactly halfway between 1 and 2 on a number line?",
+        "options": ["\\( \\frac{1}{2} \\)", "\\( 1 \\frac{1}{2} \\)", "\\( 2 \\frac{1}{2} \\)", "\\( \\frac{3}{4} \\)"],
+        "correctAnswerIndex": 1,
+        "successMsg": "Great job! Halfway between 1 and 2 is 1.5, or 1 and 1/2.",
+        "failMsg": "Not quite! Think about what number falls directly in the middle of 1 and 2."
+    },
+    {
+        "question": "Which of the following division equations is true?",
+        "options": ["87 &divide; 3 = 27", "96 &divide; 4 = 23", "600 &divide; 5 = 12", "924 &divide; 6 = 154"],
+        "correctAnswerIndex": 3,
+        "successMsg": "Spot on! 924 divided by 6 is exactly 154.",
+        "failMsg": "Double-check your division math. Try multiplying the answer by the divisor to see if you get the first number!"
+    },
+    {
+        "question": "A bakery sells boxes of cupcakes for $5.00 each. A teacher uses a coupon for $2.50 off her total order. If her total cost after the coupon is $47.50, how many boxes did she buy?",
+        "options": ["8 boxes", "9 boxes", "10 boxes", "11 boxes"],
+        "correctAnswerIndex": 2,
+        "successMsg": "You got it! Her total before the coupon was $50.00. Since $50 &divide; $5 = 10, she bought 10 boxes.",
+        "failMsg": "Almost! Try adding the $2.50 coupon back to the $47.50 first, then divide by the cost of one box."
+    },
+    {
+        "question": "A carpenter has a block of wood with a volume of 96 cubic inches and a mass of 4 kilograms. He cuts it to make a new shape with a mass of 2 kilograms. Assuming the wood is the same throughout, what is the volume of the new shape?",
+        "options": ["24 cubic inches", "36 cubic inches", "48 cubic inches", "96 cubic inches"],
+        "correctAnswerIndex": 2,
+        "successMsg": "Perfect! Because 2 kilograms is half of 4 kilograms, the volume is also halved (96 &divide; 2 = 48).",
+        "failMsg": "Try again! If the mass is cut exactly in half, what should happen to the volume?"
+    },
+    {
+        "question": "A teacher asks the students in her class four questions about the school play they attended. Which of the teacher's questions is a <b>statistical question</b>?",
+        "options": ["Who was your favorite actor in the play?", "How many actors were in the play?", "At what time did the play begin?", "What was the title of the play?"],
+        "correctAnswerIndex": 0,
+        "successMsg": "Super smart! A statistical question has answers that can vary from person to person.",
+        "failMsg": "Try again! Remember, a statistical question means you expect to get lots of different answers from different people."
+    },
+    {
+        "question": "Consider this expression:<br><br> \\( 15n - 9 \\) <br><br> Which of the following word expressions is equivalent to the expression?",
+        "options": ["nine less than the sum of fifteen and \\( n \\)", "nine less than the product of fifteen and \\( n \\)", "nine less than the quotient of fifteen and \\( n \\)", "nine less than the difference of fifteen and \\( n \\)"],
+        "correctAnswerIndex": 1,
+        "successMsg": "You got it! 'Product' means multiply (15 times n), and 'nine less' means you subtract 9.",
+        "failMsg": "That's not it. Hint: When a number is right next to a letter like \\( 15n \\), it means they are being multiplied!"
+    },
+    {
+        "question": "A triangular prism is made of two triangular bases (each with an area of 24 sq cm) and three rectangular faces (with areas of 60, 80, and 100 sq cm). What is the total surface area of the prism?",
+        "options": ["264 square centimeters", "288 square centimeters", "300 square centimeters", "312 square centimeters"],
+        "correctAnswerIndex": 1,
+        "successMsg": "Excellent! 24 + 24 + 60 + 80 + 100 = 288.",
+        "failMsg": "Not quite! Make sure to add up the areas of ALL the faces, including BOTH triangular bases."
+    },
+    {
+        "question": "Point Q is located at (2, 7) on a coordinate plane. Which of the following ordered pairs represents a point that is a distance of exactly 4 units from point Q?",
+        "options": ["(-2, -1)", "(-2, 7)", "(2, 11)", "(6, 11)"],
+        "correctAnswerIndex": 2,
+        "successMsg": "Great job! Moving 4 units up from (2, 7) on the y-axis lands you exactly at (2, 11).",
+        "failMsg": "Try again! Think about adding or subtracting 4 from the x-coordinate or the y-coordinate."
+    },
+    {
+        "question": "A survey asked students how many books they read last year. 5 students read 0-4 books, 8 students read 5-9 books, and 4 students read 10-14 books. What is the total number of students surveyed?",
+        "options": ["12 students", "15 students", "17 students", "20 students"],
+        "correctAnswerIndex": 2,
+        "successMsg": "Correct! 5 + 8 + 4 = 17 total students.",
+        "failMsg": "Oops! Try adding all the groups of students together."
+    },
+    {
+        "question": "A grocery store sells 4 apples for $2.40. What is the unit rate per apple?",
+        "options": ["$0.40", "$0.50", "$0.60", "$0.80"],
+        "correctAnswerIndex": 2,
+        "successMsg": "Right on the money! $2.40 divided by 4 equals $0.60 per apple.",
+        "failMsg": "Not quite. Try dividing the total cost by the number of apples to find the cost of just one."
+    },
+    {
+        "question": "Solve the following division of fractions:<br><br> \\( \\frac{3}{4} \\div \\frac{1}{8} \\)",
+        "options": ["4", "6", "8", "12"],
+        "correctAnswerIndex": 1,
+        "successMsg": "Amazing! Keep-Change-Flip: \\( \\frac{3}{4} \\times \\frac{8}{1} = \\frac{24}{4} = 6 \\).",
+        "failMsg": "Try again! Remember the rule for dividing fractions: Keep the first, change to multiply, and flip the second!"
+    },
+    {
+        "question": "What is the distance between the points (3, -2) and (3, 5) on a coordinate plane?",
+        "options": ["3 units", "5 units", "7 units", "10 units"],
+        "correctAnswerIndex": 2,
+        "successMsg": "Awesome! The distance from -2 to 0 is 2, and from 0 to 5 is 5. 2 + 5 = 7 units.",
+        "failMsg": "Try again! Since the x-coordinates are the same, just count the spaces between -2 and 5 on the y-axis."
+    },
+    {
+        "question": "Which of the following rational numbers is between -4 and 0?",
+        "options": ["-5", "-2.5", "1", "4"],
+        "correctAnswerIndex": 1,
+        "successMsg": "Nailed it! -2.5 is greater than -4 but less than 0.",
+        "failMsg": "Oops! Think about a number line. You need a negative number that is closer to zero than -4."
+    },
+    {
+        "question": "A car travels at a constant speed of 60 miles per hour. Which equation represents the relationship between the distance (d) in miles and the time (t) in hours?",
+        "options": ["\\( d = 60 + t \\)", "\\( d = 60 \\div t \\)", "\\( d = 60t \\)", "\\( t = 60d \\)"],
+        "correctAnswerIndex": 2,
+        "successMsg": "Perfect! Distance equals rate times time (d = 60 x t).",
+        "failMsg": "Not quite. Think about how you find total distance: you multiply your speed by how long you travel."
+    },
+    {
+        "question": "The test scores of 5 students are 80, 85, 90, 95, and 100. What is the <b>median</b> score?",
+        "options": ["85", "90", "95", "100"],
+        "correctAnswerIndex": 1,
+        "successMsg": "Spot on! The median is the number exactly in the middle of a sorted list, which is 90.",
+        "failMsg": "Try again! The median is the middle value when all the numbers are lined up in order."
+    },
+    {
+        "question": "A rectangular prism has edge lengths of \\( \\frac{1}{2} \\) in, \\( 2 \\) in, and \\( 3 \\) in. What is the volume of the prism?",
+        "options": ["3 cubic inches", "5.5 cubic inches", "6 cubic inches", "12 cubic inches"],
+        "correctAnswerIndex": 0,
+        "successMsg": "Incredible! Volume = length &times; width &times; height. \\( \\frac{1}{2} \\times 2 = 1 \\), and \\( 1 \\times 3 = 3 \\).",
+        "failMsg": "Try again! To find the volume, you need to multiply all three numbers together."
+    },
+    {
+        "question": "Which of the following is <b>NOT</b> a statistical question?",
+        "options": ["How tall are the students in 6th grade?", "How many days are in January?", "How many pets do your classmates own?", "What are the favorite colors of students in your school?"],
+        "correctAnswerIndex": 1,
+        "successMsg": "Great logic! Everyone knows January has exactly 31 days, so there's no variety in the answers.",
+        "failMsg": "Not quite! Remember, a question that is NOT statistical has only one correct, factual answer with no variation."
+    }
+];
 
         let currentQuestionIndex = 0;
 
