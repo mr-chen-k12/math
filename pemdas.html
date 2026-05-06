@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PEMDAS Power-Up Quiz</title>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['$', '$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root {
+      --bg1: #f6fbff;
+      --bg2: #fff7d6;
+      --card: #ffffff;
+      --ink: #24324b;
+      --muted: #64748b;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --yellow: #f59e0b;
+      --red: #dc2626;
+      --purple: #7c3aed;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 28rem),
+        radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.20), transparent 28rem),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    canvas#fireworks {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .page {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      margin: 8px 0 8px;
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      line-height: 1;
+      color: #172554;
+    }
+
+    .hero p {
+      margin: 0 auto;
+      max-width: 720px;
+      font-size: 1.05rem;
+      color: var(--muted);
+    }
+
+    .top-card {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+      border-radius: 22px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 9px 13px;
+      border-radius: 999px;
+      font-weight: 800;
+      border: 1px solid #bfdbfe;
+    }
+
+    .progress-wrap {
+      position: relative;
+      padding-top: 20px;
+    }
+
+    .labels {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 900;
+      font-size: 0.95rem;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .bar {
+      height: 22px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 2px solid #cbd5e1;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #60a5fa, #22c55e, #f59e0b, #ef4444);
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    .arrow {
+      position: absolute;
+      left: 0%;
+      top: -4px;
+      transform: translateX(-50%);
+      transition: left 0.5s ease;
+      font-size: 1.8rem;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+    }
+
+    .quiz-card {
+      background: var(--card);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      padding: clamp(18px, 4vw, 34px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .quiz-card::before {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      background: rgba(124, 58, 237, 0.12);
+      border-radius: 50%;
+      right: -60px;
+      top: -80px;
+    }
+
+    .question-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 900;
+    }
+
+    .pemdas-helper {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin: 16px 0 22px;
+    }
+
+    .step {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 10px 8px;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .step small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .question {
+      font-size: clamp(1.35rem, 3vw, 2.1rem);
+      font-weight: 900;
+      margin: 16px 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    button.answer {
+      border: 2px solid #dbeafe;
+      background: #f8fbff;
+      color: var(--ink);
+      padding: 16px;
+      border-radius: 20px;
+      font-size: 1.1rem;
+      font-weight: 850;
+      cursor: pointer;
+      min-height: 68px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    button.answer:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.15);
+      background: #eff6ff;
+    }
+
+    button.answer:disabled {
+      cursor: not-allowed;
+      opacity: 0.9;
+    }
+
+    button.correct {
+      background: #dcfce7;
+      border-color: #22c55e;
+      color: #14532d;
+    }
+
+    button.wrong {
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #7f1d1d;
+    }
+
+    .feedback {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      display: none;
+      position: relative;
+      z-index: 1;
+      line-height: 1.55;
+    }
+
+    .feedback.show {
+      display: block;
+      animation: pop 0.25s ease;
+    }
+
+    .feedback.good {
+      border-color: #22c55e;
+      background: #f0fdf4;
+    }
+
+    .feedback.bad {
+      border-color: #f87171;
+      background: #fff1f2;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.97); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .main-btn {
+      border: 0;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: white;
+      font-weight: 900;
+      padding: 13px 18px;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 12px 20px rgba(37, 99, 235, 0.22);
+      font-size: 1rem;
+    }
+
+    .main-btn:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    .main-btn:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .tip {
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .finish {
+      display: none;
+      text-align: center;
+      padding: 24px;
+      background: white;
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+    }
+
+    .success-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .share-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      background: #fef3c7;
+      color: #92400e;
+      border: 2px solid #fde68a;
+      font-weight: 900;
+      padding: 13px 18px;
+      border-radius: 16px;
+    }
+
+    .share-link:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+
+    .success-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .finish h2 {
+      font-size: clamp(2rem, 5vw, 4rem);
+      margin: 0 0 10px;
+      color: #172554;
+    }
+
+    .finish p {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .mini-rule {
+      margin-top: 18px;
+      background: #eff6ff;
+      border: 2px dashed #93c5fd;
+      border-radius: 20px;
+      padding: 14px;
+      color: #1e3a8a;
+      font-weight: 750;
+    }
+
+    @media (max-width: 720px) {
+      .answers {
+        grid-template-columns: 1fr;
+      }
+
+      .pemdas-helper {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <canvas id="fireworks"></canvas>
+
+  <main class="page">
+    <section class="hero">
+      <h1>🔥 PEMDAS Power-Up Quiz</h1>
+      <p>Solve one problem at a time. Remember: Parentheses, Exponents, Multiplication/Division, Addition/Subtraction.</p>
+    </section>
+
+    <section class="top-card" aria-label="Scoreboard">
+      <div class="score-row">
+        <div class="pill">⭐ Score: <span id="score">0</span> / <span id="total">15</span></div>
+        <div class="pill">📘 Question: <span id="qNumber">1</span> / 15</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="arrow" id="arrow">⬇️</div>
+        <div class="labels">
+          <span>Trying</span>
+          <span>Good Work</span>
+          <span>Lit 🔥</span>
+        </div>
+        <div class="bar">
+          <div class="fill" id="fill"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quiz-card" id="quizCard">
+      <div class="question-top">
+        <span class="badge" id="skillBadge">Order of Operations</span>
+        <span class="tip">Choose the best answer.</span>
+      </div>
+
+      <div class="pemdas-helper" aria-label="PEMDAS reminder">
+        <div class="step">P<small>Parentheses</small></div>
+        <div class="step">E<small>Exponents</small></div>
+        <div class="step">M<small>Multiply</small></div>
+        <div class="step">D<small>Divide</small></div>
+        <div class="step">A<small>Add</small></div>
+        <div class="step">S<small>Subtract</small></div>
+      </div>
+
+      <div class="question" id="questionText"></div>
+      <div class="answers" id="answers"></div>
+      <div class="feedback" id="feedback"></div>
+
+      <div class="controls">
+        <span class="tip" id="teacherTip">PEMDAS is your math superpower.</span>
+        <button class="main-btn" id="nextBtn" disabled>Next Question ➜</button>
+      </div>
+    </section>
+
+    <section class="finish" id="finish">
+      <h2>Quiz Complete! 🎉</h2>
+      <p id="finalMessage"></p>
+      <div class="success-actions">
+        <button class="main-btn" id="screenshotBtn">📸 Download Screenshot of Success</button>
+        <a class="share-link" href="https://tinyurl.com/mathscreenshot" target="_blank" rel="noopener noreferrer">🔗 Share on Google Form</a>
+        <button class="main-btn" onclick="restartQuiz()">Play Again</button>
+      </div>
+      <p class="success-note">Step 1: Download your screenshot. Step 2: Open the Google Form and upload/share it there.</p>
+      <div class="mini-rule">
+        Quick rule: Multiplication and division go left to right. Addition and subtraction also go left to right.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        skill: "Basic PEMDAS",
+        q: "What is \\( 3 + 4 \\times 2 \\)?",
+        options: ["14", "11", "10", "9"],
+        answer: "11",
+        explanation: "Multiply first: \\(4 \\times 2 = 8\\). Then add: \\(3 + 8 = 11\\)."
+      },
+      {
+        skill: "Parentheses First",
+        q: "What is \\( (3 + 4) \\times 2 \\)?",
+        options: ["11", "14", "9", "24"],
+        answer: "14",
+        explanation: "Parentheses first: \\(3 + 4 = 7\\). Then multiply: \\(7 \\times 2 = 14\\)."
+      },
+      {
+        skill: "Exponents",
+        q: "What is \\( 5 + 2^3 \\)?",
+        options: ["13", "17", "25", "10"],
+        answer: "13",
+        explanation: "Exponents first: \\(2^3 = 8\\). Then add: \\(5 + 8 = 13\\)."
+      },
+      {
+        skill: "Left to Right",
+        q: "What is \\( 18 \\div 3 \\times 2 \\)?",
+        options: ["3", "12", "9", "36"],
+        answer: "12",
+        explanation: "Division and multiplication have the same priority, so go left to right: \\(18 \\div 3 = 6\\), then \\(6 \\times 2 = 12\\)."
+      },
+      {
+        skill: "Left to Right",
+        q: "What is \\( 20 - 6 + 2 \\)?",
+        options: ["12", "16", "10", "18"],
+        answer: "16",
+        explanation: "Addition and subtraction have the same priority, so go left to right: \\(20 - 6 = 14\\), then \\(14 + 2 = 16\\)."
+      },
+      {
+        skill: "Parentheses and Multiply",
+        q: "What is \\( 6 \\times (8 - 5) \\)?",
+        options: ["18", "43", "30", "48"],
+        answer: "18",
+        explanation: "Parentheses first: \\(8 - 5 = 3\\). Then multiply: \\(6 \\times 3 = 18\\)."
+      },
+      {
+        skill: "Exponents and Multiply",
+        q: "What is \\( 4^2 - 3 \\times 2 \\)?",
+        options: ["26", "10", "8", "20"],
+        answer: "10",
+        explanation: "Exponent first: \\(4^2 = 16\\). Then multiply: \\(3 \\times 2 = 6\\). Finally subtract: \\(16 - 6 = 10\\)."
+      },
+      {
+        skill: "Parentheses and Exponents",
+        q: "What is \\( (2 + 3)^2 \\)?",
+        options: ["13", "25", "10", "16"],
+        answer: "25",
+        explanation: "Parentheses first: \\(2 + 3 = 5\\). Then exponent: \\(5^2 = 25\\)."
+      },
+      {
+        skill: "Several Steps",
+        q: "What is \\( 7 + 12 \\div 4 \\times 3 \\)?",
+        options: ["16", "10", "12", "28"],
+        answer: "16",
+        explanation: "Divide and multiply left to right: \\(12 \\div 4 = 3\\), then \\(3 \\times 3 = 9\\). Finally add: \\(7 + 9 = 16\\)."
+      },
+      {
+        skill: "Nested Thinking",
+        q: "What is \\( 2[3 + (4 \\times 5)] \\)?",
+        options: ["46", "70", "26", "40"],
+        answer: "46",
+        explanation: "Inside first: \\(4 \\times 5 = 20\\). Then \\(3 + 20 = 23\\). Finally \\(2 \\times 23 = 46\\)."
+      },
+      {
+        skill: "Subtract Carefully",
+        q: "What is \\( 30 - 2^3 \\times 3 \\)?",
+        options: ["66", "6", "22", "48"],
+        answer: "6",
+        explanation: "Exponent first: \\(2^3 = 8\\). Then multiply: \\(8 \\times 3 = 24\\). Finally subtract: \\(30 - 24 = 6\\)."
+      },
+      {
+        skill: "Division First",
+        q: "What is \\( 9 + 24 \\div (3 + 5) \\)?",
+        options: ["12", "33", "6", "15"],
+        answer: "12",
+        explanation: "Parentheses first: \\(3 + 5 = 8\\). Then divide: \\(24 \\div 8 = 3\\). Finally add: \\(9 + 3 = 12\\)."
+      },
+      {
+        skill: "Left to Right Trap",
+        q: "What is \\( 40 \\div 5 \\div 2 \\)?",
+        options: ["16", "4", "20", "2"],
+        answer: "4",
+        explanation: "Division goes left to right: \\(40 \\div 5 = 8\\), then \\(8 \\div 2 = 4\\)."
+      },
+      {
+        skill: "Multiple Operations",
+        q: "What is \\( 10 + 6 \\times 2^2 - 8 \\)?",
+        options: ["26", "40", "14", "24"],
+        answer: "26",
+        explanation: "Exponent first: \\(2^2 = 4\\). Then multiply: \\(6 \\times 4 = 24\\). Then left to right: \\(10 + 24 - 8 = 26\\)."
+      },
+      {
+        skill: "Final Boss",
+        q: "What is \\( 3 + 2(10 - 4)^2 \\div 6 \\)?",
+        options: ["15", "27", "21", "9"],
+        answer: "15",
+        explanation: "Parentheses first: \\(10 - 4 = 6\\). Exponent: \\(6^2 = 36\\). Multiply and divide left to right: \\(2 \\times 36 = 72\\), then \\(72 \\div 6 = 12\\). Finally add: \\(3 + 12 = 15\\)."
+      }
+    ];
+
+    const scoreEl = document.getElementById("score");
+    const totalEl = document.getElementById("total");
+    const qNumberEl = document.getElementById("qNumber");
+    const fillEl = document.getElementById("fill");
+    const arrowEl = document.getElementById("arrow");
+    const skillBadge = document.getElementById("skillBadge");
+    const questionText = document.getElementById("questionText");
+    const answersEl = document.getElementById("answers");
+    const feedbackEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+    const quizCard = document.getElementById("quizCard");
+    const finish = document.getElementById("finish");
+    const finalMessage = document.getElementById("finalMessage");
+    const teacherTip = document.getElementById("teacherTip");
+
+    let index = 0;
+    let score = 0;
+    let answered = false;
+
+    totalEl.textContent = questions.length;
+
+    function renderQuestion() {
+      answered = false;
+      const current = questions[index];
+      qNumberEl.textContent = index + 1;
+      skillBadge.textContent = current.skill;
+      questionText.innerHTML = current.q;
+      feedbackEl.className = "feedback";
+      feedbackEl.innerHTML = "";
+      nextBtn.disabled = true;
+      teacherTip.textContent = getTip();
+
+      answersEl.innerHTML = "";
+      current.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.className = "answer";
+        btn.innerHTML = option;
+        btn.addEventListener("click", () => checkAnswer(btn, option));
+        answersEl.appendChild(btn);
+      });
+
+      updateProgress();
+      if (window.MathJax) MathJax.typesetPromise();
+    }
+
+    function checkAnswer(button, selected) {
+      if (answered) return;
+      answered = true;
+      const current = questions[index];
+      const buttons = [...document.querySelectorAll("button.answer")];
+
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent.trim() === current.answer) {
+          btn.classList.add("correct");
+        }
+      });
+
+      if (selected === current.answer) {
+        score++;
+        scoreEl.textContent = score;
+        button.classList.add("correct");
+        feedbackEl.className = "feedback show good";
+        feedbackEl.innerHTML = `<strong>Correct! 🔥</strong> Nice PEMDAS power!`;
+        launchFireworks();
+      } else {
+        button.classList.add("wrong");
+        feedbackEl.className = "feedback show bad";
+        feedbackEl.innerHTML = `
+          <strong>Not quite — let's fix it together.</strong><br>
+          The correct answer is <strong>${current.answer}</strong>.<br>
+          ${current.explanation}
+        `;
+      }
+
+      nextBtn.disabled = false;
+      updateProgress();
+      if (window.MathJax) MathJax.typesetPromise();
+    }
+
+    function nextQuestion() {
+      index++;
+      if (index >= questions.length) {
+        showFinish();
+      } else {
+        renderQuestion();
+      }
+    }
+
+    function showFinish() {
+      quizCard.style.display = "none";
+      finish.style.display = "block";
+      qNumberEl.textContent = questions.length;
+      updateProgress();
+
+      let message = `You scored ${score} out of ${questions.length}. `;
+      if (score >= 13) {
+        message += "That is LIT! You are a PEMDAS champion. 🔥";
+        launchFireworks(3);
+      } else if (score >= 10) {
+        message += "Good work! You understand the main PEMDAS moves.";
+      } else {
+        message += "Keep practicing. Focus on parentheses, exponents, and left-to-right rules.";
+      }
+      finalMessage.textContent = message;
+    }
+
+    function restartQuiz() {
+      index = 0;
+      score = 0;
+      scoreEl.textContent = score;
+      quizCard.style.display = "block";
+      finish.style.display = "none";
+      renderQuestion();
+    }
+
+    function updateProgress() {
+      const percent = Math.round((score / questions.length) * 100);
+      fillEl.style.width = `${percent}%`;
+      arrowEl.style.left = `${percent}%`;
+    }
+
+    function getTip() {
+      const tips = [
+        "Parentheses are like VIPs — they go first.",
+        "Exponents happen before multiplying.",
+        "Multiplication and division go left to right.",
+        "Addition and subtraction go left to right.",
+        "Take it one step at a time."
+      ];
+      return tips[index % tips.length];
+    }
+
+    nextBtn.addEventListener("click", nextQuestion);
+
+    document.addEventListener("click", async (event) => {
+      if (event.target && event.target.id === "screenshotBtn") {
+        await downloadSuccessScreenshot();
+      }
+    });
+
+    async function downloadSuccessScreenshot() {
+      const screenshotBtn = document.getElementById("screenshotBtn");
+      const oldText = screenshotBtn.textContent;
+      screenshotBtn.textContent = "Making screenshot...";
+      screenshotBtn.disabled = true;
+
+      try {
+        const canvasShot = await html2canvas(document.querySelector(".page"), {
+          backgroundColor: null,
+          scale: 2,
+          useCORS: true
+        });
+
+        const link = document.createElement("a");
+        link.download = `pemdas-success-${score}-out-of-${questions.length}.png`;
+        link.href = canvasShot.toDataURL("image/png");
+        link.click();
+      } catch (error) {
+        alert("The screenshot did not download. You can still use your device screenshot tool and upload it to the form.");
+      }
+
+      screenshotBtn.textContent = oldText;
+      screenshotBtn.disabled = false;
+    }
+
+    // Canvas fireworks animation
+    const canvas = document.getElementById("fireworks");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function launchFireworks(count = 1) {
+      for (let c = 0; c < count; c++) {
+        const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+        const y = Math.random() * canvas.height * 0.35 + canvas.height * 0.1;
+        for (let i = 0; i < 70; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 5 + 2;
+          particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 70,
+            size: Math.random() * 3 + 2,
+            hue: Math.floor(Math.random() * 360)
+          });
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles = particles.filter(p => p.life > 0);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.04;
+        p.life--;
+
+        ctx.globalAlpha = Math.max(p.life / 70, 0);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `hsl(${p.hue}, 95%, 60%)`;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+    renderQuestion();
+  </script>
+</body>
+</html>
