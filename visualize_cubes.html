@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fractional Volume Visualizer</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] },
+            startup: { typeset: false } // We will trigger typesetting manually on updates
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            margin: 0; 
+            height: 100vh; 
+            background-color: #f0f4f8; 
+            color: #333;
+        }
+        #canvas-container { 
+            flex: 1; 
+            position: relative; 
+            background: #ffffff;
+        }
+        #controls-panel { 
+            width: 400px; 
+            background: white; 
+            padding: 30px; 
+            box-shadow: -4px 0 15px rgba(0,0,0,0.05); 
+            overflow-y: auto; 
+            display: flex;
+            flex-direction: column;
+        }
+        h2 { 
+            color: #2c7a7b; 
+            margin-top: 0; 
+            font-size: 1.5rem;
+        }
+        .instruction { 
+            font-size: 0.9em; 
+            color: #666; 
+            margin-bottom: 25px; 
+            line-height: 1.4;
+        }
+        .slider-group { 
+            margin-bottom: 20px; 
+            background: #e6fffa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #b2f5ea;
+        }
+        .slider-group label { 
+            display: flex; 
+            justify-content: space-between;
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            color: #285e61; 
+        }
+        input[type=range] { 
+            width: 100%; 
+            cursor: pointer;
+        }
+        .math-panel { 
+            background: #edf2f7; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            border-left: 5px solid #4a5568; 
+            flex: 1;
+        }
+        .math-panel p { margin-top: 0; line-height: 1.6; }
+        .canvas-label {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-weight: bold;
+            pointer-events: none;
+            color: #2c7a7b;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <div class="canvas-label">Rotate (Click & Drag) | Zoom (Scroll)</div>
+    </div>
+
+    <div id="controls-panel">
+        <h2>Prism Builder</h2>
+        <div class="instruction">
+            Use the sliders to adjust the prism's dimensions (in inches). The 3D view builds the prism using blocks with a <strong>&frac12;-inch</strong> edge length.
+        </div>
+
+        <div class="slider-group">
+            <label>Length (in): <span id="len-val">2.5</span></label>
+            <input type="range" id="len-slider" min="0.5" max="6" step="0.5" value="2.5" oninput="updateVisualization()">
+        </div>
+        <div class="slider-group">
+            <label>Width (in): <span id="wid-val">2</span></label>
+            <input type="range" id="wid-slider" min="0.5" max="6" step="0.5" value="2" oninput="updateVisualization()">
+        </div>
+        <div class="slider-group">
+            <label>Height (in): <span id="hgt-val">1.5</span></label>
+            <input type="range" id="hgt-slider" min="0.5" max="6" step="0.5" value="1.5" oninput="updateVisualization()">
+        </div>
+
+        <div class="math-panel" id="math-output">
+            </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, controls, cubeGroup;
+
+        // Helper function to format decimals to proper math fractions for display
+        function toFraction(val) {
+            if (Number.isInteger(val)) return val.toString();
+            const whole = Math.floor(val);
+            let eighths = Math.round((val - whole) * 8);
+            
+            if (eighths === 0) return whole.toString();
+            
+            // Reduce fraction
+            let num = eighths;
+            let den = 8;
+            while (num % 2 === 0 && den % 2 === 0) {
+                num /= 2; den /= 2;
+            }
+            
+            let fracStr = `\\frac{${num}}{${den}}`;
+            return whole > 0 ? `${whole} ${fracStr}` : fracStr;
+        }
+
+        function init() {
+            const container = document.getElementById('canvas-container');
+            
+            // 1. Setup Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f4f8);
+
+            // 2. Setup Camera
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(12, 10, 15);
+
+            // 3. Setup Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // 4. Add OrbitControls (Mouse Interaction)
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // 5. Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(10, 20, 15);
+            scene.add(dirLight);
+
+            // 6. Group to hold the cubes
+            cubeGroup = new THREE.Group();
+            scene.add(cubeGroup);
+
+            // Window resize handler
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Initial Trigger
+            updateVisualization();
+            animate();
+        }
+
+        function updateVisualization() {
+            // Get current dimensions in inches
+            const len = parseFloat(document.getElementById('len-slider').value);
+            const wid = parseFloat(document.getElementById('wid-slider').value);
+            const hgt = parseFloat(document.getElementById('hgt-slider').value);
+
+            // Update Labels
+            document.getElementById('len-val').innerText = len;
+            document.getElementById('wid-val').innerText = wid;
+            document.getElementById('hgt-val').innerText = hgt;
+
+            // Calculate number of 1/2 inch cubes needed per dimension
+            const nL = Math.round(len / 0.5);
+            const nW = Math.round(wid / 0.5);
+            const nH = Math.round(hgt / 0.5);
+            
+            // Clear existing cubes
+            while(cubeGroup.children.length > 0){ 
+                cubeGroup.remove(cubeGroup.children[0]); 
+            }
+
+            // Define Cube Geometry (slightly scaled down to show distinct grid gaps)
+            const geometry = new THREE.BoxGeometry(0.95, 0.95, 0.95); 
+            const material = new THREE.MeshLambertMaterial({ color: 0x38b2ac }); // Teal color
+            
+            // Add visual wireframe edges to make counting obvious
+            const edgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1));
+            const edgeMat = new THREE.LineBasicMaterial({ color: 0x234e52, linewidth: 2 });
+
+            // Calculate offset to perfectly center the prism in the camera view
+            const offsetX = (nL - 1) / 2;
+            const offsetY = (nH - 1) / 2;
+            const offsetZ = (nW - 1) / 2;
+
+            // Build the block stack
+            for (let x = 0; x < nL; x++) {
+                for (let y = 0; y < nH; y++) {
+                    for (let z = 0; z < nW; z++) {
+                        const mesh = new THREE.Mesh(geometry, material);
+                        // Position in grid coordinates, centered via offset
+                        mesh.position.set(x - offsetX, y - offsetY, z - offsetZ);
+                        cubeGroup.add(mesh);
+                        
+                        // Overlay the wireframe edge
+                        const edges = new THREE.LineSegments(edgeGeo, edgeMat);
+                        edges.position.copy(mesh.position);
+                        cubeGroup.add(edges);
+                    }
+                }
+            }
+
+            // Automatically adjust camera zoom based on the size of the prism
+            const maxDim = Math.max(nL, nW, nH);
+            camera.position.set(maxDim * 1.5 + 4, maxDim * 1.2 + 4, maxDim * 1.5 + 4);
+            controls.target.set(0, 0, 0);
+            controls.update();
+
+            // Update the MathJax text container
+            updateMath(len, wid, hgt, nL, nW, nH);
+        }
+
+        function updateMath(l, w, h, nL, nW, nH) {
+            const totalCubes = nL * nW * nH;
+            const volume = totalCubes / 8; // Each small cube is 1/8 cubic inches
+            
+            const mathContainer = document.getElementById('math-output');
+            
+            // Inject new formulas and fractional values
+            mathContainer.innerHTML = `
+                <p><strong>1. Prism Dimensions:</strong><br>
+                Length: \\( ${toFraction(l)} \\text{ in} \\)<br>
+                Width: \\( ${toFraction(w)} \\text{ in} \\)<br>
+                Height: \\( ${toFraction(h)} \\text{ in} \\)</p>
+                
+                <p><strong>2. Cubes Packed into Prism:</strong><br>
+                \\( ${toFraction(l)} \\div \\frac{1}{2} = \\mathbf{${nL}} \\) cubes long<br>
+                \\( ${toFraction(w)} \\div \\frac{1}{2} = \\mathbf{${nW}} \\) cubes wide<br>
+                \\( ${toFraction(h)} \\div \\frac{1}{2} = \\mathbf{${nH}} \\) cubes high<br>
+                Total Cubes = \\( ${nL} \\times ${nW} \\times ${nH} = \\mathbf{${totalCubes}} \\)</p>
+                
+                <p><strong>3. Volume Calculation:</strong><br>
+                Volume of 1 small cube = \\( (\\frac{1}{2})^3 = \\frac{1}{8} \\text{ in}^3 \\)<br>
+                Total Volume = \\( ${totalCubes} \\times \\frac{1}{8} = \\mathbf{${toFraction(volume)} \\text{ in}^3} \\)</p>
+            `;
+
+            // Tell MathJax to re-render the injected equations
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([mathContainer]).catch((err) => console.log(err.message));
+            }
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Initialize script after DOM is ready
+        window.onload = init;
+    </script>
+</body>
+</html>
