@@ -334,6 +334,57 @@
       }
     }
 
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(247, 251, 255, 0.86);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .loading-card {
+      width: min(420px, 92vw);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 18px 50px rgba(24, 57, 112, 0.18);
+      text-align: center;
+    }
+
+    .loading-title {
+      font-weight: 900;
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+    }
+
+    .loading-message {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 14px;
+    }
+
+    .loading-bar {
+      height: 14px;
+      border-radius: 999px;
+      border: 1px solid #c7d8ee;
+      overflow: hidden;
+      background: #edf4ff;
+    }
+
+    .loading-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #b7d7ff, #f6d34a, #ff9a2f);
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
     @media print {
       .top-panel, .floating-link, .controls { display: none; }
       body { background: white; }
@@ -384,6 +435,14 @@
   </main>
 
   <a class="form-link floating-link" href="https://tinyurl.com/mathscreenshot" target="_blank" rel="noopener">🔗 Submit</a>
+
+  <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
+    <div class="loading-card">
+      <div class="loading-title">Creating your screenshot...</div>
+      <div class="loading-message">Please wait. Your score image is being prepared.</div>
+      <div class="loading-bar"><div class="loading-fill" id="loadingFill"></div></div>
+    </div>
+  </div>
 
   <script>
     const questions = [
@@ -659,6 +718,8 @@
     const answeredEl = document.getElementById("answered");
     const barFill = document.getElementById("barFill");
     const arrow = document.getElementById("arrow");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const loadingFill = document.getElementById("loadingFill");
 
     totalEl.textContent = questions.length;
 
@@ -741,17 +802,42 @@
 
     async function downloadScreenshot() {
       const capture = document.getElementById("captureArea");
-      const canvas = await html2canvas(capture, {
-        backgroundColor: "#f7fbff",
-        scale: 2,
-        useCORS: true,
-        windowWidth: document.documentElement.scrollWidth,
-        windowHeight: document.documentElement.scrollHeight
-      });
-      const link = document.createElement("a");
-      link.download = `math-score-${score}-out-of-${questions.length}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
+
+      loadingOverlay.style.display = "flex";
+      loadingFill.style.width = "8%";
+
+      try {
+        await new Promise(resolve => setTimeout(resolve, 80));
+        loadingFill.style.width = "28%";
+
+        await new Promise(resolve => setTimeout(resolve, 120));
+        loadingFill.style.width = "52%";
+
+        const canvas = await html2canvas(capture, {
+          backgroundColor: "#f7fbff",
+          scale: 2,
+          useCORS: true,
+          windowWidth: document.documentElement.scrollWidth,
+          windowHeight: document.documentElement.scrollHeight
+        });
+
+        loadingFill.style.width = "84%";
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const link = document.createElement("a");
+        link.download = `math-score-${score}-out-of-${questions.length}.png`;
+        link.href = canvas.toDataURL("image/png");
+        loadingFill.style.width = "100%";
+        link.click();
+
+        await new Promise(resolve => setTimeout(resolve, 350));
+      } catch (error) {
+        alert("The screenshot could not be created. Please try again.");
+        console.error(error);
+      } finally {
+        loadingOverlay.style.display = "none";
+        loadingFill.style.width = "0%";
+      }
     }
 
     function drawAllVisuals() {
@@ -874,8 +960,8 @@
         const px = ox + 3 * step, py = oy + 2 * step;
         ctx.fillStyle = "#d64545"; ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#1d2b3a";
-        ctx.fillText("(3, -2)", px + 10, py + 5);
-        ctx.fillText("Right 3, down 2", 22, 25);
+        ctx.fillText("Point A", px + 10, py + 5);
+        ctx.fillText("Find the ordered pair for Point A.", 22, 25);
       }
     }
 
