@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stochastic Calculus & Geometric Brownian Motion</title>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['$', '$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root {
+      --bg: #07111f;
+      --card: rgba(255,255,255,0.92);
+      --ink: #111827;
+      --muted: #475569;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --gold: #f59e0b;
+      --red: #dc2626;
+      --soft: #dbeafe;
+      --shadow: 0 18px 45px rgba(0,0,0,0.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(37,99,235,0.34), transparent 35%),
+        radial-gradient(circle at 90% 20%, rgba(22,163,74,0.24), transparent 28%),
+        radial-gradient(circle at 60% 90%, rgba(245,158,11,0.24), transparent 30%),
+        var(--bg);
+    }
+
+    header {
+      color: white;
+      padding: 34px 18px 18px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: clamp(1.8rem, 4.6vw, 4rem);
+      margin: 0;
+      letter-spacing: -1px;
+    }
+
+    header p {
+      max-width: 900px;
+      margin: 14px auto 0;
+      line-height: 1.55;
+      font-size: 1.05rem;
+      color: #dbeafe;
+    }
+
+    .main {
+      width: min(1220px, 95vw);
+      margin: 0 auto 28px;
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.5);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      backdrop-filter: blur(8px);
+    }
+
+    .badge {
+      display: inline-block;
+      background: #0f172a;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.83rem;
+      margin-bottom: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 560px;
+      background:
+        linear-gradient(rgba(15,23,42,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15,23,42,0.08) 1px, transparent 1px),
+        #f8fafc;
+      background-size: 44px 44px;
+      border-radius: 20px;
+      border: 2px solid #cbd5e1;
+      display: block;
+      touch-action: none;
+    }
+
+    .controls {
+      display: grid;
+      gap: 12px;
+    }
+
+    .control {
+      background: #f8fafc;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      color: #0f172a;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-weight: 850;
+      background: var(--blue);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(37,99,235,0.25);
+    }
+
+    button.secondary {
+      background: #e0f2fe;
+      color: #0f172a;
+      box-shadow: none;
+      border: 1px solid #bae6fd;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .stat {
+      background: #f8fafc;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.88rem;
+      color: #475569;
+    }
+
+    .stat strong {
+      display: block;
+      color: #0f172a;
+      font-size: 1.1rem;
+    }
+
+    h2, h3 { color: #0f172a; }
+
+    .tiny {
+      color: var(--muted);
+      font-size: 0.91rem;
+      line-height: 1.45;
+    }
+
+    .formula {
+      background: #f8fafc;
+      border-left: 6px solid var(--blue);
+      border-radius: 16px;
+      padding: 12px;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+
+    .concepts {
+      width: min(1220px, 95vw);
+      margin: 0 auto 28px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .step {
+      position: relative;
+      min-height: 220px;
+    }
+
+    .step-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: #0f172a;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .quiz {
+      width: min(930px, 95vw);
+      margin: 0 auto 50px;
+    }
+
+    .question {
+      background: #f8fafc;
+      border: 1px solid #dbeafe;
+      padding: 14px;
+      border-radius: 18px;
+      margin: 12px 0;
+    }
+
+    .answers {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .answers button {
+      text-align: left;
+      background: white;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      box-shadow: none;
+    }
+
+    .feedback {
+      margin-top: 9px;
+      min-height: 24px;
+      font-weight: 800;
+    }
+
+    .right { color: var(--green); }
+    .wrong { color: var(--red); }
+
+    .scorebar {
+      height: 22px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #e2e8f0, #fbbf24, #22c55e);
+      border: 2px solid #cbd5e1;
+      position: relative;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -3px;
+      width: 0;
+      height: 0;
+      border-left: 9px solid transparent;
+      border-right: 9px solid transparent;
+      border-top: 18px solid #0f172a;
+      transform: translateX(-50%);
+      transition: left 0.25s;
+    }
+
+    .labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.84rem;
+      font-weight: 900;
+      color: #334155;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 950px) {
+      .main, .concepts {
+        grid-template-columns: 1fr;
+      }
+      canvas { height: 500px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 520px) {
+      canvas { height: 430px; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Stochastic Calculus: Random Motion Over Time</h1>
+  <p>
+    Stochastic calculus is calculus for quantities that move partly by rules and partly by randomness.
+    In finance, one famous model is <strong>Geometric Brownian Motion</strong>, which is used to simulate possible asset price paths.
+  </p>
+</header>
+
+<main class="main">
+  <section class="card">
+    <span class="badge">Interactive Simulation</span>
+    <canvas id="chart" width="900" height="560"></canvas>
+
+    <div class="buttons">
+      <button id="toggle">Pause</button>
+      <button class="secondary" id="reset">Reset Simulation</button>
+      <button class="secondary" id="shock">Market Shock</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><strong id="priceNow">$100.00</strong>Current price</div>
+      <div class="stat"><strong id="avgEnd">$100.00</strong>Average path</div>
+      <div class="stat"><strong id="maxPrice">$100.00</strong>Highest</div>
+      <div class="stat"><strong id="minPrice">$100.00</strong>Lowest</div>
+    </div>
+  </section>
+
+  <aside class="card">
+    <span class="badge">Model Controls</span>
+
+    <div class="controls">
+      <div class="control">
+        <label>Expected return, \( \mu \) <span id="muVal">8%</span></label>
+        <input id="mu" type="range" min="-20" max="30" step="1" value="8">
+        <p class="tiny">This is the drift: the general upward or downward tendency.</p>
+      </div>
+
+      <div class="control">
+        <label>Volatility, \( \sigma \) <span id="sigmaVal">25%</span></label>
+        <input id="sigma" type="range" min="1" max="80" step="1" value="25">
+        <p class="tiny">This controls how wild the randomness is. Higher volatility means wider possible paths.</p>
+      </div>
+
+      <div class="control">
+        <label>Number of paths <span id="pathsVal">35</span></label>
+        <input id="paths" type="range" min="5" max="120" step="5" value="35">
+      </div>
+
+      <div class="control">
+        <label>Speed <span id="speedVal">1x</span></label>
+        <input id="speed" type="range" min="1" max="8" step="1" value="1">
+      </div>
+    </div>
+
+    <h3>The key equation</h3>
+    <div class="formula">
+      \[
+      dS_t = \mu S_t\,dt + \sigma S_t\,dW_t
+      \]
+    </div>
+
+    <p class="tiny">
+      \(S_t\) is the price. The \( \mu S_t dt \) part is the smooth drift.
+      The \( \sigma S_t dW_t \) part is the random Brownian-motion shock.
+    </p>
+  </aside>
+</main>
+
+<section class="concepts">
+  <article class="card step">
+    <div class="step-num">1</div>
+    <h2>Brownian Motion</h2>
+    <p>
+      Brownian motion, often written as \(W_t\), is a continuous random path.
+      It wiggles unpredictably, but its statistical behavior can be modeled.
+    </p>
+    <div class="formula">\[ W_{t+\Delta t}-W_t \sim N(0,\Delta t) \]</div>
+  </article>
+
+  <article class="card step">
+    <div class="step-num">2</div>
+    <h2>Stochastic Calculus</h2>
+    <p>
+      Regular calculus handles smooth change. Stochastic calculus handles change with random noise added at every tiny moment.
+    </p>
+    <div class="formula">\[ dX_t = a(X_t,t)dt + b(X_t,t)dW_t \]</div>
+  </article>
+
+  <article class="card step">
+    <div class="step-num">3</div>
+    <h2>GBM Price Model</h2>
+    <p>
+      Geometric Brownian Motion keeps prices positive because the randomness acts proportionally on the current price.
+    </p>
+    <div class="formula">\[ S_{t+\Delta t}=S_t e^{(\mu-\frac{1}{2}\sigma^2)\Delta t+\sigma\sqrt{\Delta t}Z} \]</div>
+  </article>
+
+  <article class="card step">
+    <div class="step-num">4</div>
+    <h2>Risk Simulation</h2>
+    <p>
+      One future path is not enough. Many random paths help estimate risk, possible gains, and possible losses.
+    </p>
+    <div class="formula">\[ Z \sim N(0,1) \]</div>
+  </article>
+</section>
+
+<section class="card quiz">
+  <span class="badge">Light Quiz</span>
+  <h2>Check Your Understanding</h2>
+  <p>Answer these quick questions. The goal is to understand the idea, not memorize symbols.</p>
+
+  <div class="scorebar">
+    <div class="pointer" id="pointer" style="left: 0%;"></div>
+  </div>
+  <div class="labels">
+    <span>Trying</span><span>Good Work</span><span>Lit</span>
+  </div>
+
+  <p><strong>Score:</strong> <span id="score">0</span> / <span id="total">5</span></p>
+  <div id="quizBox"></div>
+</section>
+
+<script>
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+
+const muSlider = document.getElementById("mu");
+const sigmaSlider = document.getElementById("sigma");
+const pathsSlider = document.getElementById("paths");
+const speedSlider = document.getElementById("speed");
+
+const muVal = document.getElementById("muVal");
+const sigmaVal = document.getElementById("sigmaVal");
+const pathsVal = document.getElementById("pathsVal");
+const speedVal = document.getElementById("speedVal");
+
+let paths = [];
+let step = 0;
+let running = true;
+
+const S0 = 100;
+const totalSteps = 260;
+const T = 1;
+const dt = T / totalSteps;
+
+function randn() {
+  let u = 0, v = 0;
+  while(u === 0) u = Math.random();
+  while(v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function simulatePaths() {
+  const n = Number(pathsSlider.value);
+  const mu = Number(muSlider.value) / 100;
+  const sigma = Number(sigmaSlider.value) / 100;
+
+  paths = [];
+  for (let p = 0; p < n; p++) {
+    let arr = [S0];
+    for (let i = 1; i <= totalSteps; i++) {
+      const z = randn();
+      const prev = arr[i - 1];
+      const next = prev * Math.exp((mu - 0.5 * sigma * sigma) * dt + sigma * Math.sqrt(dt) * z);
+      arr.push(next);
+    }
+    paths.push(arr);
+  }
+  step = 0;
+}
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const scale = window.devicePixelRatio || 1;
+  canvas.width = Math.round(rect.width * scale);
+  canvas.height = Math.round(rect.height * scale);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  simulatePaths();
+}
+
+function drawAxes(w, h, pad) {
+  ctx.strokeStyle = "#94a3b8";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(pad, pad);
+  ctx.lineTo(pad, h - pad);
+  ctx.lineTo(w - pad, h - pad);
+  ctx.stroke();
+
+  ctx.fillStyle = "#334155";
+  ctx.font = "12px system-ui";
+  ctx.fillText("Price", pad - 4, pad - 12);
+  ctx.fillText("Time", w - pad - 28, h - pad + 28);
+}
+
+function draw() {
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+  const pad = 52;
+
+  ctx.clearRect(0, 0, w, h);
+
+  if (running) {
+    step += Number(speedSlider.value);
+    if (step > totalSteps) step = totalSteps;
+  }
+
+  const visible = paths.map(arr => arr.slice(0, Math.max(2, step + 1)));
+  let all = visible.flat();
+  let min = Math.min(...all, 60);
+  let max = Math.max(...all, 140);
+
+  const buffer = (max - min) * 0.12 || 10;
+  min -= buffer;
+  max += buffer;
+
+  function xScale(i) {
+    return pad + (i / totalSteps) * (w - 2 * pad);
+  }
+
+  function yScale(price) {
+    return h - pad - ((price - min) / (max - min)) * (h - 2 * pad);
+  }
+
+  drawAxes(w, h, pad);
+
+  // reference line S0
+  ctx.strokeStyle = "rgba(15,23,42,0.22)";
+  ctx.setLineDash([7, 6]);
+  ctx.beginPath();
+  ctx.moveTo(pad, yScale(S0));
+  ctx.lineTo(w - pad, yScale(S0));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "#475569";
+  ctx.font = "12px system-ui";
+  ctx.fillText("$100 start", pad + 8, yScale(S0) - 6);
+
+  // paths
+  paths.forEach((arr, idx) => {
+    const currentStep = Math.max(1, Math.min(step, totalSteps));
+    const up = arr[currentStep] >= S0;
+
+    if (idx === 0) {
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+    } else {
+      ctx.strokeStyle = up ? "rgba(22,163,74,0.25)" : "rgba(220,38,38,0.22)";
+      ctx.lineWidth = 1.25;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(xScale(0), yScale(arr[0]));
+    for (let i = 1; i <= currentStep; i++) {
+      ctx.lineTo(xScale(i), yScale(arr[i]));
+    }
+    ctx.stroke();
+  });
+
+  // current tracked dot
+  const currentStep = Math.max(1, Math.min(step, totalSteps));
+  const tracked = paths[0]?.[currentStep] || S0;
+  ctx.fillStyle = "#2563eb";
+  ctx.beginPath();
+  ctx.arc(xScale(currentStep), yScale(tracked), 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  // labels
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 15px system-ui";
+  ctx.fillText("Blue path = one possible future", pad, 26);
+  ctx.fillStyle = "#16a34a";
+  ctx.fillText("Green = above starting price", pad, 48);
+  ctx.fillStyle = "#dc2626";
+  ctx.fillText("Red = below starting price", pad, 70);
+
+  updateStats(currentStep);
+  requestAnimationFrame(draw);
+}
+
+function updateStats(s) {
+  if (!paths.length) return;
+  const currentPrices = paths.map(p => p[Math.min(s, totalSteps)]);
+  const tracked = paths[0][Math.min(s, totalSteps)];
+  const avg = currentPrices.reduce((a,b) => a + b, 0) / currentPrices.length;
+  const mx = Math.max(...currentPrices);
+  const mn = Math.min(...currentPrices);
+
+  document.getElementById("priceNow").textContent = "$" + tracked.toFixed(2);
+  document.getElementById("avgEnd").textContent = "$" + avg.toFixed(2);
+  document.getElementById("maxPrice").textContent = "$" + mx.toFixed(2);
+  document.getElementById("minPrice").textContent = "$" + mn.toFixed(2);
+}
+
+function updateLabels() {
+  muVal.textContent = muSlider.value + "%";
+  sigmaVal.textContent = sigmaSlider.value + "%";
+  pathsVal.textContent = pathsSlider.value;
+  speedVal.textContent = speedSlider.value + "x";
+}
+
+[muSlider, sigmaSlider, pathsSlider].forEach(slider => {
+  slider.addEventListener("input", () => {
+    updateLabels();
+    simulatePaths();
+  });
+});
+
+speedSlider.addEventListener("input", updateLabels);
+
+document.getElementById("toggle").addEventListener("click", () => {
+  running = !running;
+  document.getElementById("toggle").textContent = running ? "Pause" : "Play";
+});
+
+document.getElementById("reset").addEventListener("click", simulatePaths);
+
+document.getElementById("shock").addEventListener("click", () => {
+  const currentStep = Math.max(1, Math.min(step, totalSteps - 1));
+  paths.forEach(arr => {
+    const shock = Math.exp((Math.random() < 0.5 ? -1 : 1) * (0.08 + Math.random() * 0.12));
+    for (let i = currentStep; i < arr.length; i++) {
+      arr[i] *= shock;
+    }
+  });
+});
+
+const quiz = [
+  {
+    q: "What does stochastic mean?",
+    a: ["Perfectly predictable", "Involving randomness", "Always increasing", "Only about money"],
+    c: 1,
+    why: "Correct. Stochastic means random or involving probability."
+  },
+  {
+    q: "In \\(dS_t = \\mu S_t dt + \\sigma S_t dW_t\\), which part represents random noise?",
+    a: ["\\(\\mu S_t dt\\)", "\\(S_t\\)", "\\(\\sigma S_t dW_t\\)", "\\(dt\\) only"],
+    c: 2,
+    why: "Correct. The \\(dW_t\\) term represents Brownian random motion."
+  },
+  {
+    q: "What does higher volatility usually do in the simulation?",
+    a: ["Makes paths straighter", "Makes paths spread out more", "Forces all prices to zero", "Removes randomness"],
+    c: 1,
+    why: "Correct. Higher volatility creates wider possible outcomes."
+  },
+  {
+    q: "Why simulate many paths instead of one?",
+    a: ["One path tells the whole future", "Many paths help us estimate risk", "Many paths remove uncertainty completely", "It makes the formula disappear"],
+    c: 1,
+    why: "Correct. Many paths help estimate a range of possible outcomes."
+  },
+  {
+    q: "Why is it called geometric Brownian motion?",
+    a: ["Prices move with multiplication/proportional growth", "The graph must be a triangle", "It only studies shapes", "It ignores Brownian motion"],
+    c: 0,
+    why: "Correct. The price changes proportionally, helping keep prices positive."
+  }
+];
+
+const quizBox = document.getElementById("quizBox");
+document.getElementById("total").textContent = quiz.length;
+const scoreSpan = document.getElementById("score");
+const pointer = document.getElementById("pointer");
+let answered = Array(quiz.length).fill(false);
+let correct = Array(quiz.length).fill(false);
+
+function updateScore() {
+  const s = correct.filter(Boolean).length;
+  scoreSpan.textContent = s;
+  pointer.style.left = `${(s / quiz.length) * 100}%`;
+}
+
+function renderQuiz() {
+  quizBox.innerHTML = "";
+  quiz.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "question";
+    div.innerHTML = `<h3>Question ${i + 1}</h3><p>${item.q}</p>`;
+
+    const answers = document.createElement("div");
+    answers.className = "answers";
+
+    const feedback = document.createElement("div");
+    feedback.className = "feedback";
+
+    item.a.forEach((choice, j) => {
+      const btn = document.createElement("button");
+      btn.innerHTML = choice;
+      btn.addEventListener("click", () => {
+        answered[i] = true;
+        correct[i] = j === item.c;
+        if (correct[i]) {
+          feedback.className = "feedback right";
+          feedback.textContent = item.why;
+        } else {
+          feedback.className = "feedback wrong";
+          feedback.textContent = "Not quite. Try again by matching the symbol to the idea.";
+        }
+        updateScore();
+      });
+      answers.appendChild(btn);
+    });
+
+    div.appendChild(answers);
+    div.appendChild(feedback);
+    quizBox.appendChild(div);
+  });
+}
+
+window.addEventListener("resize", resizeCanvas);
+updateLabels();
+resizeCanvas();
+renderQuiz();
+draw();
+</script>
+</body>
+</html>
