@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Brownian Motion Interactive Lab</title>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['$', '$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root {
+      --bg: #f7f3ec;
+      --card: #ffffff;
+      --ink: #2c2118;
+      --accent: #8b5e34;
+      --accent2: #c58b55;
+      --soft: #ead7c3;
+      --good: #2f855a;
+      --bad: #c53030;
+      --shadow: 0 10px 30px rgba(80, 50, 20, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, #fff2d5, transparent 32%),
+        radial-gradient(circle at bottom right, #d8b894, transparent 30%),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      padding: 28px 18px 14px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 4vw, 3rem);
+      color: #4a2e17;
+    }
+
+    header p {
+      max-width: 850px;
+      margin: 12px auto 0;
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+
+    .wrap {
+      width: min(1180px, 95vw);
+      margin: 0 auto 40px;
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(139, 94, 52, 0.18);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      backdrop-filter: blur(4px);
+    }
+
+    .canvas-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 560px;
+      display: block;
+      background:
+        linear-gradient(rgba(139,94,52,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,94,52,0.08) 1px, transparent 1px),
+        #fffaf4;
+      background-size: 32px 32px;
+      border-radius: 18px;
+      border: 2px solid #d7b88f;
+      touch-action: none;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #4a2e17;
+      color: white;
+      border-radius: 999px;
+      padding: 5px 11px;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+
+    h2, h3 {
+      color: #4a2e17;
+      margin-top: 6px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 12px;
+    }
+
+    .control {
+      background: #fff7ed;
+      border: 1px solid #ecd1ae;
+      padding: 12px;
+      border-radius: 16px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #57361d;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 4px 12px rgba(80, 50, 20, 0.18);
+    }
+
+    button.secondary {
+      background: #f5dfc6;
+      color: #4a2e17;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .stat {
+      background: #fff7ed;
+      border-radius: 16px;
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ecd1ae;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.15rem;
+      color: #4a2e17;
+    }
+
+    .explain {
+      width: min(1180px, 95vw);
+      margin: 0 auto 40px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .formula {
+      background: #fff7ed;
+      border-left: 6px solid var(--accent2);
+      border-radius: 16px;
+      padding: 12px;
+      overflow-x: auto;
+    }
+
+    .quiz {
+      width: min(900px, 95vw);
+      margin: 0 auto 50px;
+    }
+
+    .question {
+      background: #fff7ed;
+      border: 1px solid #ecd1ae;
+      border-radius: 18px;
+      padding: 14px;
+      margin: 12px 0;
+    }
+
+    .answers {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .answers button {
+      text-align: left;
+      background: white;
+      color: #3b2a1c;
+      border: 1px solid #dfbd96;
+      box-shadow: none;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-weight: 700;
+      min-height: 24px;
+    }
+
+    .right { color: var(--good); }
+    .wrong { color: var(--bad); }
+
+    .scorebar {
+      height: 22px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: linear-gradient(90deg, #e2e8f0, #f6ad55, #68d391);
+      border: 2px solid #d7b88f;
+      position: relative;
+      margin: 14px 0 8px;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -3px;
+      width: 0;
+      height: 0;
+      border-left: 9px solid transparent;
+      border-right: 9px solid transparent;
+      border-top: 18px solid #4a2e17;
+      transform: translateX(-50%);
+      transition: left 0.25s;
+    }
+
+    .labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: #5a3a20;
+    }
+
+    .tiny {
+      font-size: 0.9rem;
+      color: #684827;
+      line-height: 1.45;
+    }
+
+    .legend {
+      position: absolute;
+      left: 32px;
+      top: 32px;
+      background: rgba(255,255,255,0.88);
+      border: 1px solid #d7b88f;
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 0.88rem;
+      box-shadow: 0 4px 12px rgba(80,50,20,0.12);
+    }
+
+    .dot {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    .brown { background:#8b5e34; }
+    .blue { background:#2563eb; }
+
+    @media (max-width: 850px) {
+      .wrap, .explain {
+        grid-template-columns: 1fr;
+      }
+      canvas {
+        height: 470px;
+      }
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Brownian Motion Interactive Lab</h1>
+  <p>
+    Watch tiny particles jitter around randomly, just like pollen grains being bumped by invisible water molecules.
+    Change the controls and look for patterns: randomness can still have predictable behavior.
+  </p>
+</header>
+
+<main class="wrap">
+  <section class="card canvas-card">
+    <span class="badge">Live Simulation</span>
+    <canvas id="sim" width="900" height="560"></canvas>
+    <div class="legend">
+      <div><span class="dot brown"></span>Brownian particles</div>
+      <div><span class="dot blue"></span>One tracked path</div>
+    </div>
+    <div class="buttons">
+      <button id="toggleBtn">Pause</button>
+      <button class="secondary" id="resetBtn">Reset Paths</button>
+      <button class="secondary" id="burstBtn">Add Random Kick</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><strong id="timeStat">0.0</strong>time steps</div>
+      <div class="stat"><strong id="msdStat">0.00</strong>mean squared distance</div>
+      <div class="stat"><strong id="tempStat">1.00</strong>motion strength</div>
+    </div>
+  </section>
+
+  <aside class="card">
+    <span class="badge">Controls</span>
+    <div class="controls">
+      <div class="control">
+        <label>Number of particles <span id="countVal">80</span></label>
+        <input id="count" type="range" min="10" max="250" value="80" step="10">
+      </div>
+
+      <div class="control">
+        <label>Motion strength <span id="speedVal">1.00</span></label>
+        <input id="speed" type="range" min="0.2" max="3.0" value="1.0" step="0.1">
+        <p class="tiny">Higher values represent stronger random kicks, similar to more energetic molecular motion.</p>
+      </div>
+
+      <div class="control">
+        <label>Particle size <span id="sizeVal">4</span></label>
+        <input id="size" type="range" min="2" max="10" value="4" step="1">
+      </div>
+
+      <div class="control">
+        <label>Path length <span id="trailVal">180</span></label>
+        <input id="trail" type="range" min="20" max="500" value="180" step="20">
+      </div>
+    </div>
+
+    <h3>What should I notice?</h3>
+    <p>
+      Each particle moves unpredictably from moment to moment. But if you watch many particles,
+      you can see a pattern: they tend to spread out over time.
+    </p>
+
+    <div class="formula">
+      \[
+      \langle r^2 \rangle \approx 4Dt
+      \]
+      <p class="tiny">
+        This says the average squared distance from the starting point grows with time.
+        \(D\) is the diffusion coefficient.
+      </p>
+    </div>
+  </aside>
+</main>
+
+<section class="explain">
+  <article class="card">
+    <h2>1. The big idea</h2>
+    <p>
+      Brownian motion is the random movement of tiny particles suspended in a fluid.
+      The particle looks like it is moving by itself, but it is really getting bumped
+      again and again by smaller molecules.
+    </p>
+  </article>
+
+  <article class="card">
+    <h2>2. Random does not mean useless</h2>
+    <p>
+      One particle is hard to predict. Many particles are easier to describe using averages.
+      This is a powerful idea in science, data science, statistics, and AI.
+    </p>
+    <div class="formula">
+      \[
+      \Delta x \sim \text{random}, \quad \Delta y \sim \text{random}
+      \]
+    </div>
+  </article>
+
+  <article class="card">
+    <h2>3. Why it matters</h2>
+    <p>
+      Brownian motion helped scientists prove that atoms and molecules are real.
+      It is also connected to diffusion, heat, probability, stock models, and random walks.
+    </p>
+  </article>
+</section>
+
+<section class="card quiz">
+  <span class="badge">Light Quiz</span>
+  <h2>Check Your Understanding</h2>
+  <p>Choose an answer for each question. Your score updates as you go.</p>
+
+  <div class="scorebar">
+    <div class="pointer" id="quizPointer" style="left: 0%;"></div>
+  </div>
+  <div class="labels">
+    <span>Trying</span><span>Good Work</span><span>Lit</span>
+  </div>
+  <p><strong>Score:</strong> <span id="score">0</span> / <span id="total">5</span></p>
+
+  <div id="quizBox"></div>
+</section>
+
+<script>
+const canvas = document.getElementById("sim");
+const ctx = canvas.getContext("2d");
+
+const countSlider = document.getElementById("count");
+const speedSlider = document.getElementById("speed");
+const sizeSlider = document.getElementById("size");
+const trailSlider = document.getElementById("trail");
+
+const countVal = document.getElementById("countVal");
+const speedVal = document.getElementById("speedVal");
+const sizeVal = document.getElementById("sizeVal");
+const trailVal = document.getElementById("trailVal");
+
+const timeStat = document.getElementById("timeStat");
+const msdStat = document.getElementById("msdStat");
+const tempStat = document.getElementById("tempStat");
+
+let particles = [];
+let running = true;
+let t = 0;
+
+function randn() {
+  // Box-Muller transform for normal-ish random steps
+  let u = 0, v = 0;
+  while(u === 0) u = Math.random();
+  while(v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function makeParticles() {
+  const n = Number(countSlider.value);
+  particles = [];
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+
+  for (let i = 0; i < n; i++) {
+    particles.push({
+      x: cx + (Math.random() - 0.5) * 30,
+      y: cy + (Math.random() - 0.5) * 30,
+      x0: cx,
+      y0: cy,
+      path: [],
+      hue: 25 + Math.random() * 25
+    });
+  }
+  t = 0;
+}
+
+function resizeCanvasForDisplay() {
+  const rect = canvas.getBoundingClientRect();
+  const scale = window.devicePixelRatio || 1;
+  canvas.width = Math.round(rect.width * scale);
+  canvas.height = Math.round(rect.height * scale);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  makeParticles();
+}
+
+function draw() {
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+
+  ctx.clearRect(0, 0, w, h);
+
+  // center point
+  ctx.save();
+  ctx.fillStyle = "rgba(74,46,23,0.12)";
+  ctx.beginPath();
+  ctx.arc(w/2, h/2, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  const size = Number(sizeSlider.value);
+  const trailMax = Number(trailSlider.value);
+  let sumSq = 0;
+
+  particles.forEach((p, i) => {
+    if (running) {
+      const strength = Number(speedSlider.value);
+      p.x += randn() * strength * 2.2;
+      p.y += randn() * strength * 2.2;
+
+      // soft wall bounce
+      if (p.x < size || p.x > w - size) p.x = Math.max(size, Math.min(w - size, p.x));
+      if (p.y < size || p.y > h - size) p.y = Math.max(size, Math.min(h - size, p.y));
+
+      p.path.push({x: p.x, y: p.y});
+      if (p.path.length > trailMax) p.path.shift();
+    }
+
+    const dx = p.x - w/2;
+    const dy = p.y - h/2;
+    sumSq += dx*dx + dy*dy;
+
+    // tracked particle path
+    if (i === 0 && p.path.length > 1) {
+      ctx.strokeStyle = "rgba(37, 99, 235, 0.85)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(p.path[0].x, p.path[0].y);
+      for (const q of p.path) ctx.lineTo(q.x, q.y);
+      ctx.stroke();
+    } else if (p.path.length > 1) {
+      ctx.strokeStyle = "rgba(139, 94, 52, 0.13)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p.path[0].x, p.path[0].y);
+      for (const q of p.path) ctx.lineTo(q.x, q.y);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = i === 0 ? "rgba(37, 99, 235, 0.95)" : `hsla(${p.hue}, 65%, 42%, 0.82)`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  if (running) t += 0.1;
+
+  timeStat.textContent = t.toFixed(1);
+  msdStat.textContent = (sumSq / particles.length).toFixed(1);
+  tempStat.textContent = Number(speedSlider.value).toFixed(2);
+
+  requestAnimationFrame(draw);
+}
+
+document.getElementById("toggleBtn").addEventListener("click", () => {
+  running = !running;
+  document.getElementById("toggleBtn").textContent = running ? "Pause" : "Play";
+});
+
+document.getElementById("resetBtn").addEventListener("click", makeParticles);
+
+document.getElementById("burstBtn").addEventListener("click", () => {
+  particles.forEach(p => {
+    p.x += randn() * 35;
+    p.y += randn() * 35;
+  });
+});
+
+[countSlider, speedSlider, sizeSlider, trailSlider].forEach(slider => {
+  slider.addEventListener("input", () => {
+    countVal.textContent = countSlider.value;
+    speedVal.textContent = Number(speedSlider.value).toFixed(2);
+    sizeVal.textContent = sizeSlider.value;
+    trailVal.textContent = trailSlider.value;
+
+    if (slider === countSlider) makeParticles();
+  });
+});
+
+window.addEventListener("resize", resizeCanvasForDisplay);
+
+const quiz = [
+  {
+    q: "What causes Brownian motion?",
+    a: [
+      "Tiny particles are bumped by smaller molecules",
+      "Gravity pulls all particles in circles",
+      "The particle has a tiny motor",
+      "Light pushes the particle in one direction"
+    ],
+    correct: 0,
+    why: "Correct. The visible particle jitters because invisible molecules keep colliding with it."
+  },
+  {
+    q: "If motion strength increases, what usually happens?",
+    a: [
+      "Particles move less",
+      "Particles freeze",
+      "Particles take larger random steps",
+      "All particles move in the same direction"
+    ],
+    correct: 2,
+    why: "Correct. Larger random kicks make the particles spread faster."
+  },
+  {
+    q: "Why do scientists use averages with Brownian motion?",
+    a: [
+      "Because each single path is perfectly predictable",
+      "Because many random paths can show a pattern",
+      "Because randomness is not real",
+      "Because particles always return to the center"
+    ],
+    correct: 1,
+    why: "Correct. One path is messy, but many paths can reveal predictable average behavior."
+  },
+  {
+    q: "In the formula \\(\\langle r^2 \\rangle \\approx 4Dt\\), what grows as time passes?",
+    a: [
+      "The particle's color",
+      "The average squared distance from the start",
+      "The size of each molecule",
+      "The number of dimensions"
+    ],
+    correct: 1,
+    why: "Correct. The average squared distance tends to increase with time."
+  },
+  {
+    q: "Brownian motion is an example of a...",
+    a: [
+      "random walk",
+      "linear equation only",
+      "fixed pattern",
+      "perfect circle"
+    ],
+    correct: 0,
+    why: "Correct. It is closely connected to the idea of a random walk."
+  }
+];
+
+const quizBox = document.getElementById("quizBox");
+const scoreSpan = document.getElementById("score");
+const pointer = document.getElementById("quizPointer");
+document.getElementById("total").textContent = quiz.length;
+
+let answered = Array(quiz.length).fill(false);
+let correct = Array(quiz.length).fill(false);
+
+function updateScore() {
+  const s = correct.filter(Boolean).length;
+  scoreSpan.textContent = s;
+  pointer.style.left = `${(s / quiz.length) * 100}%`;
+}
+
+function renderQuiz() {
+  quizBox.innerHTML = "";
+  quiz.forEach((item, idx) => {
+    const div = document.createElement("div");
+    div.className = "question";
+    div.innerHTML = `<h3>Question ${idx + 1}</h3><p>${item.q}</p>`;
+
+    const answers = document.createElement("div");
+    answers.className = "answers";
+
+    const feedback = document.createElement("div");
+    feedback.className = "feedback";
+
+    item.a.forEach((choice, cIdx) => {
+      const btn = document.createElement("button");
+      btn.innerHTML = choice;
+      btn.addEventListener("click", () => {
+        if (!answered[idx]) answered[idx] = true;
+        correct[idx] = cIdx === item.correct;
+
+        if (correct[idx]) {
+          feedback.className = "feedback right";
+          feedback.textContent = item.why;
+        } else {
+          feedback.className = "feedback wrong";
+          feedback.textContent = "Not quite. Try connecting it back to random molecular collisions.";
+        }
+
+        updateScore();
+      });
+      answers.appendChild(btn);
+    });
+
+    div.appendChild(answers);
+    div.appendChild(feedback);
+    quizBox.appendChild(div);
+  });
+}
+
+resizeCanvasForDisplay();
+renderQuiz();
+draw();
+</script>
+</body>
+</html>
