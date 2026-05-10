@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Brownian Motion Lesson</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .content-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        canvas {
+            border: 1px solid #bdc3c7;
+            background-color: #ecf0f1;
+            display: block;
+            margin: 0 auto;
+            border-radius: 4px;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #e8f4f8;
+            border-radius: 8px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        input[type="range"] {
+            vertical-align: middle;
+        }
+        .quiz-section {
+            background: #fdfefe;
+            border: 1px solid #d0d3d4;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .question {
+            margin-bottom: 15px;
+        }
+        .question p {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .options label {
+            display: block;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        #quiz-result {
+            margin-top: 15px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Understanding Brownian Motion</h1>
+
+    <div class="content-section">
+        <h2>What is Brownian Motion?</h2>
+        <p><strong>Brownian motion</strong> is the continuous, random, zig-zag motion of microscopic particles suspended in a fluid (a liquid or a gas). It is named after the botanist Robert Brown, who first observed this erratic movement while looking at pollen grains in water under a microscope in 1827.</p>
+        
+        <p>The movement is caused by the invisible, rapid collisions of the fluid's molecules against the suspended particle. Because the fluid molecules are in constant thermal motion, they strike the larger particle from all sides at random, causing it to "walk" randomly.</p>
+
+        <h3>The Math Behind It</h3>
+        <p>In 1905, Albert Einstein published a paper mathematically describing Brownian motion, proving the existence of atoms and molecules. He showed that the mean squared displacement (the average distance squared that a particle travels) is proportional to time.</p>
+        <p>This is expressed by the diffusion equation:</p>
+        <p>$$ \langle x^2 \rangle = 2Dt $$</p>
+        <p>Where:</p>
+        <ul>
+            <li>\( \langle x^2 \rangle \) is the mean squared displacement.</li>
+            <li>\( D \) is the diffusion coefficient (which depends on temperature and fluid viscosity).</li>
+            <li>\( t \) is time.</li>
+        </ul>
+    </div>
+
+    <div class="content-section">
+        <h2>Interactive Simulation: 2D Random Walk</h2>
+        <p>Watch the particle trace its random path. You can adjust the "Temperature" slider. Higher temperatures mean fluid molecules move faster and hit the particle harder, resulting in larger random steps.</p>
+        
+        <canvas id="brownianCanvas" width="600" height="400"></canvas>
+        
+        <div class="controls">
+            <button id="startBtn">Start</button>
+            <button id="stopBtn">Stop</button>
+            <button id="resetBtn">Reset</button>
+            <label style="margin-left: 20px; font-weight: bold;">
+                Temperature (Step Size): 
+                <input type="range" id="tempSlider" min="1" max="10" value="3">
+            </label>
+        </div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Knowledge Check</h2>
+        <form id="quizForm">
+            <div class="question">
+                <p>1. What causes the random movement of a particle in Brownian motion?</p>
+                <div class="options">
+                    <label><input type="radio" name="q1" value="a"> The particle is alive and swimming.</label>
+                    <label><input type="radio" name="q1" value="b"> Unequal, random collisions with unseen fluid molecules.</label>
+                    <label><input type="radio" name="q1" value="c"> Gravitational pull from the Earth.</label>
+                </div>
+            </div>
+
+            <div class="question">
+                <p>2. How does increasing the temperature affect Brownian motion?</p>
+                <div class="options">
+                    <label><input type="radio" name="q2" value="a"> The motion becomes faster and more erratic.</label>
+                    <label><input type="radio" name="q2" value="b"> The motion slows down and stops.</label>
+                    <label><input type="radio" name="q2" value="c"> The particle starts moving in a perfectly straight line.</label>
+                </div>
+            </div>
+
+            <div class="question">
+                <p>3. According to Einstein's equation \( \langle x^2 \rangle = 2Dt \), the mean squared displacement is proportional to:</p>
+                <div class="options">
+                    <label><input type="radio" name="q3" value="a"> Velocity squared.</label>
+                    <label><input type="radio" name="q3" value="b"> The mass of the particle.</label>
+                    <label><input type="radio" name="q3" value="c"> Time elapsed.</label>
+                </div>
+            </div>
+
+            <button type="button" onclick="checkQuiz()">Submit Answers</button>
+            <div id="quiz-result"></div>
+        </form>
+    </div>
+
+    <script>
+        // --- Canvas Simulation Logic ---
+        const canvas = document.getElementById('brownianCanvas');
+        const ctx = canvas.getContext('2d');
+        const tempSlider = document.getElementById('tempSlider');
+        
+        let animationId;
+        let isRunning = false;
+        
+        // Particle state
+        let posX = canvas.width / 2;
+        let posY = canvas.height / 2;
+        
+        // Setup initial canvas
+        function initCanvas() {
+            ctx.fillStyle = '#ecf0f1';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            posX = canvas.width / 2;
+            posY = canvas.height / 2;
+            ctx.beginPath();
+            ctx.moveTo(posX, posY);
+        }
+
+        function drawStep() {
+            if (!isRunning) return;
+
+            const stepSize = parseInt(tempSlider.value);
+            
+            // Random movement between -stepSize and +stepSize
+            const dx = (Math.random() - 0.5) * 2 * stepSize;
+            const dy = (Math.random() - 0.5) * 2 * stepSize;
+            
+            const newX = posX + dx;
+            const newY = posY + dy;
+
+            // Draw line to new position
+            ctx.beginPath();
+            ctx.moveTo(posX, posY);
+            ctx.lineTo(newX, newY);
+            ctx.strokeStyle = '#e74c3c'; // Red path
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Draw current particle head
+            ctx.beginPath();
+            ctx.arc(newX, newY, 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#2c3e50';
+            ctx.fill();
+
+            // Update position
+            posX = newX;
+            posY = newY;
+
+            // Keep within bounds (wrap around or bounce)
+            if (posX < 0 || posX > canvas.width || posY < 0 || posY > canvas.height) {
+                // If it goes off screen, reset to center to keep the simulation visible
+                initCanvas(); 
+            }
+
+            animationId = requestAnimationFrame(drawStep);
+        }
+
+        // Control Buttons
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                drawStep();
+            }
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            isRunning = false;
+            cancelAnimationFrame(animationId);
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            isRunning = false;
+            cancelAnimationFrame(animationId);
+            initCanvas();
+        });
+
+        // Initialize on load
+        initCanvas();
+
+
+        // --- Quiz Logic ---
+        function checkQuiz() {
+            const answers = {
+                q1: 'b',
+                q2: 'a',
+                q3: 'c'
+            };
+
+            let score = 0;
+            let total = Object.keys(answers).length;
+
+            for (let q in answers) {
+                const selected = document.querySelector(`input[name="${q}"]:checked`);
+                if (selected && selected.value === answers[q]) {
+                    score++;
+                }
+            }
+
+            const resultDiv = document.getElementById('quiz-result');
+            resultDiv.style.display = 'block';
+            
+            if (score === total) {
+                resultDiv.style.backgroundColor = '#d4efdf';
+                resultDiv.style.color = '#1d8348';
+                resultDiv.innerHTML = `Perfect! You scored ${score} out of ${total}.`;
+            } else {
+                resultDiv.style.backgroundColor = '#fadbd8';
+                resultDiv.style.color = '#943126';
+                resultDiv.innerHTML = `You scored ${score} out of ${total}. Keep reviewing the material and try again!`;
+            }
+        }
+    </script>
+</body>
+</html>
