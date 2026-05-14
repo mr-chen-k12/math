@@ -1,3 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inequality Master!</title>
+    
+    <script>
+      MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #10B981;
+            --danger: #EF4444;
+            --bg: #F3F4F6;
+            --card: #FFFFFF;
+        }
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: var(--bg);
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        h1 { color: var(--primary); font-size: 2.5em; margin-bottom: 10px;}
+        
+        /* Progress Bar */
+        .progress-wrapper {
+            margin: 20px 0;
+            background: #E5E7EB;
+            border-radius: 15px;
+            height: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FCD34D, #10B981, #3B82F6);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #1F2937;
+            text-shadow: 1px 1px 2px white;
+            width: 100%;
+        }
+
+        /* Question Area */
+        .equation-box {
+            font-size: 2.5em;
+            margin: 20px 0;
+            padding: 20px;
+            background: #EEF2FF;
+            border-radius: 15px;
+            border: 3px dashed var(--primary);
+        }
+        .step-container {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 0.5s;
+        }
+        .step-container.active { display: block; }
+        
+        /* Buttons */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            font-family: inherit;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); background: #4338CA; }
+        .btn.wrong { background: var(--danger); }
+        .btn.correct { background: var(--secondary); }
+        
+        /* Canvas Choices */
+        .canvas-choices {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .canvas-card {
+            background: #F9FAFB;
+            border: 3px solid #D1D5DB;
+            border-radius: 15px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .canvas-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        canvas { background: white; border-radius: 8px; }
+
+        /* End Screen */
+        #end-screen { display: none; }
+        .submit-link {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: var(--primary);
+            font-weight: bold;
+            text-decoration: none;
+            border: 3px solid var(--primary);
+            padding: 15px 30px;
+            border-radius: 15px;
+        }
+        .submit-link:hover { background: var(--primary); color: white; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Inequality Master! 🚀</h1>
+    
+    <div id="quiz-area">
+        <div class="progress-wrapper">
+            <div class="progress-fill" id="progress-bar"></div>
+            <div class="progress-text" id="progress-status">Question 1 / 30 - Trying 💪</div>
+        </div>
+
+        <div class="equation-box" id="equation-display">
+            </div>
+
+        <div class="step-container" id="step-1">
+            <h2>Step 1: What is our first move?</h2>
+            <div id="choices-1"></div>
+        </div>
+
+        <div class="step-container" id="step-2">
+            <h2>Step 2: Do we need to flip the inequality sign?</h2>
+            <p style="font-size: 0.9em; color: #666;">(Hint: Think about what you just divided by!)</p>
+            <button class="btn" onclick="checkStep2(true)">Yes, flip it!</button>
+            <button class="btn" onclick="checkStep2(false)">No, keep it the same!</button>
+        </div>
+
+        <div class="step-container" id="step-3">
+            <h2>Step 3: Which chart is the correct solution?</h2>
+            <div class="canvas-choices" id="choices-3">
+                </div>
+        </div>
+    </div>
+
+    <div id="end-screen">
+        <h2>You are a Math Superstar! 🎉</h2>
+        <p>Right-click (or long press) the certificate below to save your screenshot!</p>
+        <canvas id="certificate" width="600" height="300" style="border: 5px solid #4F46E5; max-width: 100%;"></canvas>
+        <br>
+        <a href="https://tinyurl.com/mathscreenshot" target="_blank" class="submit-link">Submit Screenshot to Teacher Here!</a>
+    </div>
+
+</div>
+
 <script>
     const TOTAL_QUESTIONS = 30;
     let currentQuestionIdx = 0;
@@ -8,21 +187,21 @@
     const opLatex = { '>': '>', '<': '<', '>=': '\\ge', '<=': '\\le' };
     const flipOp = { '>': '<', '<': '>', '>=': '<=', '<=': '>=' };
 
-    // Helper to generate a single question
-    function generateSingleQuestion() {
-        const ops = ['>', '<', '>=', '<='];
-        let a = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? 1 : -1); 
-        let ans = Math.floor(Math.random() * 11) - 5; 
-        let b = a * ans;
-        let op = ops[Math.floor(Math.random() * ops.length)];
-        let finalOp = (a < 0) ? flipOp[op] : op;
-        return { a: a, b: b, op: op, ans: ans, finalOp: finalOp };
-    }
-
-    // Generate initial 30 questions
+    // Generate 30 questions
     function generateQuestions() {
+        const ops = ['>', '<', '>=', '<='];
         for(let i=0; i<TOTAL_QUESTIONS; i++) {
-            questions.push(generateSingleQuestion());
+            // Generate a random coefficient (avoiding 0 and 1 to force division)
+            let a = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? 1 : -1); 
+            // Ensure integer answers to keep it kid-friendly
+            let ans = Math.floor(Math.random() * 11) - 5; // Target answer between -5 and 5
+            let b = a * ans;
+            let op = ops[Math.floor(Math.random() * ops.length)];
+            
+            // Determine correct final state
+            let finalOp = (a < 0) ? flipOp[op] : op;
+            
+            questions.push({ a: a, b: b, op: op, ans: ans, finalOp: finalOp });
         }
     }
 
@@ -60,7 +239,9 @@
         let choices1Div = document.getElementById('choices-1');
         choices1Div.innerHTML = '';
         
+        // Distractors for division
         let options = [currentQ.a, -currentQ.a, currentQ.b, 2].filter((v, i, a) => a.indexOf(v) === i);
+        // Shuffle options
         options.sort(() => Math.random() - 0.5);
         
         options.forEach(opt => {
@@ -70,24 +251,19 @@
             btn.onclick = function() {
                 if (opt === currentQ.a) {
                     btn.classList.add('correct');
-                    // Lock buttons so they can't click multiple
-                    Array.from(choices1Div.children).forEach(b => b.disabled = true);
                     setTimeout(() => {
                         document.getElementById('step-1').classList.remove('active');
                         document.getElementById('step-2').classList.add('active');
                     }, 500);
                 } else {
                     btn.classList.add('wrong');
-                    setTimeout(() => {
-                        alert("Oops! Incorrect operation. Let's try a brand new problem to make sure you've got it!");
-                        questions[currentQuestionIdx] = generateSingleQuestion(); // Generate new numbers
-                        loadQuestion(); // Reload
-                    }, 100);
+                    setTimeout(() => btn.classList.remove('wrong'), 800);
                 }
             };
             choices1Div.appendChild(btn);
         });
 
+        // Re-render MathJax
         if(window.MathJax) MathJax.typesetPromise();
     }
 
@@ -99,9 +275,7 @@
             document.getElementById('step-3').classList.add('active');
             generateCanvasChoices();
         } else {
-            alert("Oops! Remember the rule: We only flip the sign if we divide or multiply by a NEGATIVE number! Let's try a new problem.");
-            questions[currentQuestionIdx] = generateSingleQuestion(); // Generate new numbers
-            loadQuestion(); // Reload
+            alert("Oops! Remember the rule: We only flip the sign if we divide or multiply by a NEGATIVE number! Try again.");
         }
     }
 
@@ -110,12 +284,14 @@
         let choices3Div = document.getElementById('choices-3');
         choices3Div.innerHTML = '';
 
+        // Generate 3 graphs: 1 correct, 2 distractors
         let graphs = [
             { ans: currentQ.ans, op: currentQ.finalOp, correct: true },
-            { ans: currentQ.ans, op: flipOp[currentQ.finalOp], correct: false }, 
-            { ans: currentQ.ans + 1, op: currentQ.finalOp, correct: false } 
+            { ans: currentQ.ans, op: flipOp[currentQ.finalOp], correct: false }, // Wrong direction
+            { ans: currentQ.ans + 1, op: currentQ.finalOp, correct: false } // Wrong number
         ];
         
+        // Shuffle graphs
         graphs.sort(() => Math.random() - 0.5);
 
         graphs.forEach((g, index) => {
@@ -139,8 +315,6 @@
                 if(g.correct) {
                     card.style.borderColor = "var(--secondary)";
                     card.style.backgroundColor = "#D1FAE5";
-                    // Lock choices
-                    Array.from(choices3Div.children).forEach(c => c.onclick = null);
                     setTimeout(() => {
                         currentQuestionIdx++;
                         loadQuestion();
@@ -149,14 +323,14 @@
                     card.style.borderColor = "var(--danger)";
                     card.style.backgroundColor = "#FEE2E2";
                     setTimeout(() => {
-                        alert("Almost there, but the graph is wrong! Let's try a brand new question.");
-                        questions[currentQuestionIdx] = generateSingleQuestion(); // Generate new numbers
-                        loadQuestion(); // Reload
-                    }, 100);
+                        card.style.borderColor = "#D1D5DB";
+                        card.style.backgroundColor = "#F9FAFB";
+                    }, 800);
                 }
             };
             choices3Div.appendChild(card);
             
+            // Draw on canvas
             setTimeout(() => drawNumberLine(canvas.id, g.ans, g.op), 50);
         });
     }
@@ -172,6 +346,7 @@
 
         ctx.clearRect(0, 0, w, h);
 
+        // Draw main line
         ctx.beginPath();
         ctx.moveTo(20, cy);
         ctx.lineTo(w - 20, cy);
@@ -179,6 +354,7 @@
         ctx.strokeStyle = "#000";
         ctx.stroke();
 
+        // Draw tick marks (center is 'value')
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
         ctx.fillStyle = "#000";
@@ -191,6 +367,7 @@
             ctx.fillText(value + i, x, cy + 20);
         }
 
+        // Draw Arrow for inequality
         ctx.beginPath();
         let startX = w/2;
         let endX = (op.includes('>')) ? w - 20 : 20;
@@ -198,9 +375,10 @@
         ctx.moveTo(startX, cy - 15);
         ctx.lineTo(endX, cy - 15);
         ctx.lineWidth = 4;
-        ctx.strokeStyle = "#EF4444"; 
+        ctx.strokeStyle = "#EF4444"; // Red line for answer
         ctx.stroke();
 
+        // Arrowhead
         ctx.beginPath();
         ctx.moveTo(endX, cy - 15);
         if(op.includes('>')) {
@@ -213,15 +391,16 @@
         ctx.fillStyle = "#EF4444";
         ctx.fill();
 
+        // Draw Circle (Open or Closed)
         ctx.beginPath();
         ctx.arc(startX, cy - 15, 6, 0, 2 * Math.PI);
         ctx.lineWidth = 2;
         ctx.strokeStyle = "#EF4444";
         if(op.includes('=')) {
-            ctx.fillStyle = "#EF4444"; 
+            ctx.fillStyle = "#EF4444"; // Closed
             ctx.fill();
         } else {
-            ctx.fillStyle = "#FFF"; 
+            ctx.fillStyle = "#FFF"; // Open
             ctx.fill();
             ctx.stroke();
         }
@@ -235,13 +414,16 @@
         const c = document.getElementById("certificate");
         const ctx = c.getContext("2d");
         
+        // Background
         ctx.fillStyle = "#EEF2FF";
         ctx.fillRect(0, 0, c.width, c.height);
         
+        // Border
         ctx.strokeStyle = "#4F46E5";
         ctx.lineWidth = 10;
         ctx.strokeRect(5, 5, c.width - 10, c.height - 10);
 
+        // Text
         ctx.fillStyle = "#1F2937";
         ctx.font = "bold 30px Arial";
         ctx.textAlign = "center";
@@ -255,11 +437,13 @@
         ctx.fillStyle = "#10B981";
         ctx.fillText("Final Status: LIT! 🔥", c.width/2, 180);
         
+        // Date
         ctx.font = "16px Arial";
         ctx.fillStyle = "#6B7280";
         const dateStr = new Date().toLocaleDateString();
         ctx.fillText(`Date Completed: ${dateStr}`, c.width/2, 240);
         
+        // Prompt user to right click
         ctx.font = "italic 14px Arial";
         ctx.fillStyle = "#EF4444";
         ctx.fillText("(Right-click or Long-press to save image)", c.width/2, 270);
@@ -272,3 +456,5 @@
     };
 
 </script>
+</body>
+</html>
