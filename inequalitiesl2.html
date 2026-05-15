@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Negative Multiplication Inequality Master!</title>
+
+    <script>
+      MathJax = {
+        loader: {load: ['[tex]/cancel']},
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            packages: {'[+]': ['cancel']}
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+    <style>
+        :root {
+            --primary: #7C3AED;
+            --secondary: #10B981;
+            --danger: #EF4444;
+            --bg: #F3F4F6;
+            --card: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: var(--bg);
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.3em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #4B5563;
+            margin-bottom: 20px;
+        }
+
+        .rule-box {
+            background: #FEF3C7;
+            border: 2px solid #F59E0B;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px auto;
+            max-width: 650px;
+            font-size: 1.1em;
+        }
+
+        .progress-wrapper {
+            margin: 20px 0;
+            background: #E5E7EB;
+            border-radius: 15px;
+            height: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FCD34D, #10B981, #3B82F6);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #1F2937;
+            text-shadow: 1px 1px 2px white;
+            width: 100%;
+        }
+
+        .equation-box {
+            font-size: 2.4em;
+            margin: 20px 0;
+            padding: 20px;
+            background: #F3E8FF;
+            border-radius: 15px;
+            border: 3px dashed var(--primary);
+        }
+
+        .step-container {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 0.5s;
+        }
+
+        .step-container.active {
+            display: block;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.15em;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            font-family: inherit;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn:hover:not([disabled]) {
+            transform: scale(1.05);
+            background: #5B21B6;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn.wrong {
+            background: var(--danger);
+        }
+
+        .btn.correct {
+            background: var(--secondary);
+        }
+
+        .algebra-box {
+            background: #FFFBEB;
+            border: 2px solid #FCD34D;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 560px;
+            font-size: 1.25em;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .algebra-label {
+            font-size: 0.72em;
+            color: #92400E;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .canvas-choices {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .canvas-card {
+            background: #F9FAFB;
+            border: 3px solid #D1D5DB;
+            border-radius: 15px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .canvas-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+
+        canvas {
+            background: white;
+            border-radius: 8px;
+        }
+
+        #end-screen {
+            display: none;
+        }
+
+        .submit-link {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 1.4em;
+            color: var(--primary);
+            font-weight: bold;
+            text-decoration: none;
+            border: 3px solid var(--primary);
+            padding: 15px 30px;
+            border-radius: 15px;
+        }
+
+        .submit-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Negative Multiplication Inequality Master! ✖️➖</h1>
+
+    <div class="subtitle">
+        Practice solving inequalities where you must multiply by a negative number.
+    </div>
+
+    <div class="rule-box">
+        Remember: When you <strong>multiply or divide by a negative number</strong>, you must <strong>flip the inequality sign</strong>.
+    </div>
+
+    <div id="quiz-area">
+        <div class="progress-wrapper">
+            <div class="progress-fill" id="progress-bar"></div>
+            <div class="progress-text" id="progress-status">Question 1 / 30 - Trying 💪</div>
+        </div>
+
+        <div class="equation-box" id="equation-display"></div>
+
+        <div class="step-container" id="step-1">
+            <h2>Step 1: What should we multiply both sides by?</h2>
+            <p style="font-size: 0.95em; color: #666;">
+                Hint: The variable is being divided by a negative number.
+            </p>
+            <div id="choices-1"></div>
+        </div>
+
+        <div class="step-container" id="step-2">
+            <h2>Step 2: Do we need to flip the inequality sign?</h2>
+            <p style="font-size: 0.95em; color: #666;">
+                Think carefully: Did we multiply by a negative number?
+            </p>
+            <button class="btn" onclick="checkStep2(true)">Yes, flip it!</button>
+            <button class="btn" onclick="checkStep2(false)">No, keep it the same!</button>
+        </div>
+
+        <div class="step-container" id="step-3">
+            <div id="algebra-display"></div>
+            <h2>Step 3: Which number line matches the final answer?</h2>
+            <div class="canvas-choices" id="choices-3"></div>
+        </div>
+    </div>
+
+    <div id="end-screen">
+        <h2>You are a Math Superstar! 🎉</h2>
+        <p>Right-click or long press the certificate below to save your screenshot.</p>
+        <canvas id="certificate" width="600" height="300" style="border: 5px solid #7C3AED; max-width: 100%;"></canvas>
+        <br>
+        <a href="https://tinyurl.com/mathscreenshot" target="_blank" class="submit-link">Submit Screenshot to Teacher Here!</a>
+    </div>
+</div>
+
+<script>
+    const TOTAL_QUESTIONS = 30;
+    let currentQuestionIdx = 0;
+    let questions = [];
+    let currentQ = null;
+
+    const opLatex = {
+        '>': '>',
+        '<': '<',
+        '>=': '\\ge',
+        '<=': '\\le'
+    };
+
+    const flipOp = {
+        '>': '<',
+        '<': '>',
+        '>=': '<=',
+        '<=': '>='
+    };
+
+    function generateSingleQuestion() {
+        const ops = ['>', '<', '>=', '<='];
+
+        // This is the negative number students must multiply by.
+        let divisor = -(Math.floor(Math.random() * 5) + 2);
+        // Possible values: -2, -3, -4, -5, -6
+
+        let rightSide = Math.floor(Math.random() * 11) - 5;
+        // Possible values: -5 through 5
+
+        let op = ops[Math.floor(Math.random() * ops.length)];
+
+        // Example:
+        // x / -3 > 4
+        // Multiply both sides by -3.
+        // Since -3 is negative, flip the sign.
+        // x < -12
+        let answer = divisor * rightSide;
+        let finalOp = flipOp[op];
+
+        return {
+            divisor: divisor,
+            rightSide: rightSide,
+            op: op,
+            answer: answer,
+            finalOp: finalOp
+        };
+    }
+
+    function generateQuestions() {
+        questions = [];
+        for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+            questions.push(generateSingleQuestion());
+        }
+    }
+
+    function updateProgress() {
+        let percent = (currentQuestionIdx / TOTAL_QUESTIONS) * 100;
+        document.getElementById('progress-bar').style.width = percent + '%';
+
+        let rank = "Trying 💪";
+        if (currentQuestionIdx >= 10 && currentQuestionIdx < 20) rank = "Good Work! 🌟";
+        if (currentQuestionIdx >= 20) rank = "LIT! 🔥";
+
+        document.getElementById('progress-status').innerText =
+            `Question ${currentQuestionIdx + 1} / ${TOTAL_QUESTIONS} - ${rank}`;
+    }
+
+    function loadQuestion() {
+        if (currentQuestionIdx >= TOTAL_QUESTIONS) {
+            endQuiz();
+            return;
+        }
+
+        currentQ = questions[currentQuestionIdx];
+        updateProgress();
+
+        let eqStr = `$$ \\frac{x}{${currentQ.divisor}} ${opLatex[currentQ.op]} ${currentQ.rightSide} $$`;
+        document.getElementById('equation-display').innerHTML = eqStr;
+
+        document.getElementById('step-1').classList.add('active');
+        document.getElementById('step-2').classList.remove('active');
+        document.getElementById('step-3').classList.remove('active');
+        document.getElementById('algebra-display').innerHTML = '';
+
+        let choices1Div = document.getElementById('choices-1');
+        choices1Div.innerHTML = '';
+
+        let options = [
+            currentQ.divisor,
+            Math.abs(currentQ.divisor),
+            currentQ.rightSide,
+            -1
+        ].filter((v, i, arr) => arr.indexOf(v) === i);
+
+        options.sort(() => Math.random() - 0.5);
+
+        options.forEach(opt => {
+            let btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.innerHTML = `Multiply by ${opt}`;
+
+            btn.onclick = function() {
+                if (opt === currentQ.divisor) {
+                    btn.classList.add('correct');
+                    Array.from(choices1Div.children).forEach(b => b.disabled = true);
+
+                    setTimeout(() => {
+                        document.getElementById('step-1').classList.remove('active');
+                        document.getElementById('step-2').classList.add('active');
+                    }, 500);
+                } else {
+                    btn.classList.add('wrong');
+
+                    setTimeout(() => {
+                        alert("Not quite. To cancel the denominator, multiply by the same number in the denominator. Let's try a new problem.");
+                        questions[currentQuestionIdx] = generateSingleQuestion();
+                        loadQuestion();
+                    }, 100);
+                }
+            };
+
+            choices1Div.appendChild(btn);
+        });
+
+        if (window.MathJax) MathJax.typesetPromise();
+    }
+
+    function checkStep2(userFlipped) {
+        let shouldFlip = true;
+
+        if (userFlipped === shouldFlip) {
+            document.getElementById('step-2').classList.remove('active');
+            document.getElementById('step-3').classList.add('active');
+
+            // This version shows multiplying, canceling, flipping, and simplifying.
+            let multiplicationStep = `
+                $$
+                ${currentQ.divisor}
+                \\left(\\frac{x}{${currentQ.divisor}}\\right)
+                ${opLatex[currentQ.op]}
+                ${currentQ.rightSide}(${currentQ.divisor})
+                $$
+            `;
+
+            let cancelStep = `
+                $$
+                \\frac{\\cancel{${currentQ.divisor}}x}{\\cancel{${currentQ.divisor}}}
+                ${opLatex[currentQ.op]}
+                ${currentQ.rightSide}(${currentQ.divisor})
+                $$
+            `;
+
+            let flipStep = `
+                $$
+                x ${opLatex[currentQ.finalOp]} ${currentQ.rightSide}(${currentQ.divisor})
+                $$
+            `;
+
+            let finalStep = `
+                $$
+                x ${opLatex[currentQ.finalOp]} ${currentQ.answer}
+                $$
+            `;
+
+            document.getElementById('algebra-display').innerHTML = `
+                <div class="algebra-box">
+                    <div class="algebra-label">Multiply both sides by ${currentQ.divisor}:</div>
+                    ${multiplicationStep}
+
+                    <div class="algebra-label" style="margin-top: 15px;">Cancel on the left side:</div>
+                    ${cancelStep}
+
+                    <div class="algebra-label" style="margin-top: 15px;">Because we multiplied by a negative, flip the sign:</div>
+                    ${flipStep}
+
+                    <div class="algebra-label" style="margin-top: 15px;">Final simplified answer:</div>
+                    ${finalStep}
+                </div>
+            `;
+
+            if (window.MathJax) MathJax.typesetPromise();
+
+            generateCanvasChoices();
+        } else {
+            alert("Oops! Since we multiplied by a negative number, we must flip the inequality sign. Let's try a new problem.");
+            questions[currentQuestionIdx] = generateSingleQuestion();
+            loadQuestion();
+        }
+    }
+
+    function generateCanvasChoices() {
+        let choices3Div = document.getElementById('choices-3');
+        choices3Div.innerHTML = '';
+
+        let graphs = [
+            {
+                ans: currentQ.answer,
+                op: currentQ.finalOp,
+                correct: true
+            },
+            {
+                ans: currentQ.answer,
+                op: flipOp[currentQ.finalOp],
+                correct: false
+            },
+            {
+                ans: currentQ.answer + 1,
+                op: currentQ.finalOp,
+                correct: false
+            }
+        ];
+
+        graphs.sort(() => Math.random() - 0.5);
+
+        graphs.forEach((g, index) => {
+            let card = document.createElement('div');
+            card.className = 'canvas-card';
+
+            let canvas = document.createElement('canvas');
+            canvas.width = 250;
+            canvas.height = 100;
+            canvas.id = `canvas-opt-${index}`;
+
+            let label = document.createElement('div');
+            label.style.fontWeight = 'bold';
+            label.style.marginTop = '10px';
+            label.innerText = `Option ${String.fromCharCode(65 + index)}`;
+
+            card.appendChild(canvas);
+            card.appendChild(label);
+
+            card.onclick = function() {
+                if (g.correct) {
+                    card.style.borderColor = "var(--secondary)";
+                    card.style.backgroundColor = "#D1FAE5";
+                    Array.from(choices3Div.children).forEach(c => c.onclick = null);
+
+                    setTimeout(() => {
+                        currentQuestionIdx++;
+                        loadQuestion();
+                    }, 1200);
+                } else {
+                    card.style.borderColor = "var(--danger)";
+                    card.style.backgroundColor = "#FEE2E2";
+
+                    setTimeout(() => {
+                        alert("Almost there. Check the direction of the arrow, the open or closed circle, and the value. Let's try a new question.");
+                        questions[currentQuestionIdx] = generateSingleQuestion();
+                        loadQuestion();
+                    }, 100);
+                }
+            };
+
+            choices3Div.appendChild(card);
+
+            setTimeout(() => drawNumberLine(canvas.id, g.ans, g.op), 50);
+        });
+    }
+
+    function drawNumberLine(canvasId, value, op) {
+        const c = document.getElementById(canvasId);
+        if (!c) return;
+
+        const ctx = c.getContext("2d");
+        const w = c.width;
+        const h = c.height;
+        const cy = h / 2;
+
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.beginPath();
+        ctx.moveTo(20, cy);
+        ctx.lineTo(w - 20, cy);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#000";
+        ctx.stroke();
+
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#000";
+
+        for (let i = -2; i <= 2; i++) {
+            let x = w / 2 + (i * 40);
+
+            ctx.beginPath();
+            ctx.moveTo(x, cy - 5);
+            ctx.lineTo(x, cy + 5);
+            ctx.stroke();
+
+            ctx.fillText(value + i, x, cy + 20);
+        }
+
+        ctx.beginPath();
+
+        let startX = w / 2;
+        let endX = op.includes('>') ? w - 20 : 20;
+
+        ctx.moveTo(startX, cy - 15);
+        ctx.lineTo(endX, cy - 15);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#EF4444";
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(endX, cy - 15);
+
+        if (op.includes('>')) {
+            ctx.lineTo(endX - 10, cy - 20);
+            ctx.lineTo(endX - 10, cy - 10);
+        } else {
+            ctx.lineTo(endX + 10, cy - 20);
+            ctx.lineTo(endX + 10, cy - 10);
+        }
+
+        ctx.fillStyle = "#EF4444";
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(startX, cy - 15, 6, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#EF4444";
+
+        if (op.includes('=')) {
+            ctx.fillStyle = "#EF4444";
+            ctx.fill();
+        } else {
+            ctx.fillStyle = "#FFF";
+            ctx.fill();
+            ctx.stroke();
+        }
+    }
+
+    function endQuiz() {
+        document.getElementById('quiz-area').style.display = 'none';
+        document.getElementById('end-screen').style.display = 'block';
+
+        const c = document.getElementById("certificate");
+        const ctx = c.getContext("2d");
+
+        ctx.fillStyle = "#F3E8FF";
+        ctx.fillRect(0, 0, c.width, c.height);
+
+        ctx.strokeStyle = "#7C3AED";
+        ctx.lineWidth = 10;
+        ctx.strokeRect(5, 5, c.width - 10, c.height - 10);
+
+        ctx.fillStyle = "#1F2937";
+        ctx.font = "bold 30px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Negative Multiplication Master 🏆", c.width / 2, 60);
+
+        ctx.font = "20px Arial";
+        ctx.fillStyle = "#4B5563";
+        ctx.fillText("Completed 30 Inequality Challenges!", c.width / 2, 110);
+
+        ctx.font = "bold 40px Arial";
+        ctx.fillStyle = "#10B981";
+        ctx.fillText("Final Status: LIT! 🔥", c.width / 2, 180);
+
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#6B7280";
+        const dateStr = new Date().toLocaleDateString();
+        ctx.fillText(`Date Completed: ${dateStr}`, c.width / 2, 240);
+
+        ctx.font = "italic 14px Arial";
+        ctx.fillStyle = "#EF4444";
+        ctx.fillText("(Right-click or long-press to save image)", c.width / 2, 270);
+    }
+
+    window.onload = () => {
+        generateQuestions();
+        loadQuestion();
+    };
+</script>
+
+</body>
+</html>
