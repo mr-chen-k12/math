@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bases and Heights of Triangles - Interactive Learning</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/dist/スイート/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #0f9d58;
+            --secondary-color: #4285f4;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .problem-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #3367d6;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .active-problem-btn {
+            background-color: var(--primary-color) !important;
+            font-weight: bold;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: #fff;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .level-card {
+            background: #f1f3f4;
+            border-left: 5px solid var(--secondary-color);
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .level-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #202124;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid #dadce0;
+            text-align: left;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .option-btn:hover {
+            background: #f8f9fa;
+            border-color: #9aa0a6;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 16px;
+            min-height: 24px;
+        }
+
+        .correct { color: #137333; }
+        .incorrect { color: #c5221f; }
+
+        /* Scoreboard Styling */
+        .scoreboard-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e8eaed;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 300px;
+            height: 40px;
+            background: linear-gradient(to right, #ea4335, #fbbc05, #4285f4, #34a853);
+            border-radius: 20px;
+            margin-top: 15px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .gauge-pointer {
+            position: absolute;
+            top: -10px;
+            left: 0%;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 20px solid #202124;
+            transform: translateX(-12px);
+            transition: left 0.5s ease-out;
+        }
+
+        .gauge-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 300px;
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #5f6368;
+        }
+
+        .action-zone {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .screenshot-btn {
+            background-color: #202124;
+        }
+        .screenshot-btn:hover {
+            background-color: #3c4043;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Bases and Heights of Triangles</h1>
+
+    <div class="problem-selector">
+        <button id="btn-triB" class="active-problem-btn" onclick="switchProblem('B')">Triangle B</button>
+        <button id="btn-triC" onclick="switchProblem('C')">Triangle C</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="geometryCanvas" width="500" height="250"></canvas>
+    </div>
+
+    <div id="level1-card" class="level-card">
+        <div id="l1-title" class="level-title">Level 1: Substituting Values & Identifying the Unknown</div>
+        <div id="l1-prompt"></div>
+        <div id="l1-options" class="options-container"></div>
+        <div id="l1-feedback" class="feedback"></div>
+    </div>
+
+    <div id="level2-card" class="level-card" style="display: none;">
+        <div id="l2-title" class="level-title">Level 2: Simplifying the Equation</div>
+        <div id="l2-prompt"></div>
+        <div id="l2-options" class="options-container"></div>
+        <div id="l2-feedback" class="feedback"></div>
+    </div>
+
+    <div class="scoreboard-section">
+        <h3>Your Progress Rank</h3>
+        <div class="gauge-container">
+            <div id="gaugePointer" class="gauge-pointer"></div>
+        </div>
+        <div class="gauge-labels">
+            <span>Trying</span>
+            <span>Good Effort</span>
+            <span>Lit! 🔥</span>
+        </div>
+    </div>
+
+    <div class="action-zone">
+        <button class="screenshot-btn" onclick="handleScreenshotSubmit()">📸 Print Screen & Submit Success</button>
+        <button id="next-btn" style="display: none;" onclick="advanceLevel()">Next Step →</button>
+    </div>
+</div>
+
+<script>
+    // App State Configuration
+    let currentProblem = 'B'; 
+    let currentLevel = 1;
+    let scorePoints = 0; // Max 4 points total (2 levels per problem)
+
+    const problemsData = {
+        B: {
+            area: 8,
+            areaTex: "8",
+            base: "b",
+            height: "8/3",
+            heightTex: "\\frac{8}{3}",
+            l1: {
+                prompt: "The area formula for a triangle is \\( A = \\frac{1}{2} \\times \\text{base} \\times \\text{height} \\). After substituting the given metrics of Triangle B, which variable represents our <strong>unknown target value</strong>?",
+                options: [
+                    { text: "\\( A \\) (Area is unknown)", correct: false },
+                    { text: "\\( b \\) (Base length is unknown)", correct: true },
+                    { text: "\\( h = \\frac{8}{3} \\) (Height is unknown)", correct: false }
+                ]
+            },
+            l2: {
+                prompt: "With values substituted, your equation stands as: \\( 8 = \\frac{1}{2} \\times b \\times \\frac{8}{3} \\). Which expression represents the most simplified setup before calculating \\( b \\)?",
+                options: [
+                    { text: "\\( 8 = \\frac{4}{3} \\times b \\)", correct: true },
+                    { text: "\\( 8 = \\frac{8}{6} \\times b \\)", correct: false },
+                    { text: "\\( 8 = \\frac{1}{2} \\times \\frac{8}{3}b \\)", correct: false }
+                ]
+            }
+        },
+        C: {
+            area: 54/5,
+            areaTex: "\\frac{54}{5}",
+            base: "3\\frac{3}{5}",
+            baseVal: 18/5,
+            height: "h",
+            l1: {
+                prompt: "The area formula is \\( A = \\frac{1}{2} \\times \\text{base} \\times \\text{height} \\). After substituting the given values of Triangle C, which entity is your <strong>unknown target value</strong>?",
+                options: [
+                    { text: "\\( h \\) (Height line is unknown)", correct: true },
+                    { text: "\\( b = 3\\frac{3}{5} \\) (Base length is unknown)", correct: false },
+                    { text: "\\( A = \\frac{54}{5} \\) (Area is unknown)", correct: false }
+                ]
+            },
+            l2: {
+                prompt: "With values substituted (converting mixed fractions: \\( 3\\frac{3}{5} = \\frac{18}{5} \\)), your equation is: \\( \\frac{54}{5} = \\frac{1}{2} \\times \\frac{18}{5} \\times h \\). What is the simplified next step?",
+                options: [
+                    { text: "\\( \\frac{54}{5} = \\frac{18}{10} \\times h \\implies \\frac{54}{5} = \\frac{9}{5} \\times h \\)", correct: true },
+                    { text: "\\( \\frac{54}{5} = \\frac{19}{5} \\times h \\)", correct: false },
+                    { text: "\\( 54 = 18 \\times h \\)", correct: false }
+                ]
+            }
+        }
+    };
+
+    window.onload = function() {
+        initProblem();
+    };
+
+    function switchProblem(letter) {
+        currentProblem = letter;
+        currentLevel = 1;
+        document.getElementById('btn-triB').classList.toggle('active-problem-btn', letter === 'B');
+        document.getElementById('btn-triC').classList.toggle('active-problem-btn', letter === 'C');
+        initProblem();
+    }
+
+    function initProblem() {
+        currentLevel = 1;
+        document.getElementById('level2-card').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        
+        renderCanvas();
+        loadLevel1();
+        updateGauge();
+    }
+
+    // Interactive Math Canvas Render loops
+    function renderCanvas() {
+        const canvas = document.getElementById('geometryCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (currentProblem === 'B') {
+            // Triangle B Layout Setup
+            ctx.beginPath();
+            ctx.moveTo(80, 200);   // Bottom-left
+            ctx.lineTo(420, 200);  // Bottom-right
+            ctx.lineTo(170, 50);   // Top Apex
+            ctx.closePath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+
+            // Height dotted drop-down
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(170, 50);
+            ctx.lineTo(170, 200);
+            ctx.strokeStyle = '#ea4335';
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Square right angle box
+            ctx.beginPath();
+            ctx.rect(170, 185, 15, 15);
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+
+            // Text Labels
+            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = '#000';
+            ctx.fillText("B", 220, 130);
+            
+            ctx.font = '16px Arial';
+            ctx.fillText("8/3", 180, 120);
+            
+            // Base Double arrow indicators
+            ctx.beginPath();
+            ctx.moveTo(80, 225);
+            ctx.lineTo(420, 225);
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+            
+            ctx.font = 'italic 16px Georgia';
+            ctx.fillText("b", 245, 240);
+        } else {
+            // Triangle C Layout Setup (Oblique/Extended Baseline)
+            ctx.beginPath();
+            ctx.moveTo(220, 200);  // Bottom apex corner
+            ctx.lineTo(360, 80);   // Right top corner
+            ctx.lineTo(260, 80);   // Left top corner
+            ctx.closePath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+
+            // Extended Reference horizontal ceiling
+            ctx.beginPath();
+            ctx.setLineDash([3, 3]);
+            ctx.moveTo(180, 80);
+            ctx.lineTo(260, 80);
+            ctx.stroke();
+
+            // Height Outside drop line
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(180, 80);
+            ctx.lineTo(180, 200);
+            ctx.strokeStyle = '#ea4335';
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Square right angle indicator
+            ctx.beginPath();
+            ctx.rect(180, 80, 15, 15);
+            ctx.stroke();
+
+            // Annotations
+            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = '#000';
+            ctx.fillText("C", 290, 130);
+            
+            ctx.font = 'italic 16px Georgia';
+            ctx.fillText("h", 160, 150);
+            ctx.font = '16px Arial';
+            ctx.fillText("3 3/5", 295, 70);
+        }
+    }
+
+    function loadLevel1() {
+        const data = problemsData[currentProblem].l1;
+        document.getElementById('l1-prompt').innerHTML = data.prompt;
+        document.getElementById('l1-feedback').innerHTML = '';
+        
+        const optionsDiv = document.getElementById('l1-options');
+        optionsDiv.innerHTML = '';
+        
+        data.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = opt.text;
+            btn.onclick = () => checkAnswer(1, idx, opt.correct);
+            optionsDiv.appendChild(btn);
+        });
+
+        // Trigger math processing
+        if(window.MathJax) MathJax.typesetPromise();
+    }
+
+    function loadLevel2() {
+        document.getElementById('level2-card').style.style = 'block';
+        document.getElementById('level2-card').style.display = 'block';
+        
+        const data = problemsData[currentProblem].l2;
+        document.getElementById('l2-prompt').innerHTML = data.prompt;
+        document.getElementById('l2-feedback').innerHTML = '';
+        
+        const optionsDiv = document.getElementById('l2-options');
+        optionsDiv.innerHTML = '';
+        
+        data.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = opt.text;
+            btn.onclick = () => checkAnswer(2, idx, opt.correct);
+            optionsDiv.appendChild(btn);
+        });
+
+        if(window.MathJax) MathJax.typesetPromise();
+    }
+
+    function checkAnswer(lvl, index, isCorrect) {
+        const feedbackId = `l${lvl}-feedback`;
+        const fbContainer = document.getElementById(feedbackId);
+        
+        if (isCorrect) {
+            fbContainer.innerHTML = "✨ Marvelous! Correct Answer.";
+            fbContainer.className = "feedback correct";
+            scorePoints = Math.min(scorePoints + 1, 4);
+            updateGauge();
+            
+            if (lvl === 1) {
+                document.getElementById('next-btn').style.display = 'inline-block';
+            }
+        } else {
+            fbContainer.innerHTML = "❌ Let's try that again. Analyze the dimensions given closely.";
+            fbContainer.className = "feedback incorrect";
+        }
+    }
+
+    function advanceLevel() {
+        currentLevel = 2;
+        document.getElementById('next-btn').style.display = 'none';
+        loadLevel2();
+    }
+
+    function updateGauge() {
+        const pointer = document.getElementById('gaugePointer');
+        // Calculate percentages mapping dynamically to bounds [0 to 4 max steps achieved]
+        const percentage = (scorePoints / 4) * 100;
+        pointer.style.left = `${percentage}%`;
+    }
+
+    function handleScreenshotSubmit() {
+        alert("Redirecting to the screenshot submissions portal. Make sure you captured/copied your workspace score panel first!");
+        window.open('https://tinyurl.com/mathscreenshot', '_blank');
+    }
+</script>
+
+</body>
+</html>
