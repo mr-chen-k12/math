@@ -1,216 +1,645 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Volume Concepts: Fitting Cubes</title>
-    
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        h1 {
-            color: #2c3e50;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cube Counting Volume Explorer</title>
 
-        .container {
-            max-width: 900px;
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+  <!-- MathJax for beautiful math notation -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['$', '$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-        .math-section {
-            background-color: #eef2f3;
-            padding: 20px;
-            border-left: 5px solid #3498db;
-            margin-bottom: 30px;
-            border-radius: 4px;
-            font-size: 1.1em;
-        }
+  <!-- Three.js for 3D cubes -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
 
-        canvas {
-            display: block;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-        }
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #5b6475;
+      --accent: #246bfe;
+      --accent2: #18a058;
+      --warn: #c2410c;
+      --line: #d9e1ef;
+    }
 
-        .instructions {
-            text-align: center;
-            font-style: italic;
-            color: #666;
-            margin-top: 10px;
-        }
-    </style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 22px 18px 12px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+    }
+
+    .subtitle {
+      max-width: 850px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(1250px, 96vw);
+      margin: 0 auto 30px;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      #viewer { height: 480px; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 25px rgba(23, 32, 51, 0.08);
+    }
+
+    .controls {
+      display: grid;
+      gap: 18px;
+    }
+
+    .control-block label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .value-pill {
+      background: #eef3ff;
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-weight: 800;
+    }
+
+    input[type="range"] { width: 100%; }
+
+    .small-note {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 12px;
+      background: white;
+      color: var(--text);
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    button.success {
+      background: var(--accent2);
+      color: white;
+      border-color: var(--accent2);
+      font-weight: 700;
+    }
+
+    button:hover, select:hover { filter: brightness(0.98); }
+
+    .viewer-card {
+      padding: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 680px;
+    }
+
+    .viewer-top {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .viewer-top strong { font-size: 1.05rem; }
+
+    #viewer {
+      height: 580px;
+      min-height: 420px;
+      background: linear-gradient(180deg, #eef3ff, #ffffff);
+    }
+
+    .viewer-bottom {
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+
+    .answer-box {
+      background: #f8fbff;
+      border: 1px dashed #b8c7e6;
+      border-radius: 14px;
+      padding: 14px;
+      line-height: 1.55;
+    }
+
+    .big-answer {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--accent2);
+      margin: 5px 0;
+    }
+
+    .warning {
+      color: var(--warn);
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .math-card {
+      margin-top: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .formula {
+      background: #fffaf0;
+      border: 1px solid #fde7b3;
+      border-radius: 14px;
+      padding: 14px;
+      overflow-x: auto;
+    }
+
+    .practice {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .question {
+      border-left: 5px solid var(--accent);
+      padding: 10px 12px;
+      background: #f8fbff;
+      border-radius: 10px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+
+    .blue { background: rgba(36,107,254,0.22); }
+    .green { background: rgba(24,160,88,0.72); }
+  </style>
 </head>
 <body>
+  <header>
+    <h1>Cube Counting Volume Explorer</h1>
+    <p class="subtitle">
+      Change the size of the large cube and the small cube. Rotate, zoom, and pan the model to see how smaller cubes fit inside a larger cube.
+    </p>
+  </header>
 
-    <div class="container">
-        <h1>Understanding Volume: Cubes within a Cube</h1>
-        
-        <div class="math-section">
-            <p>The volume of a 3D rectangular object (or a cube) is the amount of space it takes up. It is measured in <strong>cubic units</strong>, which can be thought of as the number of smaller \(1 \times 1 \times 1\) unit cubes that can fit perfectly inside the larger shape.</p>
-            
-            <p>If a smaller cube has a side length of \( s \), its volume is:</p>
-            <p>$$ V_{small} = s \times s \times s = s^3 $$</p>
+  <main>
+    <section class="card controls">
+      <div class="control-block">
+        <label for="bigSize">Large cube side length <span class="value-pill"><span id="bigSizeValue">1</span> cm</span></label>
+        <input id="bigSize" type="range" min="1" max="10" step="0.5" value="1" />
+        <div class="small-note">This is the length, width, and height of the big cube.</div>
+      </div>
 
-            <p>If a larger cube has a side length of \( S \), its volume is:</p>
-            <p>$$ V_{large} = S \times S \times S = S^3 $$</p>
+      <div class="control-block">
+        <label for="smallSize">Small cube side length <span class="value-pill"><span id="smallSizeValue">0.5</span> cm</span></label>
+        <input id="smallSize" type="range" min="0.25" max="5" step="0.25" value="0.5" />
+        <div class="small-note">Example: A 1 cm cube can fit eight 0.5 cm cubes because 2 fit on each edge.</div>
+      </div>
 
-            <p>To find out how many small cubes fit into the larger cube, we calculate the ratio of their volumes:</p>
-            <p>$$ \text{Number of small cubes} = \frac{V_{large}}{V_{small}} = \left( \frac{S}{s} \right)^3 $$</p>
+      <div class="control-block">
+        <label for="layerSlider">Show layers <span class="value-pill"><span id="layerValue">all</span></span></label>
+        <input id="layerSlider" type="range" min="1" max="2" step="1" value="2" />
+        <div class="small-note">Use this to peel back the cube and show one layer at a time.</div>
+      </div>
 
-            <p><strong>Example Visualized Below:</strong><br> 
-            Let the large cube have side length \( S = 3 \) and the small cube have side length \( s = 1 \).<br>
-            $$ \text{Total Cubes} = \frac{3^3}{1^3} = \frac{27}{1} = 27 \text{ small unit cubes} $$</p>
+      <div class="row">
+        <button class="primary" id="resetCamera">Reset View</button>
+        <button class="success" id="animateBtn">Pause Rotation</button>
+      </div>
+
+      <div class="control-block">
+        <label for="viewMode">View mode</label>
+        <select id="viewMode">
+          <option value="filled">Filled with small cubes</option>
+          <option value="wire">Large cube outline only</option>
+          <option value="both">Small cubes + large outline</option>
+        </select>
+      </div>
+
+      <div class="toggle-row">
+        <input id="showLabels" type="checkbox" checked />
+        <label for="showLabels">Show edge labels</label>
+      </div>
+
+      <div class="answer-box">
+        <div>Small cubes along each edge:</div>
+        <div class="big-answer" id="edgeCountText">2</div>
+        <div>Total small cubes:</div>
+        <div class="big-answer" id="totalCountText">8</div>
+        <div id="fitWarning" class="warning" hidden></div>
+      </div>
+
+      <div class="math-card">
+        <h2 style="margin:0; font-size:1.25rem;">The Math</h2>
+        <div class="formula" id="mathDisplay"></div>
+        <div class="formula" id="volumeDisplay"></div>
+      </div>
+
+      <div class="practice">
+        <h2 style="margin:0; font-size:1.25rem;">Student Questions</h2>
+        <div class="question">1. How many cubes fit along one edge?</div>
+        <div class="question">2. Why do we cube the edge count?</div>
+        <div class="question">3. What happens if the small cube does not divide evenly into the large cube?</div>
+      </div>
+    </section>
+
+    <section class="card viewer-card">
+      <div class="viewer-top">
+        <strong>3D Model</strong>
+        <div class="legend">
+          <span class="legend-item"><span class="swatch blue"></span>large cube space</span>
+          <span class="legend-item"><span class="swatch green"></span>small unit cubes</span>
         </div>
+      </div>
+      <div id="viewer"></div>
+      <div class="viewer-bottom">
+        Drag to rotate. Scroll or pinch to zoom. Right-drag to pan. The model limits the number of visible small cubes so the page stays fast.
+      </div>
+    </section>
+  </main>
 
-        <canvas id="volumeCanvas" width="800" height="500"></canvas>
-        <p class="instructions">Isometric visualization of 27 unit cubes making up a \(3 \times 3 \times 3\) large cube.</p>
-    </div>
+  <script>
+    const viewer = document.getElementById('viewer');
+    const bigSizeInput = document.getElementById('bigSize');
+    const smallSizeInput = document.getElementById('smallSize');
+    const layerSlider = document.getElementById('layerSlider');
+    const viewMode = document.getElementById('viewMode');
+    const showLabels = document.getElementById('showLabels');
+    const bigSizeValue = document.getElementById('bigSizeValue');
+    const smallSizeValue = document.getElementById('smallSizeValue');
+    const layerValue = document.getElementById('layerValue');
+    const edgeCountText = document.getElementById('edgeCountText');
+    const totalCountText = document.getElementById('totalCountText');
+    const fitWarning = document.getElementById('fitWarning');
+    const mathDisplay = document.getElementById('mathDisplay');
+    const volumeDisplay = document.getElementById('volumeDisplay');
+    const resetCameraBtn = document.getElementById('resetCamera');
+    const animateBtn = document.getElementById('animateBtn');
 
-    <script>
-        window.onload = function() {
-            const canvas = document.getElementById('volumeCanvas');
-            const ctx = canvas.getContext('2d');
+    let scene, camera, renderer, controls;
+    let group = new THREE.Group();
+    let labelGroup = new THREE.Group();
+    let autoRotate = true;
 
-            // Isometric grid parameters
-            const smallCubeSize = 35; // The visual size of a 1x1x1 unit cube
-            const gridSize = 3; // 3x3x3 cube
-            const gap = 3; // Gap between cubes to show they are separate pieces
+    init();
+    updateModel();
+    animate();
 
-            // Math angles for Isometric Projection (30 degrees)
-            const angle = Math.PI / 6;
-            const cosA = Math.cos(angle);
-            const sinA = Math.sin(angle);
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf8fbff);
 
-            // Origin point for drawing the big cube on the canvas
-            const originX = 400;
-            const originY = 380;
+      camera = new THREE.PerspectiveCamera(45, viewer.clientWidth / viewer.clientHeight, 0.1, 1000);
+      camera.position.set(6, 5, 7);
 
-            /**
-             * Draws a single isometric cube.
-             * (cx, cy) is the bottom-most 2D canvas coordinate of the cube.
-             */
-            function drawCube(cx, cy, size, topColor, leftColor, rightColor) {
-                // Top Face
-                ctx.beginPath();
-                ctx.moveTo(cx, cy - 2 * size * sinA);
-                ctx.lineTo(cx + size * cosA, cy - 3 * size * sinA);
-                ctx.lineTo(cx, cy - 4 * size * sinA);
-                ctx.lineTo(cx - size * cosA, cy - 3 * size * sinA);
-                ctx.closePath();
-                ctx.fillStyle = topColor;
-                ctx.fill();
-                ctx.strokeStyle = '#2c3e50';
-                ctx.lineWidth = 1;
-                ctx.stroke();
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+      viewer.appendChild(renderer.domElement);
 
-                // Left Face
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(cx - size * cosA, cy - size * sinA);
-                ctx.lineTo(cx - size * cosA, cy - 3 * size * sinA);
-                ctx.lineTo(cx, cy - 2 * size * sinA);
-                ctx.closePath();
-                ctx.fillStyle = leftColor;
-                ctx.fill();
-                ctx.stroke();
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.8;
 
-                // Right Face
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(cx + size * cosA, cy - size * sinA);
-                ctx.lineTo(cx + size * cosA, cy - 3 * size * sinA);
-                ctx.lineTo(cx, cy - 2 * size * sinA);
-                ctx.closePath();
-                ctx.fillStyle = rightColor;
-                ctx.fill();
-                ctx.stroke();
+      const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambient);
+
+      const light = new THREE.DirectionalLight(0xffffff, 0.9);
+      light.position.set(8, 10, 6);
+      scene.add(light);
+
+      const grid = new THREE.GridHelper(14, 14, 0x9aa8c2, 0xd6deee);
+      grid.position.y = -0.01;
+      scene.add(grid);
+
+      scene.add(group);
+      scene.add(labelGroup);
+
+      window.addEventListener('resize', onResize);
+      bigSizeInput.addEventListener('input', updateModel);
+      smallSizeInput.addEventListener('input', updateModel);
+      layerSlider.addEventListener('input', updateModel);
+      viewMode.addEventListener('change', updateModel);
+      showLabels.addEventListener('change', updateModel);
+
+      resetCameraBtn.addEventListener('click', () => {
+        camera.position.set(6, 5, 7);
+        controls.target.set(0, 0, 0);
+        controls.update();
+      });
+
+      animateBtn.addEventListener('click', () => {
+        autoRotate = !autoRotate;
+        controls.autoRotate = autoRotate;
+        animateBtn.textContent = autoRotate ? 'Pause Rotation' : 'Start Rotation';
+      });
+    }
+
+    function updateModel() {
+      clearGroup(group);
+      clearGroup(labelGroup);
+
+      const big = parseFloat(bigSizeInput.value);
+      let small = parseFloat(smallSizeInput.value);
+
+      if (small > big) {
+        small = big;
+        smallSizeInput.value = String(big);
+      }
+
+      const exactEdge = big / small;
+      const edgeCount = Math.floor(exactEdge + 1e-9);
+      const total = Math.pow(edgeCount, 3);
+      const isExact = Math.abs(exactEdge - Math.round(exactEdge)) < 1e-9;
+      const remainder = +(big - edgeCount * small).toFixed(2);
+
+      bigSizeValue.textContent = cleanNumber(big);
+      smallSizeValue.textContent = cleanNumber(small);
+      edgeCountText.textContent = edgeCount;
+      totalCountText.textContent = total.toLocaleString();
+
+      layerSlider.max = Math.max(1, edgeCount);
+      if (parseInt(layerSlider.value) > edgeCount) layerSlider.value = edgeCount;
+      const visibleLayers = parseInt(layerSlider.value);
+      layerValue.textContent = visibleLayers === edgeCount ? 'all' : visibleLayers;
+
+      if (!isExact && remainder > 0) {
+        fitWarning.hidden = false;
+        fitWarning.textContent = `The small cube does not fit evenly. This model shows ${edgeCount} full cubes per edge with ${remainder} cm left over.`;
+      } else {
+        fitWarning.hidden = true;
+        fitWarning.textContent = '';
+      }
+
+      drawLargeCube(big);
+
+      if (viewMode.value === 'filled' || viewMode.value === 'both') {
+        drawSmallCubes(big, small, edgeCount, visibleLayers);
+      }
+
+      if (viewMode.value === 'wire' || viewMode.value === 'both') {
+        drawWireCube(big);
+      }
+
+      if (showLabels.checked) drawLabels(big, small, edgeCount);
+
+      updateMath(big, small, edgeCount, total, exactEdge, isExact, remainder);
+    }
+
+    function drawLargeCube(big) {
+      const geometry = new THREE.BoxGeometry(big, big, big);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x246bfe,
+        transparent: true,
+        opacity: 0.12,
+        roughness: 0.8,
+        metalness: 0.05
+      });
+      const cube = new THREE.Mesh(geometry, material);
+      cube.position.set(0, big / 2, 0);
+      group.add(cube);
+    }
+
+    function drawWireCube(big) {
+      const geometry = new THREE.BoxGeometry(big, big, big);
+      const edges = new THREE.EdgesGeometry(geometry);
+      const material = new THREE.LineBasicMaterial({ color: 0x172033, linewidth: 2 });
+      const wire = new THREE.LineSegments(edges, material);
+      wire.position.set(0, big / 2, 0);
+      group.add(wire);
+    }
+
+    function drawSmallCubes(big, small, edgeCount, visibleLayers) {
+      const maxVisible = 900;
+      const shouldUseInstancing = edgeCount ** 3 > maxVisible;
+      const countToDraw = shouldUseInstancing ? Math.min(maxVisible, edgeCount ** 3) : edgeCount ** 3;
+
+      const geometry = new THREE.BoxGeometry(small * 0.92, small * 0.92, small * 0.92);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x18a058,
+        transparent: true,
+        opacity: 0.72,
+        roughness: 0.75
+      });
+
+      let drawn = 0;
+      const start = -big / 2 + small / 2;
+
+      if (shouldUseInstancing) {
+        const instanced = new THREE.InstancedMesh(geometry, material, countToDraw);
+        const matrix = new THREE.Matrix4();
+
+        outer:
+        for (let y = 0; y < Math.min(visibleLayers, edgeCount); y++) {
+          for (let x = 0; x < edgeCount; x++) {
+            for (let z = 0; z < edgeCount; z++) {
+              if (drawn >= countToDraw) break outer;
+              matrix.setPosition(start + x * small, small / 2 + y * small, start + z * small);
+              instanced.setMatrixAt(drawn, matrix);
+              drawn++;
             }
-
-            // Draw the 3x3x3 structure using loop
-            // We loop back-to-front so the cubes in the front overlap the ones in the back properly.
-            // x: right depth, z: left depth, y: height
-            for (let y = 0; y < gridSize; y++) {
-                for (let x = gridSize - 1; x >= 0; x--) {
-                    for (let z = gridSize - 1; z >= 0; z--) {
-                        
-                        // Calculate 2D position from 3D coordinates using Isometric projection
-                        // Apply 'gap' to separate the small cubes slightly for visibility
-                        let drawX = originX + (x - z) * (smallCubeSize + gap) * cosA;
-                        let drawY = originY - (y * (smallCubeSize + gap)) + (x + z) * (smallCubeSize + gap) * sinA;
-
-                        // Default colors for the small cubes (Blues)
-                        let tColor = '#5DADE2';
-                        let lColor = '#3498DB';
-                        let rColor = '#2874A6';
-
-                        // Highlight one specific small cube in orange to emphasize the "unit"
-                        if (x === 2 && z === 0 && y === 2) {
-                            tColor = '#F5B041';
-                            lColor = '#F39C12';
-                            rColor = '#D68910';
-                        }
-
-                        drawCube(drawX, drawY, smallCubeSize, tColor, lColor, rColor);
-                    }
-                }
+          }
+        }
+        group.add(instanced);
+      } else {
+        for (let y = 0; y < Math.min(visibleLayers, edgeCount); y++) {
+          for (let x = 0; x < edgeCount; x++) {
+            for (let z = 0; z < edgeCount; z++) {
+              const cube = new THREE.Mesh(geometry, material);
+              cube.position.set(start + x * small, small / 2 + y * small, start + z * small);
+              group.add(cube);
             }
+          }
+        }
+      }
+    }
 
-            // --- Draw Legend / Reference ---
-            
-            // Draw a standalone unit cube on the left
-            drawCube(150, 200, smallCubeSize, '#F5B041', '#F39C12', '#D68910');
-            
-            ctx.fillStyle = '#333';
-            ctx.font = '16px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('1 Unit Cube', 150, 230);
-            ctx.fillText('(Volume = 1³ = 1)', 150, 250);
+    function drawLabels(big, small, edgeCount) {
+      const makeLabel = (text, x, y, z) => {
+        const sprite = new THREE.Sprite(makeTextMaterial(text));
+        sprite.position.set(x, y, z);
+        const scale = Math.max(big * 0.16, 0.35);
+        sprite.scale.set(scale * 3.2, scale, 1);
+        labelGroup.add(sprite);
+      };
 
-            // Draw labels for dimensions on the main 3x3x3 grid
-            ctx.fillStyle = '#e74c3c';
-            ctx.font = 'bold 18px Arial';
-            
-            // Height label
-            ctx.fillText('Height = 3 units', 650, 200);
-            
-            // Width label
-            ctx.fillText('Width = 3 units', 250, 420);
-            
-            // Length label
-            ctx.fillText('Length = 3 units', 550, 420);
+      makeLabel(`${cleanNumber(big)} cm`, 0, big + 0.45, -big / 2 - 0.25);
+      makeLabel(`${edgeCount} small cubes`, 0, -0.25, big / 2 + 0.45);
+      makeLabel(`small side = ${cleanNumber(small)} cm`, big / 2 + 0.65, big / 2, 0);
+    }
 
-            // Draw connecting indication lines for dimensions (optional polish)
-            ctx.strokeStyle = '#e74c3c';
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(310, 390);
-            ctx.lineTo(400, 440);
-            ctx.stroke();
+    function makeTextMaterial(text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      roundRect(ctx, 20, 45, 984, 166, 34);
+      ctx.fill();
+      ctx.strokeStyle = '#b8c7e6';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+      ctx.fillStyle = '#172033';
+      ctx.font = 'bold 64px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      const texture = new THREE.CanvasTexture(canvas);
+      return new THREE.SpriteMaterial({ map: texture, transparent: true });
+    }
 
-            ctx.beginPath();
-            ctx.moveTo(480, 390);
-            ctx.lineTo(400, 440);
-            ctx.stroke();
-            ctx.setLineDash([]); // Reset line dash
-        };
-    </script>
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function updateMath(big, small, edgeCount, total, exactEdge, isExact, remainder) {
+      const bigText = cleanNumber(big);
+      const smallText = cleanNumber(small);
+      const exactText = cleanNumber(exactEdge);
+
+      let fitLine = isExact
+        ? `\\text{Small cubes per edge} = \\frac{${bigText}}{${smallText}} = ${edgeCount}`
+        : `\\text{Full small cubes per edge} = \\left\\lfloor \\frac{${bigText}}{${smallText}} \\right\\rfloor = \\left\\lfloor ${exactText} \\right\\rfloor = ${edgeCount}`;
+
+      mathDisplay.innerHTML = `
+        \\[${fitLine}\\]
+        \\[\\text{Total small cubes} = ${edgeCount}^3 = ${total.toLocaleString()}\\]
+      `;
+
+      volumeDisplay.innerHTML = `
+        \\[\\text{Large cube volume} = s^3 = ${bigText}^3 = ${cleanNumber(big ** 3)}\\text{ cm}^3\\]
+        \\[\\text{Small cube volume} = s^3 = ${smallText}^3 = ${cleanNumber(small ** 3)}\\text{ cm}^3\\]
+        \\[\\frac{\\text{Large volume}}{\\text{Small volume}} = \\frac{${cleanNumber(big ** 3)}}{${cleanNumber(small ** 3)}} = ${cleanNumber((big ** 3) / (small ** 3))}\\]
+      `;
+
+      if (!isExact && remainder > 0) {
+        volumeDisplay.innerHTML += `
+          \\[\\text{Because there is leftover length, only full cubes are counted in the model.}\\]
+        `;
+      }
+
+      if (window.MathJax) MathJax.typesetPromise([mathDisplay, volumeDisplay]);
+    }
+
+    function clearGroup(g) {
+      while (g.children.length > 0) {
+        const child = g.children[0];
+        g.remove(child);
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+          else child.material.dispose();
+        }
+      }
+    }
+
+    function cleanNumber(n) {
+      return Number(n.toFixed(4)).toString();
+    }
+
+    function onResize() {
+      camera.aspect = viewer.clientWidth / viewer.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+  </script>
 </body>
 </html>
