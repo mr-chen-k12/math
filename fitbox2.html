@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Volume Counting</title>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        #sidebar {
+            width: 350px;
+            padding: 20px;
+            background: #ffffff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+        #canvas-container {
+            flex-grow: 1;
+            position: relative;
+            background-color: #e0e5ec;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-top: 0;
+            font-size: 1.4rem;
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #math-output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+            display: none;
+            margin-top: 10px;
+        }
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 15px;
+            border-radius: 8px;
+            pointer-events: none;
+            font-size: 0.9rem;
+        }
+    </style>
+
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="sidebar">
+        <h2>Volume & Cube Fitting</h2>
+        <p style="font-size: 0.9rem; margin-top: -10px; color: #666;">See how smaller cubes fit into a larger volume.</p>
+        
+        <div class="control-group">
+            <label for="largeCube">Large Cube Side Length (e.g., cm):</label>
+            <input type="number" id="largeCube" value="1" step="0.1" min="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label for="smallCube">Small Cube Side Length (e.g., cm):</label>
+            <input type="number" id="smallCube" value="0.5" step="0.1" min="0.1">
+        </div>
+
+        <button id="generateBtn">Calculate & Draw</button>
+        <div id="errorMsg" class="error"></div>
+
+        <div id="math-output">
+            </div>
+    </div>
+
+    <div id="canvas-container">
+        <div id="instructions">🖱️ Left Click: Rotate | 🖱️ Right Click: Pan | 📜 Scroll: Zoom</div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- 1. Three.js Setup ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xe0e5ec);
+
+        // Camera setup
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(3, 3, 4);
+
+        // Renderer setup
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        // Controls (Rotate, Pan, Zoom)
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; 
+        controls.dampingFactor = 0.05;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(10, 20, 10);
+        scene.add(directionalLight);
+
+        // Group to hold all our cubes so we can easily delete them when updating
+        let cubeGroup = new THREE.Group();
+        scene.add(cubeGroup);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- 2. Logic and Math Application ---
+
+        function drawCubesAndMath() {
+            // Get inputs
+            const L = parseFloat(document.getElementById('largeCube').value);
+            const S = parseFloat(document.getElementById('smallCube').value);
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Validation
+            if (S > L) {
+                errorMsg.innerText = "Error: Small cube cannot be bigger than large cube!";
+                errorMsg.style.display = 'block';
+                return;
+            }
+            if (S <= 0 || L <= 0) {
+                errorMsg.innerText = "Error: Lengths must be greater than 0!";
+                errorMsg.style.display = 'block';
+                return;
+            }
+            errorMsg.style.display = 'none';
+
+            // Clear old cubes
+            cubeGroup.clear();
+
+            // Calculate how many cubes fit along one edge
+            const cubesPerEdge = Math.floor(L / S);
+            const totalCubes = Math.pow(cubesPerEdge, 3);
+            
+            const largeVolume = Math.pow(L, 3);
+            const smallVolume = Math.pow(S, 3);
+            
+            // Limit cubes drawn for browser performance (max 15x15x15 = 3375 cubes)
+            const maxDrawLimit = 15; 
+            const cubesToDrawEdge = Math.min(cubesPerEdge, maxDrawLimit);
+            let performanceWarning = '';
+            
+            if (cubesPerEdge > maxDrawLimit) {
+                performanceWarning = `<br><br><em style="color:#e74c3c;">Visualizer capped at drawing ${maxDrawLimit}^3 cubes to prevent browser crashing, but the math below shows the true total!</em>`;
+            }
+
+            // --- Draw Large Wireframe Cube ---
+            // We use EdgesGeometry to make it a transparent wire box
+            const largeGeo = new THREE.BoxGeometry(L, L, L);
+            const edges = new THREE.EdgesGeometry(largeGeo);
+            const lineMat = new THREE.LineBasicMaterial({ color: 0x2c3e50, linewidth: 2 });
+            const wireframeCube = new THREE.LineSegments(edges, lineMat);
+            // Center the wireframe
+            wireframeCube.position.set(0, 0, 0);
+            cubeGroup.add(wireframeCube);
+
+            // --- Draw Small Cubes Inside ---
+            // We scale the small cube down by 5% (0.95) so students can see individual blocks, 
+            // otherwise they merge into one solid looking block.
+            const smallGeo = new THREE.BoxGeometry(S * 0.95, S * 0.95, S * 0.95);
+            const smallMat = new THREE.MeshPhongMaterial({ color: 0x3498db, transparent: true, opacity: 0.85 });
+
+            // Starting corner for placing small cubes (bottom-left-back)
+            const startX = -L/2 + S/2;
+            const startY = -L/2 + S/2;
+            const startZ = -L/2 + S/2;
+
+            for (let x = 0; x < cubesToDrawEdge; x++) {
+                for (let y = 0; y < cubesToDrawEdge; y++) {
+                    for (let z = 0; z < cubesToDrawEdge; z++) {
+                        const mesh = new THREE.Mesh(smallGeo, smallMat);
+                        mesh.position.set(
+                            startX + (x * S),
+                            startY + (y * S),
+                            startZ + (z * S)
+                        );
+                        cubeGroup.add(mesh);
+                    }
+                }
+            }
+
+            // Adjust camera to fit the new size
+            camera.position.set(L * 1.5, L * 1.5, L * 2);
+            controls.target.set(0, 0, 0);
+
+            // --- Update MathJax Output ---
+            const mathDiv = document.getElementById('math-output');
+            
+            // Format numbers to drop long decimals if they exist
+            const fmt = (num) => parseFloat(num.toFixed(4));
+
+            const mathHTML = `
+                <strong>Volume of Large Cube ($V_L$):</strong>
+                $$V_L = ${L} \\times ${L} \\times ${L} = ${fmt(largeVolume)}\\text{ units}^3$$
+                
+                <strong>Volume of Small Cube ($V_S$):</strong>
+                $$V_S = ${S} \\times ${S} \\times ${S} = ${fmt(smallVolume)}\\text{ units}^3$$
+                
+                <strong>How many small cubes fit?</strong>
+                <p>Along one edge: $$ \\lfloor\\frac{${L}}{${S}}\\rfloor = ${cubesPerEdge} \\text{ cubes} $$</p>
+                <p>Total cubes ($N$): $$ N = ${cubesPerEdge}^3 = ${totalCubes} \\text{ cubes} $$</p>
+                
+                ${performanceWarning}
+            `;
+            
+            mathDiv.innerHTML = mathHTML;
+
+            // Tell MathJax to process the new equations
+            if (window.MathJax) {
+                MathJax.typesetPromise([mathDiv]).catch((err) => console.log('MathJax error:', err));
+            }
+        }
+
+        // Attach event listener to button
+        document.getElementById('generateBtn').addEventListener('click', drawCubesAndMath);
+
+        // Run once on load to show the default 1cm vs 0.5cm example
+        window.onload = () => {
+            // Slight delay to ensure MathJax is ready
+            setTimeout(drawCubesAndMath, 300);
+        };
+
+    </script>
+</body>
+</html>
