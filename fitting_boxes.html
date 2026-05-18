@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volume Concepts: Fitting Cubes</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 900px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .math-section {
+            background-color: #eef2f3;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 1.1em;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        .instructions {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Understanding Volume: Cubes within a Cube</h1>
+        
+        <div class="math-section">
+            <p>The volume of a 3D rectangular object (or a cube) is the amount of space it takes up. It is measured in <strong>cubic units</strong>, which can be thought of as the number of smaller \(1 \times 1 \times 1\) unit cubes that can fit perfectly inside the larger shape.</p>
+            
+            <p>If a smaller cube has a side length of \( s \), its volume is:</p>
+            <p>$$ V_{small} = s \times s \times s = s^3 $$</p>
+
+            <p>If a larger cube has a side length of \( S \), its volume is:</p>
+            <p>$$ V_{large} = S \times S \times S = S^3 $$</p>
+
+            <p>To find out how many small cubes fit into the larger cube, we calculate the ratio of their volumes:</p>
+            <p>$$ \text{Number of small cubes} = \frac{V_{large}}{V_{small}} = \left( \frac{S}{s} \right)^3 $$</p>
+
+            <p><strong>Example Visualized Below:</strong><br> 
+            Let the large cube have side length \( S = 3 \) and the small cube have side length \( s = 1 \).<br>
+            $$ \text{Total Cubes} = \frac{3^3}{1^3} = \frac{27}{1} = 27 \text{ small unit cubes} $$</p>
+        </div>
+
+        <canvas id="volumeCanvas" width="800" height="500"></canvas>
+        <p class="instructions">Isometric visualization of 27 unit cubes making up a \(3 \times 3 \times 3\) large cube.</p>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const canvas = document.getElementById('volumeCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Isometric grid parameters
+            const smallCubeSize = 35; // The visual size of a 1x1x1 unit cube
+            const gridSize = 3; // 3x3x3 cube
+            const gap = 3; // Gap between cubes to show they are separate pieces
+
+            // Math angles for Isometric Projection (30 degrees)
+            const angle = Math.PI / 6;
+            const cosA = Math.cos(angle);
+            const sinA = Math.sin(angle);
+
+            // Origin point for drawing the big cube on the canvas
+            const originX = 400;
+            const originY = 380;
+
+            /**
+             * Draws a single isometric cube.
+             * (cx, cy) is the bottom-most 2D canvas coordinate of the cube.
+             */
+            function drawCube(cx, cy, size, topColor, leftColor, rightColor) {
+                // Top Face
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - 2 * size * sinA);
+                ctx.lineTo(cx + size * cosA, cy - 3 * size * sinA);
+                ctx.lineTo(cx, cy - 4 * size * sinA);
+                ctx.lineTo(cx - size * cosA, cy - 3 * size * sinA);
+                ctx.closePath();
+                ctx.fillStyle = topColor;
+                ctx.fill();
+                ctx.strokeStyle = '#2c3e50';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Left Face
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx - size * cosA, cy - size * sinA);
+                ctx.lineTo(cx - size * cosA, cy - 3 * size * sinA);
+                ctx.lineTo(cx, cy - 2 * size * sinA);
+                ctx.closePath();
+                ctx.fillStyle = leftColor;
+                ctx.fill();
+                ctx.stroke();
+
+                // Right Face
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + size * cosA, cy - size * sinA);
+                ctx.lineTo(cx + size * cosA, cy - 3 * size * sinA);
+                ctx.lineTo(cx, cy - 2 * size * sinA);
+                ctx.closePath();
+                ctx.fillStyle = rightColor;
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // Draw the 3x3x3 structure using loop
+            // We loop back-to-front so the cubes in the front overlap the ones in the back properly.
+            // x: right depth, z: left depth, y: height
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = gridSize - 1; x >= 0; x--) {
+                    for (let z = gridSize - 1; z >= 0; z--) {
+                        
+                        // Calculate 2D position from 3D coordinates using Isometric projection
+                        // Apply 'gap' to separate the small cubes slightly for visibility
+                        let drawX = originX + (x - z) * (smallCubeSize + gap) * cosA;
+                        let drawY = originY - (y * (smallCubeSize + gap)) + (x + z) * (smallCubeSize + gap) * sinA;
+
+                        // Default colors for the small cubes (Blues)
+                        let tColor = '#5DADE2';
+                        let lColor = '#3498DB';
+                        let rColor = '#2874A6';
+
+                        // Highlight one specific small cube in orange to emphasize the "unit"
+                        if (x === 2 && z === 0 && y === 2) {
+                            tColor = '#F5B041';
+                            lColor = '#F39C12';
+                            rColor = '#D68910';
+                        }
+
+                        drawCube(drawX, drawY, smallCubeSize, tColor, lColor, rColor);
+                    }
+                }
+            }
+
+            // --- Draw Legend / Reference ---
+            
+            // Draw a standalone unit cube on the left
+            drawCube(150, 200, smallCubeSize, '#F5B041', '#F39C12', '#D68910');
+            
+            ctx.fillStyle = '#333';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('1 Unit Cube', 150, 230);
+            ctx.fillText('(Volume = 1³ = 1)', 150, 250);
+
+            // Draw labels for dimensions on the main 3x3x3 grid
+            ctx.fillStyle = '#e74c3c';
+            ctx.font = 'bold 18px Arial';
+            
+            // Height label
+            ctx.fillText('Height = 3 units', 650, 200);
+            
+            // Width label
+            ctx.fillText('Width = 3 units', 250, 420);
+            
+            // Length label
+            ctx.fillText('Length = 3 units', 550, 420);
+
+            // Draw connecting indication lines for dimensions (optional polish)
+            ctx.strokeStyle = '#e74c3c';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(310, 390);
+            ctx.lineTo(400, 440);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(480, 390);
+            ctx.lineTo(400, 440);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset line dash
+        };
+    </script>
+</body>
+</html>
