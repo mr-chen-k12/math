@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Number 7 Magic Quiz! 🌟</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Headline', sans-serif;
+            background-color: #f0fdf4;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border: 4px solid #4ade80;
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #16a34a;
+            font-size: 2.5rem;
+            margin-top: 0;
+        }
+
+        .rule-box {
+            background-color: #fef08a;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            border: 2px dashed #ca8a04;
+        }
+
+        .number-display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 12px 35px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-yes {
+            background-color: #4ade80;
+            color: white;
+            box-shadow: 0 4px #16a34a;
+        }
+        .btn-yes:hover { background-color: #22c55e; }
+
+        .btn-no {
+            background-color: #f87171;
+            color: white;
+            box-shadow: 0 4px #dc2626;
+        }
+        .btn-no:hover { background-color: #ef4444; }
+
+        .btn-next {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px #1d4ed8;
+            display: none;
+            margin: 0 auto;
+        }
+        .btn-next:hover { background-color: #2563eb; }
+
+        .feedback {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 16px;
+            display: none;
+        }
+
+        .feedback.correct {
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 2px solid #86efac;
+        }
+
+        .feedback.wrong {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 2px solid #fca5a5;
+            text-align: left;
+            font-size: 1.1rem;
+            font-weight: normal;
+        }
+
+        .math-render {
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            margin: 10px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Lucky Number 7 Quiz! 🌟</h1>
+        
+        <div class="rule-box">
+            <strong>The 3-Digit Magic Trick:</strong> Chop the number into groups of 3 from right to left. Alternate subtracting and adding them. If the final answer can be divided by 7, the whole big number can too!
+        </div>
+
+        <div class="question-text">Is this number perfectly divisible by 7?</div>
+        <div class="number-display" id="number-to-test">----</div>
+
+        <div class="btn-container">
+            <button class="btn-yes" id="btn-yes" onclick="checkAnswer(true)">Yes, it is! 🎉</button>
+            <button class="btn-no" id="btn-no" onclick="checkAnswer(false)">No, it isn't! ❌</button>
+        </div>
+
+        <div class="feedback" id="feedback-box"></div>
+
+        <button class="btn-next" id="btn-next" onclick="nextQuestion()">Next Number ➡️</button>
+    </div>
+
+    <script>
+        let currentNumber = 0;
+        let isDivisibleBySeven = false;
+
+        function generateNumber() {
+            // Generates a fun 3 to 5 digit number
+            // 50% chance to generate an actual multiple of 7
+            const forceTrue = Math.random() > 0.5;
+            
+            if (forceTrue) {
+                // Pick a random multiplier between 150 and 2000
+                const multiplier = Math.floor(Math.random() * (2000 - 150 + 1)) + 150;
+                currentNumber = multiplier * 7;
+            } else {
+                // Just a random number in a similar range
+                currentNumber = Math.floor(Math.random() * (14000 - 1000 + 1)) + 1000;
+            }
+            
+            isDivisibleBySeven = (currentNumber % 7 === 0);
+            document.getElementById('number-to-test').innerText = currentNumber.toLocaleString();
+        }
+
+        function generateExplanation(num) {
+            let str = num.toString();
+            let blocks = [];
+            
+            // Break into blocks of 3 from right to left
+            while (str.length > 0) {
+                blocks.unshift(str.slice(-3));
+                str = str.slice(0, -3);
+            }
+            
+            // Reverse blocks to calculate from right to left easily
+            let revBlocks = [...blocks].reverse();
+            let exprStr = "";
+            let total = 0;
+            
+            for (let i = 0; i < revBlocks.length; i++) {
+                let val = parseInt(revBlocks[i], 10);
+                if (i === 0) {
+                    exprStr += revBlocks[i];
+                    total += val;
+                } else if (i % 2 === 1) {
+                    exprStr += " - " + revBlocks[i];
+                    total -= val;
+                } else {
+                    exprStr += " + " + revBlocks[i];
+                    total += val;
+                }
+            }
+            
+            let finalEvaluation = (total % 7 === 0) 
+                ? `\\(${total}\\) is a multiple of 7! So \\(${num}\\) IS divisible by 7!` 
+                : `\\(${total}\\) is NOT a multiple of 7. So \\(${num}\\) is NOT divisible by 7!`;
+
+            return `
+                <strong>Not quite! Let's look at the secret trick:</strong><br><br>
+                1. Split <strong>${num}</strong> into 3-digit blocks: <code>${blocks.join(' and ')}</code>.<br>
+                2. Start from the right block, subtract the next, and add the next:<br>
+                <div class="math-render">\\(${exprStr} = ${total}\\)</div>
+                3. ${finalEvaluation}
+            `;
+        }
+
+        function checkAnswer(userGuess) {
+            const feedbackBox = document.getElementById('feedback-box');
+            const btnYes = document.getElementById('btn-yes');
+            const btnNo = document.getElementById('btn-no');
+            const btnNext = document.getElementById('btn-next');
+
+            // Disable choice buttons during feedback
+            btnYes.style.display = 'none';
+            btnNo.style.display = 'none';
+            btnNext.style.display = 'block';
+
+            if (userGuess === isDivisibleBySeven) {
+                feedbackBox.className = "feedback correct";
+                feedbackBox.innerHTML = "🌟 Super Job! You got it right! 🎉";
+            } else {
+                feedbackBox.className = "feedback wrong";
+                feedbackBox.innerHTML = generateExplanation(currentNumber);
+                
+                // Tell MathJax to scan the new HTML and render the fractions/equations
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
+            }
+            feedbackBox.style.display = 'block';
+        }
+
+        function nextQuestion() {
+            document.getElementById('feedback-box').style.display = 'none';
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('btn-yes').style.display = 'inline-block';
+            document.getElementById('btn-no').style.display = 'inline-block';
+            generateNumber();
+        }
+
+        // Start the game with the first number
+        generateNumber();
+    </script>
+</body>
+</html>
