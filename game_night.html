@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Ninja Adventure!</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #87CEEB; /* Sky Blue */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            color: #FF8C00;
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-family: 'Fredoka One', cursive;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .screen {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        button {
+            font-family: 'Nunito', sans-serif;
+            font-weight: bold;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 15px;
+            background-color: #32CD32; /* Lime Green */
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #228B22;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        button:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #228B22;
+        }
+
+        .grade-btn { background-color: #FF69B4; box-shadow: 0 5px 0 #C71585; }
+        .diff-btn { background-color: #1E90FF; box-shadow: 0 5px 0 #0000CD; }
+        
+        .choice-btn {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            background-color: #FFD700;
+            color: #333;
+            box-shadow: 0 5px 0 #DAA520;
+            font-size: 1.5rem;
+        }
+
+        .math-problem {
+            font-size: 2.5rem;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        /* Confetti Styles */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #f00;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Canvas Game Styles */
+        #gameCanvas {
+            border: 4px solid #333;
+            border-radius: 15px;
+            background-color: #e0f7fa;
+            cursor: crosshair;
+            margin-top: 20px;
+        }
+
+        #feedback {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #FF4500;
+            min-height: 30px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Math Ninja Adventure!</h1>
+
+    <div id="confettiContainer" class="confetti-container"></div>
+
+    <div id="gradeScreen" class="screen active">
+        <h2>Select Your Grade Level</h2>
+        <div id="gradeButtons"></div>
+    </div>
+
+    <div id="diffScreen" class="screen">
+        <h2>Select Difficulty</h2>
+        <button class="diff-btn" onclick="selectDifficulty('Easy')">Easy</button>
+        <button class="diff-btn" onclick="selectDifficulty('Medium')">Medium</button>
+        <button class="diff-btn" onclick="selectDifficulty('Hard')">Hard</button>
+    </div>
+
+    <div id="questionScreen" class="screen">
+        <h2>Solve to earn Ninja Stars!</h2>
+        <div id="mathProblem" class="math-problem"></div>
+        <div id="choices"></div>
+        <div id="feedback"></div>
+    </div>
+
+    <div id="gameScreen" class="screen">
+        <h2 id="gameInstructions">Awesome! Throw X Ninja Stars!</h2>
+        <p>Click anywhere on the canvas to throw a ninja star into the bucket!</p>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <br>
+        <button onclick="resetGame()" style="margin-top: 20px;">Play Again!</button>
+    </div>
+
+    <script>
+        // State Variables
+        let selectedGrade = '';
+        let selectedDifficulty = '';
+        let correctAnswer = '';
+        let requiredStars = 0;
+        let thrownStars = 0;
+
+        // Generate Grade Buttons K-8
+        const gradeButtonsDiv = document.getElementById('gradeButtons');
+        const grades = ['K', '1', '2', '3', '4', '5', '6', '7', '8'];
+        grades.forEach(g => {
+            const btn = document.createElement('button');
+            btn.className = 'grade-btn';
+            btn.innerText = g === 'K' ? 'Kindergarten' : `Grade ${g}`;
+            btn.onclick = () => selectGrade(g);
+            gradeButtonsDiv.appendChild(btn);
+        });
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function selectGrade(grade) {
+            selectedGrade = grade;
+            showScreen('diffScreen');
+        }
+
+        function selectDifficulty(diff) {
+            selectedDifficulty = diff;
+            generateQuestion();
+            showScreen('questionScreen');
+        }
+
+        // Math Problem Generator
+        function generateQuestion() {
+            let num1, num2, equation, tex, answer;
+            let options = [];
+
+            // Determine complexity based on grade/difficulty
+            let maxNum = 10;
+            if (['1', '2'].includes(selectedGrade)) maxNum = 20;
+            if (['3', '4'].includes(selectedGrade)) maxNum = 50;
+            if (['5', '6'].includes(selectedGrade)) maxNum = 100;
+            if (['7', '8'].includes(selectedGrade)) maxNum = 50; // Use for algebra constants
+
+            if (selectedDifficulty === 'Medium') maxNum *= 2;
+            if (selectedDifficulty === 'Hard') maxNum *= 3;
+
+            // Generate different math concepts based on grade
+            if (['K', '1', '2'].includes(selectedGrade)) {
+                // Addition and Subtraction
+                num1 = Math.floor(Math.random() * maxNum) + 1;
+                num2 = Math.floor(Math.random() * num1); // Ensure no negative answers
+                if (Math.random() > 0.5) {
+                    tex = `$$${num1} + ${num2} = ?$$`;
+                    answer = num1 + num2;
+                } else {
+                    tex = `$$${num1} - ${num2} = ?$$`;
+                    answer = num1 - num2;
+                }
+            } else if (['3', '4', '5'].includes(selectedGrade)) {
+                // Multiplication and Division
+                num1 = Math.floor(Math.random() * (maxNum/5)) + 2;
+                num2 = Math.floor(Math.random() * 10) + 2;
+                if (Math.random() > 0.5) {
+                    tex = `$$${num1} \\times ${num2} = ?$$`;
+                    answer = num1 * num2;
+                } else {
+                    let product = num1 * num2;
+                    tex = `$$${product} \\div ${num1} = ?$$`;
+                    answer = num2;
+                }
+            } else {
+                // Algebra / Fractions (6, 7, 8)
+                let x = Math.floor(Math.random() * 10) + 1;
+                let a = Math.floor(Math.random() * 5) + 2;
+                let b = Math.floor(Math.random() * 20) + 1;
+                let c = (a * x) + b;
+                tex = `$$${a}x + ${b} = ${c}$$ $$x = ?$$`;
+                answer = x;
+            }
+
+            correctAnswer = answer.toString();
+
+            // Generate wrong options
+            options.push(correctAnswer);
+            while(options.length < 4) {
+                let offset = Math.floor(Math.random() * 10) - 5;
+                if (offset === 0) offset = 1;
+                let wrongAns = (parseInt(correctAnswer) + offset).toString();
+                if (!options.includes(wrongAns) && parseInt(wrongAns) >= 0) {
+                    options.push(wrongAns);
+                }
+            }
+
+            // Shuffle options
+            options.sort(() => Math.random() - 0.5);
+
+            // Render to DOM
+            document.getElementById('mathProblem').innerHTML = tex;
+            MathJax.typesetPromise([document.getElementById('mathProblem')]);
+
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+            document.getElementById('feedback').innerText = '';
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt);
+                choicesDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(chosen) {
+            if (chosen === correctAnswer) {
+                document.getElementById('feedback').innerText = "Correct! You are a Math Ninja!";
+                document.getElementById('feedback').style.color = "#32CD32";
+                setTimeout(triggerWinSequence, 1000);
+            } else {
+                document.getElementById('feedback').innerText = "Oops! Try again!";
+                document.getElementById('feedback').style.color = "#FF0000";
+            }
+        }
+
+        function triggerWinSequence() {
+            startConfetti();
+            
+            // Assign 3, 4, or 5 stars
+            requiredStars = Math.floor(Math.random() * 3) + 3;
+            thrownStars = 0;
+            
+            document.getElementById('gameInstructions').innerText = `Awesome! Throw ${requiredStars} Ninja Stars into the Bucket!`;
+            showScreen('gameScreen');
+            initCanvasGame();
+        }
+
+        // --- Confetti Logic ---
+        function startConfetti() {
+            const container = document.getElementById('confettiContainer');
+            container.style.display = 'block';
+            container.innerHTML = '';
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f', '#FFA500'];
+            
+            for (let i = 0; i < 100; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                conf.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(conf);
+            }
+        }
+
+        function stopConfetti() {
+            document.getElementById('confettiContainer').style.display = 'none';
+        }
+
+        // --- Canvas Mini Game Logic ---
+        let canvas, ctx;
+        let stars = [];
+        let bucket = { x: 150, y: 320, width: 100, height: 60 };
+        let animationId;
+
+        function initCanvasGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            stars = [];
+            
+            canvas.onclick = (e) => {
+                if (thrownStars >= requiredStars) return; // Stop throwing if won
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Add new flying star
+                stars.push({
+                    x: x, 
+                    y: y,
+                    targetX: bucket.x + bucket.width / 2,
+                    targetY: bucket.y + 20,
+                    rotation: 0,
+                    inBucket: false
+                });
+                
+                thrownStars++;
+                if (thrownStars === requiredStars) {
+                    setTimeout(() => {
+                        document.getElementById('gameInstructions').innerText = "YOU WIN! PERFECT AIM!";
+                        document.getElementById('gameInstructions').style.color = "#32CD32";
+                    }, 1000);
+                } else {
+                    document.getElementById('gameInstructions').innerText = `${requiredStars - thrownStars} stars left!`;
+                }
+            };
+            
+            cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        function drawBucket() {
+            ctx.fillStyle = '#8B4513'; // SaddleBrown
+            ctx.beginPath();
+            ctx.moveTo(bucket.x, bucket.y);
+            ctx.lineTo(bucket.x + bucket.width, bucket.y);
+            ctx.lineTo(bucket.x + bucket.width - 15, bucket.y + bucket.height);
+            ctx.lineTo(bucket.x + 15, bucket.y + bucket.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = '#000';
+            ctx.font = '20px Fredoka One';
+            ctx.fillText(thrownStars + "/" + requiredStars, bucket.x + 25, bucket.y + 35);
+        }
+
+        function drawNinjaStar(x, y, rotation) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+            ctx.fillStyle = 'silver';
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            
+            ctx.beginPath();
+            for(let i = 0; i < 4; i++) {
+                ctx.moveTo(0, 0);
+                ctx.lineTo(10, 5);
+                ctx.lineTo(20, 0);
+                ctx.lineTo(5, -10);
+                ctx.rotate(Math.PI / 2);
+            }
+            ctx.fill();
+            ctx.stroke();
+            
+            // Center hole
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, Math.PI*2);
+            ctx.fillStyle = '#e0f7fa'; // match background
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawBucket();
+
+            stars.forEach(star => {
+                if (!star.inBucket) {
+                    // Move towards bucket
+                    let dx = star.targetX - star.x;
+                    let dy = star.targetY - star.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (dist < 5) {
+                        star.inBucket = true;
+                    } else {
+                        star.x += dx * 0.05;
+                        star.y += dy * 0.05;
+                        star.rotation += 0.3; // Spin
+                    }
+                }
+                
+                drawNinjaStar(star.x, star.y, star.rotation);
+            });
+
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            stopConfetti();
+            document.getElementById('gameInstructions').style.color = "inherit";
+            showScreen('gradeScreen');
+        }
+    </script>
+</body>
+</html>
