@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Dot Product Visualizer</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/dist/fresh/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            max-width: 1100px;
+            width: 100%;
+        }
+        .canvas-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #fafafa;
+        }
+        .info-panel {
+            flex: 1;
+            min-width: 320px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .math-output {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+        .controls {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+        .interpretation {
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Interactive Dot Product Visualizer</h1>
+    <p>Drag the tip of <strong>Vector A (Blue)</strong> or <strong>Vector B (Red)</strong> to see how their dot product changes.</p>
+
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="vectorCanvas" width="500" height="500"></canvas>
+            <div class="controls">
+                Click and drag arrowheads to move vectors.
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h2>The Mathematics</h2>
+            <p>The dot product can be calculated in two ways:</p>
+            
+            <h3>1. Algebraic Component Definition</h3>
+            <div id="algebraic-formula">
+                $$\vec{a} \cdot \vec{b} = a_x b_x + a_y b_y$$
+            </div>
+            
+            <h3>2. Geometric Definition</h3>
+            <div id="geometric-formula">
+                $$\vec{a} \cdot \vec{b} = \|\vec{a}\| \|\vec{b}\| \cos(\theta)$$
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+            <h2>Live Calculations</h2>
+            <div class="math-output">
+                <div id="calc-components">Loading calculations...</div>
+                <div id="calc-geometric" style="margin-top: 10px;"></div>
+                <div id="calc-result" style="margin-top: 15px; font-weight: bold; font-size: 1.2em; color: #2e7d32;"></div>
+            </div>
+
+            <div id="interpretation-box" class="interpretation">
+                Analyzing alignment...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('vectorCanvas');
+        const ctx = canvas.getContext('2d');
+        const origin = { x: canvas.width / 2, y: canvas.height / 2 };
+
+        // Scale factor: 1 unit = 1 pixel on canvas
+        // Vectors stored as relative coordinates from origin (y is inverted for math-like grid)
+        let vecA = { x: 120, y: 120 };
+        let vecB = { x: 180, y: 0 };
+        
+        let dragTarget = null;
+        const interactionRadius = 20;
+
+        // Mouse Event Listeners for Dragging
+        canvas.addEventListener('mousedown', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - origin.x;
+            const mouseY = origin.y - (e.clientY - rect.top); // Invert Y back
+
+            if (Math.hypot(mouseX - vecA.x, mouseY - vecA.y) < interactionRadius) {
+                dragTarget = 'A';
+            } else if (Math.hypot(mouseX - vecB.x, mouseY - vecB.y) < interactionRadius) {
+                dragTarget = 'B';
+            }
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (!dragTarget) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - origin.x;
+            const mouseY = origin.y - (e.clientY - rect.top);
+
+            if (dragTarget === 'A') {
+                vecA.x = mouseX;
+                vecA.y = mouseY;
+            } else if (dragTarget === 'B') {
+                vecB.x = mouseX;
+                vecB.y = mouseY;
+            }
+            update();
+        });
+
+        window.addEventListener('mouseup', () => dragTarget = null);
+
+        // Vector math utilities
+        function dotProduct(v1, v2) {
+            return v1.x * v2.x + v1.y * v2.y;
+        }
+
+        function magnitude(v) {
+            return Math.hypot(v.x, v.y);
+        }
+
+        // Draw basic arrow helper
+        function drawArrow(fromX, fromY, toX, toY, color, width = 3) {
+            const headlen = 15; // length of head in pixels
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#eef0f2';
+            ctx.lineWidth = 1;
+            // Draw grid lines
+            for(let x=50; x<canvas.width; x+=50) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, x); ctx.lineTo(canvas.width, x); ctx.stroke();
+            }
+            // Draw Main Axes
+            ctx.strokeStyle = '#b0bec5';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, canvas.height); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, origin.y); ctx.lineTo(canvas.width, origin.y); ctx.stroke();
+        }
+
+        function update() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+
+            // Screen space conversions
+            const screenA = { x: origin.x + vecA.x, y: origin.y - vecA.y };
+            const screenB = { x: origin.x + vecB.x, y: origin.y - vecB.y };
+
+            // Calculations
+            const dot = dotProduct(vecA, vecB) / 100; // Scaled down for readability
+            const magA = magnitude(vecA) / 10;
+            const magB = magnitude(vecB) / 10;
+            
+            let cosTheta = dotProduct(vecA, vecB) / (magnitude(vecA) * magnitude(vecB));
+            cosTheta = Math.max(-1, Math.min(1, cosTheta)); // Floating point protection
+            const angleRad = Math.acos(cosTheta);
+            const angleDeg = (angleRad * 180 / Math.PI).toFixed(1);
+
+            // Calculate Projection of A onto B
+            const magB_squared = vecB.x*vecB.x + vecB.y*vecB.y;
+            let projX = 0, projY = 0;
+            if(magB_squared > 0) {
+                const scalarProj = dotProduct(vecA, vecB) / magB_squared;
+                projX = vecB.x * scalarProj;
+                projY = vecB.y * scalarProj;
+            }
+            const screenProj = { x: origin.x + projX, y: origin.y - projY };
+
+            // Draw Projection Shadow line and Vector Projection
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#9e9e9e';
+            ctx.beginPath();
+            ctx.moveTo(screenA.x, screenA.y);
+            ctx.lineTo(screenProj.x, screenProj.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw the Projection vector shadow on B
+            if(magnitude({x: projX, y: projY}) > 1) {
+                drawArrow(origin.x, origin.y, screenProj.x, screenProj.y, '#9c27b0', 4); // Purple for projection shadow
+            }
+
+            // Draw Vector A and B
+            drawArrow(origin.x, origin.y, screenA.x, screenA.y, '#3498db', 4); // Blue
+            drawArrow(origin.x, origin.y, screenB.x, screenB.y, '#e74c3c', 4); // Red
+
+            // Label text over vectors
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#2980b9'; ctx.fillText('A', screenA.x + 10, screenA.y - 10);
+            ctx.fillStyle = '#c0392b'; ctx.fillText('B', screenB.x + 10, screenB.y + 15);
+            ctx.fillStyle = '#8e44ad'; ctx.fillText('Shadow (Proj A onto B)', screenProj.x - 20, screenProj.y - 15);
+
+            // Update Text Panel UI
+            document.getElementById('calc-components').innerHTML = 
+                `<strong>Algebraic:</strong> (${(vecA.x/10).toFixed(1)} &times; ${(vecB.x/10).toFixed(1)}) + (${(vecA.y/10).toFixed(1)} &times; ${(vecB.y/10).toFixed(1)})`;
+            
+            document.getElementById('calc-geometric').innerHTML = 
+                `<strong>Geometric:</strong> ||A||: ${magA.toFixed(1)} &times; ||B||: ${magB.toFixed(1)} &times; cos(${angleDeg}&deg;)`;
+            
+            document.getElementById('calc-result').innerHTML = 
+                `Vector A &middot; Vector B = ${dot.toFixed(2)}`;
+
+            // Interpretive text updating colors dynamically
+            const interpBox = document.getElementById('interpretation-box');
+            if (dot > 5) {
+                interpBox.innerHTML = "Vectors point in a SIMILAR direction (Acute Angle)";
+                interpBox.style.backgroundColor = "#e8f5e9";
+                interpBox.style.color = "#2e7d32";
+            } else if (dot < -5) {
+                interpBox.innerHTML = "Vectors point in OPPOSITE directions (Obtuse Angle)";
+                interpBox.style.backgroundColor = "#ffebee";
+                interpBox.style.color = "#c62828";
+            } else {
+                interpBox.innerHTML = "Vectors are PERPENDICULAR / ORTHOGONAL (90&deg;)";
+                interpBox.style.backgroundColor = "#efebe9";
+                interpBox.style.color = "#4e342e";
+            }
+        }
+
+        // Initialize display
+        update();
+    </script>
+</body>
+</html>
