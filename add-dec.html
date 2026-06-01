@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Decimal Subtraction Blast! ⚡</title>
+    <title>⚡ Mixed Decimal Blast! ⚡</title>
     <script>
         window.MathJax = {
             tex: {
@@ -180,7 +180,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80px;
+            min-height: 90px;
         }
 
         .option-card:hover {
@@ -359,7 +359,7 @@
 
     <div class="container">
         <header>
-            <h1>Decimal Subtraction Blast!</h1>
+            <h1>Mixed Decimal Blast!</h1>
         </header>
 
         <div class="scoreboard">
@@ -411,24 +411,24 @@
     </div>
 
     <script>
-        // Real-world balanced list of 30 distinct subtraction pairs (n1 > n2).
-        // Specially chosen to challenge column borrowing and placeholder zero alignment.
+        // Array configurations containing [number1, number2, operator]
+        // Balanced blend of 15 addition pairs and 15 subtraction pairs (n1 > n2 for subtractions)
         const basePairs = [
-            [23.4, 5.67],   [14.3, 8.125],  [156.2, 3.74],  [45.123, 0.89], [47.3, 8.156],
-            [124.5, 6.28],  [11.95, 2.3],   [354.1, 23.67], [58.1, 9.462],  [72.5, 4.183],
-            [135.8, 7.42],  [18.5, 5.621],  [124.5, 8.36],  [24.516, 0.73], [88.2, 9.145],
-            [163.4, 5.67],  [26.81, 4.2],   [415.2, 34.56], [12.6, 7.824],  [63.4, 5.291],
-            [174.5, 6.82],  [22.5, 4.391],  [235.6, 7.14],  [31.456, 0.92], [54.1, 8.672],
-            [192.8, 4.43],  [33.74, 5.1],   [512.3, 12.45], [83.2, 6.715],  [81.6, 3.492]
+            [23.4, 5.67, '+'],   [14.3, 8.125, '-'],  [156.2, 3.74, '+'],  [45.123, 0.89, '-'], [47.3, 8.156, '+'],
+            [124.5, 6.28, '-'],  [11.95, 2.3, '+'],   [354.1, 23.67, '-'], [58.1, 9.462, '-'],  [72.5, 4.183, '+'],
+            [135.8, 7.42, '+'],  [18.5, 5.621, '-'],  [124.5, 8.36, '-'],  [24.516, 0.73, '+'], [88.2, 9.145, '-'],
+            [163.4, 5.67, '-'],  [26.81, 4.2, '+'],   [415.2, 34.56, '-'], [12.6, 7.824, '-'],  [63.4, 5.291, '+'],
+            [174.5, 6.82, '+'],  [22.5, 4.391, '-'],  [235.6, 7.14, '+'],  [31.456, 0.92, '-'], [54.1, 8.672, '+'],
+            [192.8, 4.43, '-'],  [33.74, 5.1, '+'],   [512.3, 12.45, '-'], [83.2, 6.715, '-'],  [81.6, 3.492, '+']
         ];
 
         let currentIdx = 0;
-        let currentStep = 1; // Step 1: Choose Alignment, Step 2: Choose Difference
+        let currentStep = 1; // Step 1: Choose Alignment, Step 2: Choose Calculation
         let score = 0;
         let streak = 0;
         let firstAttemptForStep = true;
 
-        // Shuffle arrays smoothly
+        // Shuffle utility
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -437,8 +437,10 @@
             return array;
         }
 
-        // Generates cleanly aligned MathJax arrays by computing required spaces (\phantom)
-        function getPaddedMathJax(n1, n2, type) {
+        // ROCK-SOLID LATEX GRID ALIGNMENT METHOD:
+        // Uses an 'rr@{.}l' template to cleanly split whole numbers and fractional parts,
+        // locking the decimal points into an unbendable, perfect vertical vector column.
+        function getPaddedMathJax(n1, n2, op, type) {
             let s1 = n1.toString();
             let s2 = n2.toString();
             
@@ -446,27 +448,16 @@
                 let parts1 = s1.split('.');
                 let parts2 = s2.split('.');
                 
-                let w1 = parts1[0], f1 = parts1[1] || '';
-                let w2 = parts2[0], f2 = parts2[1] || '';
+                let w1 = parts1[0], f1 = parts1[1] || '0';
+                let w2 = parts2[0], f2 = parts2[1] || '0';
                 
-                let maxW = Math.max(w1.length, w2.length);
-                let maxF = Math.max(f1.length, f2.length);
-                
-                let pW1 = '\\phantom{0}'.repeat(maxW - w1.length);
-                let pF1 = '\\phantom{0}'.repeat(maxF - f1.length);
-                let pW2 = '\\phantom{0}'.repeat(maxW - w2.length);
-                let pF2 = '\\phantom{0}'.repeat(maxF - f2.length);
-                
-                let row1 = pW1 + w1 + '.' + f1 + pF1;
-                let row2 = pW2 + w2 + '.' + f2 + pF2;
-                
-                return `$$\\begin{array}{r} ${row1} \\\\ -\\quad ${row2} \\\\ \\hline \\end{array}$$`;
+                return `$$\\begin{array}{rr@{.}l} & ${w1} & ${f1} \\\\ ${op} & ${w2} & ${f2} \\\\ \\hline \\end{array}$$`;
             } else if (type === 'right') {
-                // Mistake: right-justifying columns like regular integers
-                return `$$\\begin{array}{r} ${s1} \\\\ -\\quad ${s2} \\\\ \\hline \\end{array}$$`;
+                // Misconception 1: Right-justified layout ignoring decimals
+                return `$$\\begin{array}{r} ${s1} \\\\ ${op}\\quad ${s2} \\\\ \\hline \\end{array}$$`;
             } else {
-                // Mistake: left-justifying strings
-                return `$$\\begin{array}{l} ${s1} \\\\ -\\quad ${s2} \\\\ \\hline \\end{array}$$`;
+                // Misconception 2: Left-justified layout
+                return `$$\\begin{array}{l} ${s1} \\\\ ${op}\\quad ${s2} \\\\ \\hline \\end{array}$$`;
             }
         }
 
@@ -474,6 +465,7 @@
             const q = basePairs[currentIdx];
             const n1 = q[0];
             const n2 = q[1];
+            const op = q[2];
             
             document.getElementById('qNum').innerText = currentIdx + 1;
             const feedback = document.getElementById('feedback');
@@ -488,12 +480,21 @@
             
             if (currentStep === 1) {
                 document.getElementById('nextBtn').innerText = "Next Step ➡️";
-                questionTextEl.innerHTML = `<strong>Step 1:</strong> Which setup shows the <strong>correct alignment</strong> to safely subtract <span class="num-highlight">${n2}</span> from <span class="num-highlight">${n1}</span>?`;
+                
+                let actionWord = (op === '+') ? "add" : "subtract";
+                let connectiveWord = (op === '+') ? "and" : "from";
+                
+                // Formulate target instruction dynamically
+                if (op === '+') {
+                    questionTextEl.innerHTML = `<strong>Step 1:</strong> Which setup shows the <strong>correct alignment</strong> to safely ${actionWord} <span class="num-highlight">${n1}</span> ${connectiveWord} <span class="num-highlight">${n2}</span>?`;
+                } else {
+                    questionTextEl.innerHTML = `<strong>Step 1:</strong> Which setup shows the <strong>correct alignment</strong> to safely ${actionWord} <span class="num-highlight">${n2}</span> ${connectiveWord} <span class="num-highlight">${n1}</span>?`;
+                }
                 
                 let alignmentChoices = [
-                    { text: getPaddedMathJax(n1, n2, 'correct'), isCorrect: true },
-                    { text: getPaddedMathJax(n1, n2, 'right'), isCorrect: false },
-                    { text: getPaddedMathJax(n1, n2, 'left'), isCorrect: false }
+                    { text: getPaddedMathJax(n1, n2, op, 'correct'), isCorrect: true },
+                    { text: getPaddedMathJax(n1, n2, op, 'right'), isCorrect: false },
+                    { text: getPaddedMathJax(n1, n2, op, 'left'), isCorrect: false }
                 ];
                 
                 shuffle(alignmentChoices);
@@ -508,57 +509,60 @@
                 
             } else {
                 document.getElementById('nextBtn').innerText = "Next Challenge 🎉";
-                questionTextEl.innerHTML = `<strong>Step 2:</strong> Look at your perfectly aligned subtraction setup below! What is the correct difference?`;
+                let valLabel = (op === '+') ? "sum" : "difference";
+                questionTextEl.innerHTML = `<strong>Step 2:</strong> Look at your perfectly aligned setup below! What is the correct ${valLabel}?`;
                 
                 const referenceDiv = document.createElement('div');
                 referenceDiv.className = 'reference-alignment';
-                referenceDiv.innerHTML = getPaddedMathJax(n1, n2, 'correct');
+                referenceDiv.innerHTML = getPaddedMathJax(n1, n2, op, 'correct');
                 optionsContainer.appendChild(referenceDiv);
                 
-                // Calculate correct subtraction difference
-                let correctAns = parseFloat((n1 - n2).toFixed(3)).toString();
+                // Calculate correct mathematical evaluation
+                let correctAns = (op === '+') ? parseFloat((n1 + n2).toFixed(3)).toString() : parseFloat((n1 - n2).toFixed(3)).toString();
                 
-                // Distractor 1: Subtracting like standard whole numbers without decimals aligned
+                // Distractor 1: Standard integer operation bypassing decimal placements
                 let s1_clean = n1.toString().replace('.', '');
                 let s2_clean = n2.toString().replace('.', '');
-                let rawDiff = parseInt(s1_clean) - parseInt(s2_clean);
-                let wrong1 = parseFloat((rawDiff / 100).toFixed(3)).toString();
+                let rawResult = (op === '+') ? (parseInt(s1_clean) + parseInt(s2_clean)) : (parseInt(s1_clean) - parseInt(s2_clean));
+                let wrong1 = parseFloat((rawResult / 100).toFixed(3)).toString();
                 if (wrong1 === correctAns || parseFloat(wrong1) <= 0) {
-                    wrong1 = parseFloat((n1 - n2 + 2.15).toFixed(2)).toString();
+                    wrong1 = (op === '+') ? parseFloat((n1 + n2 + 1.15).toFixed(2)).toString() : parseFloat((n1 - n2 + 2.15).toFixed(2)).toString();
                 }
                 
-                // Distractor 2 & 3: Borrowing mistakes / common off-by-one errors
-                let wrong2 = parseFloat((n1 - n2 + 1.0).toFixed(3)).toString();
-                let wrong3 = parseFloat(Math.abs(n1 - n2 - 0.11).toFixed(3)).toString();
+                // Distractors 2 & 3: Positional shifting / common column miscalculations
+                let wrong2 = (op === '+') ? parseFloat((n1 + n2 + 1.0).toFixed(3)).toString() : parseFloat((n1 - n2 + 1.0).toFixed(3)).toString();
+                let wrong3 = (op === '+') ? parseFloat((n1 + n2 - 0.22).toFixed(3)).toString() : parseFloat(Math.abs(n1 - n2 - 0.11).toFixed(3)).toString();
                 
-                let diffChoices = [
+                let resultChoices = [
                     { text: correctAns, isCorrect: true },
                     { text: wrong1, isCorrect: false },
                     { text: wrong2, isCorrect: false },
                     { text: wrong3, isCorrect: false }
                 ];
                 
-                // Ensure choices are unique
+                // Filter distinct positive parameters
                 let seen = new Set();
-                diffChoices = diffChoices.filter(el => {
+                resultChoices = resultChoices.filter(el => {
                     if(seen.has(el.text) || parseFloat(el.text) < 0) return false;
                     seen.add(el.text);
                     return true;
                 });
-                while(diffChoices.length < 4) {
-                    let fallback = parseFloat((n1 - n2 + Math.random()*2 + 0.3).toFixed(2)).toString();
+                
+                while(resultChoices.length < 4) {
+                    let seedOffset = (op === '+') ? (n1 + n2) : (n1 - n2);
+                    let fallback = parseFloat((seedOffset + Math.random() * 3 + 0.4).toFixed(2)).toString();
                     if(!seen.has(fallback)) {
-                        diffChoices.push({ text: fallback, isCorrect: false });
+                        resultChoices.push({ text: fallback, isCorrect: false });
                         seen.add(fallback);
                     }
                 }
                 
-                shuffle(diffChoices);
+                shuffle(resultChoices);
                 
                 const buttonGrid = document.createElement('div');
                 buttonGrid.className = 'button-grid';
                 
-                diffChoices.forEach(c => {
+                resultChoices.forEach(c => {
                     const btn = document.createElement('button');
                     btn.className = 'option-btn';
                     btn.innerText = c.text;
@@ -606,7 +610,7 @@
                 nextBtn.style.display = 'inline-block';
             } else {
                 element.classList.add('wrong-pick');
-                feedback.innerText = currentStep === 1 ? "❌ Look closer! The decimal points MUST be locked on a straight line!" : "❌ Not quite right! Remember to place placeholder zeros if the top number is shorter.";
+                feedback.innerText = currentStep === 1 ? "❌ Look closer! The decimal points MUST be locked on a straight line!" : "❌ Not quite right! Be careful with carrying over values or borrowing columns.";
                 feedback.className = 'feedback wrong-msg shake';
                 streak = 0;
                 document.getElementById('streak').innerText = streak;
@@ -658,7 +662,7 @@
                     <div class="final-score-box">
                         <p style="margin:0; font-size:1.2rem; color:#4a5568; font-weight:700;">Your Grand Total Score</p>
                         <h1>${score} / 60</h1>
-                        <p style="margin:0; color:#718096;">Flawlessly completed all 30 math sets!</p>
+                        <p style="margin:0; color:#718096;">Flawlessly completed all 30 mixed math sets!</p>
                     </div>
                     <div class="screenshot-zone">
                         <p style="margin:0 0 15px 0; font-weight:700; color:#c05621; font-size:1.1rem;">
