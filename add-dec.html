@@ -411,8 +411,6 @@
     </div>
 
     <script>
-        // Array configurations containing [number1, number2, operator]
-        // Balanced blend of 15 addition pairs and 15 subtraction pairs (n1 > n2 for subtractions)
         const basePairs = [
             [23.4, 5.67, '+'],   [14.3, 8.125, '-'],  [156.2, 3.74, '+'],  [45.123, 0.89, '-'], [47.3, 8.156, '+'],
             [124.5, 6.28, '-'],  [11.95, 2.3, '+'],   [354.1, 23.67, '-'], [58.1, 9.462, '-'],  [72.5, 4.183, '+'],
@@ -423,12 +421,11 @@
         ];
 
         let currentIdx = 0;
-        let currentStep = 1; // Step 1: Choose Alignment, Step 2: Choose Calculation
+        let currentStep = 1; 
         let score = 0;
         let streak = 0;
         let firstAttemptForStep = true;
 
-        // Shuffle utility
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -437,9 +434,9 @@
             return array;
         }
 
-        // ROCK-SOLID LATEX GRID ALIGNMENT METHOD:
-        // Uses an 'rr@{.}l' template to cleanly split whole numbers and fractional parts,
-        // locking the decimal points into an unbendable, perfect vertical vector column.
+        // FIXED ALIGNMENT ENGINE: 
+        // We now use 4 distinct column slots: [operator/gap] [whole numbers] [decimal point] [fractional numbers]
+        // Setting column rules to '@{}' strips side paddings completely, fixing the layout permanently.
         function getPaddedMathJax(n1, n2, op, type) {
             let s1 = n1.toString();
             let s2 = n2.toString();
@@ -451,12 +448,10 @@
                 let w1 = parts1[0], f1 = parts1[1] || '0';
                 let w2 = parts2[0], f2 = parts2[1] || '0';
                 
-                return `$$\\begin{array}{rr@{.}l} & ${w1} & ${f1} \\\\ ${op} & ${w2} & ${f2} \\\\ \\hline \\end{array}$$`;
+                return `$$\\begin{array}{r@{}r@{}c@{}l} & ${w1} & . & ${f1} \\\\ ${op} & ${w2} & . & ${f2} \\\\ \\hline \\end{array}$$`;
             } else if (type === 'right') {
-                // Misconception 1: Right-justified layout ignoring decimals
                 return `$$\\begin{array}{r} ${s1} \\\\ ${op}\\quad ${s2} \\\\ \\hline \\end{array}$$`;
             } else {
-                // Misconception 2: Left-justified layout
                 return `$$\\begin{array}{l} ${s1} \\\\ ${op}\\quad ${s2} \\\\ \\hline \\end{array}$$`;
             }
         }
@@ -484,7 +479,6 @@
                 let actionWord = (op === '+') ? "add" : "subtract";
                 let connectiveWord = (op === '+') ? "and" : "from";
                 
-                // Formulate target instruction dynamically
                 if (op === '+') {
                     questionTextEl.innerHTML = `<strong>Step 1:</strong> Which setup shows the <strong>correct alignment</strong> to safely ${actionWord} <span class="num-highlight">${n1}</span> ${connectiveWord} <span class="num-highlight">${n2}</span>?`;
                 } else {
@@ -517,10 +511,8 @@
                 referenceDiv.innerHTML = getPaddedMathJax(n1, n2, op, 'correct');
                 optionsContainer.appendChild(referenceDiv);
                 
-                // Calculate correct mathematical evaluation
                 let correctAns = (op === '+') ? parseFloat((n1 + n2).toFixed(3)).toString() : parseFloat((n1 - n2).toFixed(3)).toString();
                 
-                // Distractor 1: Standard integer operation bypassing decimal placements
                 let s1_clean = n1.toString().replace('.', '');
                 let s2_clean = n2.toString().replace('.', '');
                 let rawResult = (op === '+') ? (parseInt(s1_clean) + parseInt(s2_clean)) : (parseInt(s1_clean) - parseInt(s2_clean));
@@ -529,7 +521,6 @@
                     wrong1 = (op === '+') ? parseFloat((n1 + n2 + 1.15).toFixed(2)).toString() : parseFloat((n1 - n2 + 2.15).toFixed(2)).toString();
                 }
                 
-                // Distractors 2 & 3: Positional shifting / common column miscalculations
                 let wrong2 = (op === '+') ? parseFloat((n1 + n2 + 1.0).toFixed(3)).toString() : parseFloat((n1 - n2 + 1.0).toFixed(3)).toString();
                 let wrong3 = (op === '+') ? parseFloat((n1 + n2 - 0.22).toFixed(3)).toString() : parseFloat(Math.abs(n1 - n2 - 0.11).toFixed(3)).toString();
                 
@@ -540,7 +531,6 @@
                     { text: wrong3, isCorrect: false }
                 ];
                 
-                // Filter distinct positive parameters
                 let seen = new Set();
                 resultChoices = resultChoices.filter(el => {
                     if(seen.has(el.text) || parseFloat(el.text) < 0) return false;
@@ -676,7 +666,6 @@
             `;
         }
 
-        // Initialize App Setup
         loadStep();
     </script>
 </body>
