@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decimal Dash! Adding 3-Digit Decimals</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary: #4e54c8;
+            --secondary: #8f94fb;
+            --success: #2ecc71;
+            --bg: #f8f9fa;
+            --text: #2d3436;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 650px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-top: 0;
+            font-size: 2rem;
+        }
+
+        /* Scoreboard Styling */
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            background: #f1f2f6;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .score-box { color: var(--success); }
+        .streak-box { color: #e67e22; }
+
+        /* Progress Meter: Trying to Get Work -> LIT */
+        .progress-wrapper {
+            margin: 25px 0;
+            background: #dfe4ea;
+            border-radius: 20px;
+            position: relative;
+            height: 35px;
+            overflow: hidden;
+            border: 2px solid #ced6e0;
+        }
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            padding: 0 15px;
+            box-sizing: border-box;
+            font-weight: bold;
+            font-size: 0.9rem;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .label-left { color: #747d8c; }
+        .label-right { color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff7675, #fdcb6e, #2ecc71);
+            transition: width 0.4s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .progress-arrow {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(-50%) translateX(0); }
+            to { transform: translateY(-50%) translateX(-5px); }
+        }
+
+        /* Question and Options Setup */
+        .question-box {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            min-height: 50px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 3px solid #dfe4ea;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .option-btn:hover {
+            border-color: var(--secondary);
+            background-color: #f1f2f6;
+            transform: translateY(-2px);
+        }
+        .option-btn.correct {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724;
+        }
+        .option-btn.wrong {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24;
+        }
+
+        .feedback {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            height: 25px;
+        }
+
+        .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .action-btn:hover { opacity: 0.9; }
+        .action-btn:disabled { background: #ced6e0; cursor: not-allowed; }
+
+        /* End Screen Styling */
+        .end-screen {
+            display: none;
+        }
+        .screenshot-btn {
+            background: #e74c3c;
+            color: white;
+            text-decoration: none;
+            padding: 15px 25px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+        .screenshot-btn:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h1>✨ Decimal Dash! ✨</h1>
+
+        <div class="scoreboard">
+            <div>Question: <span id="q-num">1</span>/30</div>
+            <div class="score-box">Score: <span id="score">0</span></div>
+            <div class="streak-box">🔥 Streak: <span id="streak">0</span></div>
+        </div>
+
+        <div class="progress-wrapper">
+            <div class="progress-labels">
+                <span class="label-left">Trying to Get Work 📋</span>
+                <span class="label-right">🔥 LIT! 🔥</span>
+            </div>
+            <div id="progress-bar" class="progress-bar">
+                <span class="progress-arrow">➡️</span>
+            </div>
+        </div>
+
+        <div id="quiz-screen">
+            <div id="question-text" class="question-box">Loading question...</div>
+            <div id="options-container" class="options-grid"></div>
+            <div id="feedback-text" class="feedback"></div>
+            <button id="next-btn" class="action-btn" onclick="nextStep()" disabled>Next ➡️</button>
+        </div>
+
+        <div id="end-screen" class="end-screen">
+            <h2>🎉 Amazing Job! You Finished! 🎉</h2>
+            <p style="font-size: 1.3rem;">Your Final Score: <strong id="final-score">0</strong> / 30</p>
+            <p>Don't forget to take a screenshot of your awesome score!</p>
+            <a href="https://tinyurl.com/mathscreenshot" target="_blank" class="screenshot-btn">
+                📸 Click Here to Submit Your Screenshot
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUIZ STATE & GENERATOR ---
+        const TOTAL_QUESTIONS = 30;
+        let currentQuestionIdx = 0;
+        let step = 1; // Step 1: Alignment, Step 2: Sum
+        let score = 0;
+        let streak = 0;
+        let selectedBtn = null;
+
+        // Generate 30 unique questions containing two 3-digit decimals
+        const questions = [];
+        for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+            // Generates variations of 3-digit decimals (e.g., X.XX or XX.X or .XXX)
+            let dec1 = (Math.random() * 90 + 9).toFixed(Math.floor(Math.random() * 2) + 1); // e.g. 12.3 or 45.67
+            let dec2 = (Math.random() * 9 + 1).toFixed(Math.floor(Math.random() * 2) + 1);  // e.g. 1.23 or 4.5
+            
+            // Re-parse to float to clear hanging zeros, then pad out up to 3 total digits
+            let n1 = parseFloat(dec1);
+            let n2 = parseFloat(dec2);
+            let ans = (n1 + n2).toFixed(3);
+            ans = parseFloat(ans); // Clean trailing zeros for real answer
+
+            questions.push({ num1: n1, num2: n2, answer: ans });
+        }
+
+        // --- 2. ENGINE LOGIC ---
+        function loadQuestion() {
+            if (currentQuestionIdx >= TOTAL_QUESTIONS) {
+                showEndScreen();
+                return;
+            }
+
+            const q = questions[currentQuestionIdx];
+            document.getElementById("q-num").innerText = currentQuestionIdx + 1;
+            document.getElementById("feedback-text").innerText = "";
+            document.getElementById("next-btn").disabled = true;
+            const container = document.getElementById("options-container");
+            container.innerHTML = "";
+
+            if (step === 1) {
+                // STEP 1: Proper Alignment Question
+                document.getElementById("question-text").innerHTML = `<strong>Step 1:</strong> Which option shows the correct decimal alignment to add $${q.num1} + ${q.num2}$?`;
+                
+                // Formulate options (one correct, one shifted wrong layout)
+                const correctAlignment = `$$\\begin{array}{r} ${q.num1.toFixed(q.num1.toString().split('.')[1]?.length || 1)} \\\\ + \\quad ${q.num2.toFixed(q.num2.toString().split('.')[1]?.length || 1)} \\\\ \\hline \\end{array}$$`;
+                
+                // Artificial wrong alignment (jagged/right aligned ignoring decimal point)
+                const wrongAlignment = `$$\\begin{array}{r} ${q.num1} \\phantom{0} \\\\ + \\quad ${q.num2} \\\\ \\hline \\end{array}$$`;
+                
+                let choices = [
+                    { html: correctAlignment, correct: true },
+                    { html: wrongAlignment, correct: false }
+                ];
+                // Shuffle choices
+                if (Math.random() > 0.5) choices.reverse();
+
+                choices.forEach(c => {
+                    const btn = document.createElement("button");
+                    btn.className = "option-btn";
+                    btn.innerHTML = c.html;
+                    btn.onclick = () => checkAlignmentAnswer(btn, c.correct);
+                    container.appendChild(btn);
+                });
+
+            } else {
+                // STEP 2: Calculate the actual sum
+                document.getElementById("question-text").innerHTML = `<strong>Step 2:</strong> Awesome alignment! Now, what is the exact sum? <br> $$${q.num1} + ${q.num2} = ?$$`;
+                
+                let correctAnswer = q.answer;
+                let fake1 = parseFloat((correctAnswer + 1.11).toFixed(2));
+                let fake2 = parseFloat((correctAnswer - 0.03).toFixed(3));
+                let fake3 = parseFloat((correctAnswer * 10).toFixed(1)); // Forgot decimal element completely trick
+
+                let choices = [
+                    { text: correctAnswer, correct: true },
+                    { text: fake1, correct: false },
+                    { text: fake2, correct: false },
+                    { text: fake3, correct: false }
+                ];
+                // Shuffle choices
+                choices.sort(() => Math.random() - 0.5);
+
+                container.style.gridTemplateColumns = "1fr 1fr"; // 2x2 grid for math values
+                choices.forEach(c => {
+                    const btn = document.createElement("button");
+                    btn.className = "option-btn";
+                    btn.innerText = c.text;
+                    btn.onclick = () => checkSumAnswer(btn, c.correct);
+                    container.appendChild(btn);
+                });
+            }
+
+            // Tell MathJax to process the newly injected TeX configurations
+            MathJax.typesetPromise();
+        }
+
+        function checkAlignmentAnswer(btn, isCorrect) {
+            disableOptions();
+            if (isCorrect) {
+                btn.classList.add("correct");
+                document.getElementById("feedback-text").innerHTML = "🎉 Spot on! The decimal points must line up perfectly!";
+                score += 0.5; // Half credit for alignment setup
+                streak++;
+            } else {
+                btn.classList.add("wrong");
+                document.getElementById("feedback-text").innerHTML = "❌ Remember, line up those decimal points over each other!";
+                streak = 0;
+            }
+            updateScoreAndProgress();
+            document.getElementById("next-btn").disabled = false;
+        }
+
+        function checkSumAnswer(btn, isCorrect) {
+            disableOptions();
+            if (isCorrect) {
+                btn.classList.add("correct");
+                document.getElementById("feedback-text").innerHTML = "🚀 BAM! You got the right addition answer!";
+                score += 0.5; // Rest of credit for getting math right
+                streak++;
+            } else {
+                btn.classList.add("wrong");
+                document.getElementById("feedback-text").innerHTML = `❌ Not quite! The true math answer was ${questions[currentQuestionIdx].answer}`;
+                streak = 0;
+            }
+            updateScoreAndProgress();
+            document.getElementById("next-btn").disabled = false;
+        }
+
+        function disableOptions() {
+            const buttons = document.querySelectorAll(".option-btn");
+            buttons.forEach(b => b.disabled = true);
+        }
+
+        function nextStep() {
+            if (step === 1) {
+                step = 2;
+            } else {
+                step = 1;
+                currentQuestionIdx++;
+                document.getElementById("options-container").style.gridTemplateColumns = "1fr";
+            }
+            loadQuestion();
+        }
+
+        function updateScoreAndProgress() {
+            document.getElementById("score").innerText = Math.floor(score);
+            document.getElementById("streak").innerText = streak;
+
+            // Calculate progress through total steps (30 questions * 2 steps per question = 60 steps total)
+            let totalStepsDone = (currentQuestionIdx * 2) + (step - 1) + 0.5; 
+            let percentage = (totalStepsDone / (TOTAL_QUESTIONS * 2)) * 100;
+            document.getElementById("progress-bar").style.width = `${percentage}%`;
+        }
+
+        function showEndScreen() {
+            document.getElementById("quiz-screen").style.display = "none";
+            document.getElementById("end-screen").style.display = "block";
+            document.getElementById("final-score").innerText = Math.floor(score);
+            document.getElementById("progress-bar").style.width = "100%";
+        }
+
+        // Initialize First Question
+        loadQuestion();
+    </script>
+</body>
+</html>
