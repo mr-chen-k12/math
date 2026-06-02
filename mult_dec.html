@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Decimal Multiplication Blast! ⚡</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4A00E0;
+            --secondary: #8E2DE2;
+            --success: #00bab3;
+            --wrong: #ff4757;
+            --background: #f0f4f8;
+            --text: #2d3748;
+            --accent: #ff9f43;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 750px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            color: var(--primary);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Scoreboard Styling */
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            background: #f7fafc;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .stat-box {
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #718096;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        #streakBox .stat-value {
+            color: var(--accent);
+        }
+
+        /* Progress Bar Styling */
+        .progress-container {
+            background: #edf2f7;
+            padding: 20px 15px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 900;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: #4a5568;
+        }
+
+        .progress-track {
+            height: 24px;
+            background: #cbd5e0;
+            border-radius: 12px;
+            position: relative;
+            overflow: visible;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            border-radius: 12px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-arrow {
+            position: absolute;
+            top: -14px;
+            left: 0%;
+            transform: translateX(-50%);
+            font-size: 1.8rem;
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        /* Helper Toggle Component */
+        .helper-zone {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .btn-toggle-helper {
+            background: #edf2f7;
+            color: #4a5568;
+            border: 2px solid #cbd5e0;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-toggle-helper:hover {
+            background: #e2e8f0;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .helper-table-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #f7fafc;
+            border-radius: 16px;
+            margin-top: 10px;
+        }
+
+        .helper-table-container.open {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px dashed var(--secondary);
+            padding: 15px;
+        }
+
+        .math-grid {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .math-grid th, .math-grid td {
+            border: 1px solid #e2e8f0;
+            padding: 6px;
+            font-weight: 700;
+        }
+
+        .math-grid th {
+            background: #e2e8f0;
+            color: var(--text);
+        }
+
+        .math-grid td.header-cell {
+            background: #e2e8f0;
+        }
+
+        /* Layout Architecture */
+        .question-box {
+            margin-bottom: 25px;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .num-highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 6px;
+            color: #856404;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 3px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 15px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text);
+        }
+
+        .option-btn:hover {
+            border-color: var(--secondary);
+            background: #fcfaff;
+            transform: translateY(-2px);
+        }
+
+        .correct-pick {
+            background: #e6fffa !important;
+            border-color: var(--success) !important;
+            color: #006d68 !important;
+            font-weight: 900;
+        }
+
+        .wrong-pick {
+            background: #fff5f5 !important;
+            border-color: var(--wrong) !important;
+            color: #9b2c2c !important;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .reference-alignment {
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .feedback {
+            text-align: center;
+            font-weight: 900;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+
+        .correct-msg { color: var(--success); }
+        .wrong-msg { color: var(--wrong); }
+        .hidden { display: none; }
+
+        .action-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-prime {
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 35px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,186,179,0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-prime:hover {
+            transform: translateY(-2px);
+        }
+
+        .global-submit-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(255,71,87,0.3);
+            transition: all 0.2s ease;
+        }
+
+        .global-submit-btn:hover {
+            background: #ff2a3b;
+            transform: translateY(-2px);
+        }
+
+        .end-screen {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .end-screen h2 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .final-status {
+            font-size: 1.5rem;
+            color: var(--accent);
+            font-weight: 900;
+            margin-bottom: 25px;
+        }
+
+        .final-score-box {
+            background: #f7fafc;
+            border: 4px solid var(--primary);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .final-score-box h1 {
+            font-size: 4rem;
+            margin: 10px 0;
+            color: var(--primary);
+        }
+
+        .screenshot-zone {
+            background: #fffaf0;
+            border: 2px dashed #dd6b20;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .pulse { animation: pulse 0.4s ease-in-out; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        .shake { animation: shake 0.3s ease-in-out 2; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Decimal Multiplication Blast!</h1>
+        </header>
+
+        <div class="scoreboard">
+            <div class="stat-box">
+                <div class="stat-label">Challenge</div>
+                <div class="stat-value"><span id="qNum">1</span> / 30</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value">⭐ <span id="score">0</span> / 60</div>
+            </div>
+            <div class="stat-box" id="streakBox">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value">🔥 <span id="streak">0</span></div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-labels">
+                <span>😩 Trying to get work done</span>
+                <span>Lit 🔥</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-arrow" id="progressArrow">🏹</div>
+            </div>
+        </div>
+
+        <div class="helper-zone">
+            <button class="btn-toggle-helper" onclick="toggleHelperTable()" id="helperToggleBtn">
+                Show Multiplication Table Helper 🧮
+            </button>
+            <div class="helper-table-container" id="helperContainer">
+                <table class="math-grid" id="helperGrid"></table>
+            </div>
+        </div>
+
+        <div id="quiz-card">
+            <div class="question-box">
+                <div class="question-text" id="questionText">Loading challenge details...</div>
+            </div>
+
+            <div class="options-container" id="optionsContainer">
+                </div>
+
+            <div class="feedback hidden" id="feedback"></div>
+
+            <div class="action-zone">
+                <button class="btn-prime" id="nextBtn" style="display: none;" onclick="handleNext()">Next Step ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 25px;">
+        <button class="global-submit-btn" onclick="window.open('https://tinyurl.com/mathscreenshot', '_blank')">
+            📸 Click to Submit Your Screenshot
+        </button>
+    </div>
+
+    <script>
+        // Mental-math friendly multiplication pairs
+        const basePairs = [
+            [1.2, 3],  [0.5, 6],  [2.5, 2],  [0.4, 4],  [1.5, 3],
+            [0.3, 0.3],[0.02, 7],[1.1, 5],  [0.8, 5],  [1.2, 4],
+            [0.6, 2],  [0.15, 2],[0.05, 9],[2.2, 3],  [0.7, 3],
+            [0.4, 0.2],[1.3, 2],  [0.09, 2],[2.5, 4],  [0.5, 0.5],
+            [1.2, 5],  [0.04, 8],[0.8, 3],  [1.1, 1.1],[0.12, 3],
+            [0.6, 5],  [1.5, 2],  [0.03, 6],[0.7, 4],  [2.1, 4]
+        ];
+
+        let currentIdx = 0;
+        let currentStep = 1; // Step 1: Count decimal places, Step 2: Choose Product
+        let score = 0;
+        let streak = 0;
+        let firstAttemptForStep = true;
+
+        // Shuffle utility
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Toggle Table Visibility Function
+        function toggleHelperTable() {
+            const container = document.getElementById('helperContainer');
+            const btn = document.getElementById('helperToggleBtn');
+            if (container.classList.contains('open')) {
+                container.classList.remove('open');
+                btn.innerText = "Show Multiplication Table Helper 🧮";
+            } else {
+                container.classList.add('open');
+                btn.innerText = "Hide Multiplication Table Helper ❌";
+            }
+        }
+
+        // Generate static $12 \times 12$ Helper Grid inside container
+        function buildHelperGrid() {
+            const grid = document.getElementById('helperGrid');
+            let html = '<thead><tr><th>×</th>';
+            for (let i = 1; i <= 12; i++) html += `<th>${i}</th>`;
+            html += '</tr></thead><tbody>';
+            
+            for (let r = 1; r <= 12; r++) {
+                html += `<tr><td class="header-cell"><strong>${r}</strong></td>`;
+                for (let c = 1; c <= 12; c++) {
+                    html += `<td>${r * c}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</tbody>';
+            grid.innerHTML = html;
+        }
+
+        // Count total fractional digits in factors
+        function getDecimalPlacesCount(num) {
+            let s = num.toString();
+            let idx = s.indexOf('.');
+            return idx === -1 ? 0 : s.length - idx - 1;
+        }
+
+        function loadStep() {
+            const q = basePairs[currentIdx];
+            const n1 = q[0];
+            const n2 = q[1];
+            
+            document.getElementById('qNum').innerText = currentIdx + 1;
+            const feedback = document.getElementById('feedback');
+            feedback.className = 'feedback hidden';
+            document.getElementById('nextBtn').style.display = 'none';
+            
+            const questionTextEl = document.getElementById('questionText');
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            firstAttemptForStep = true;
+            
+            let p1 = getDecimalPlacesCount(n1);
+            let p2 = getDecimalPlacesCount(n2);
+            let totalPlaces = p1 + p2;
+
+            if (currentStep === 1) {
+                document.getElementById('nextBtn').innerText = "Next Step ➡️";
+                questionTextEl.innerHTML = `<strong>Step 1:</strong> Look at the problem below. How many total digits should be behind the decimal point in the final product?`;
+                
+                const mathDiv = document.createElement('div');
+                mathDiv.className = 'reference-alignment';
+                mathDiv.innerHTML = `$$\\begin{array}{r} ${n1} \\\\ \\times\\quad ${n2} \\\\ \\hline \\end{array}$$`;
+                optionsContainer.appendChild(mathDiv);
+
+                let choices = [
+                    { text: `${totalPlaces} Decimal Place${totalPlaces !== 1 ? 's' : ''}`, isCorrect: true, val: totalPlaces },
+                    { text: `${totalPlaces + 1} Decimal Places`, isCorrect: false, val: totalPlaces + 1 },
+                    { text: `${totalPlaces === 0 ? 3 : totalPlaces - 1} Decimal Place${(totalPlaces - 1) !== 1 ? 's' : ''}`, isCorrect: false, val: totalPlaces - 1 }
+                ];
+
+                // De-duplicate if counts overlap unexpectedly
+                let uniqueMap = {};
+                choices = choices.filter(c => uniqueMap[c.val] ? false : uniqueMap[c.val] = true);
+                while(choices.length < 3) {
+                    let rand = Math.floor(Math.random() * 4);
+                    if (!uniqueMap[rand]) {
+                        choices.push({ text: `${rand} Decimal Places`, isCorrect: false, val: rand });
+                        uniqueMap[rand] = true;
+                    }
+                }
+
+                shuffle(choices);
+
+                const buttonGrid = document.createElement('div');
+                buttonGrid.className = 'button-grid';
+
+                choices.forEach(c => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = c.text;
+                    btn.onclick = () => handleChoiceClick(btn, c.isCorrect);
+                    buttonGrid.appendChild(btn);
+                });
+                optionsContainer.appendChild(buttonGrid);
+
+            } else {
+                document.getElementById('nextBtn').innerText = "Next Challenge 🎉";
+                questionTextEl.innerHTML = `<strong>Step 2:</strong> Brilliant! Now, what is the exact product of <span class="num-highlight">${n1}</span> × <span class="num-highlight">${n2}</span>?`;
+                
+                let productRaw = n1 * n2;
+                let correctAns = parseFloat(productRaw.toFixed(4)).toString();
+                
+                // Distractors generation based on decimal shifting misconceptions
+                let wrong1 = parseFloat((productRaw * 10).toFixed(4)).toString();
+                let wrong2 = parseFloat((productRaw / 10).toFixed(4)).toString();
+                let wrong3 = parseFloat((productRaw + 0.3).toFixed(4)).toString();
+
+                let productChoices = [
+                    { text: correctAns, isCorrect: true },
+                    { text: wrong1, isCorrect: false },
+                    { text: wrong2, isCorrect: false },
+                    { text: wrong3, isCorrect: false }
+                ];
+
+                let seen = new Set();
+                productChoices = productChoices.filter(el => {
+                    if (seen.has(el.text) || parseFloat(el.text) < 0) return false;
+                    seen.add(el.text);
+                    return true;
+                });
+
+                while (productChoices.length < 4) {
+                    let fallback = parseFloat((productRaw + Math.random() * 2 + 0.5).toFixed(2)).toString();
+                    if (!seen.has(fallback)) {
+                        productChoices.push({ text: fallback, isCorrect: false });
+                        seen.add(fallback);
+                    }
+                }
+
+                shuffle(productChoices);
+
+                const buttonGrid = document.createElement('div');
+                buttonGrid.className = 'button-grid';
+
+                productChoices.forEach(c => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = c.text;
+                    btn.onclick = () => handleChoiceClick(btn, c.isCorrect);
+                    buttonGrid.appendChild(btn);
+                });
+                optionsContainer.appendChild(buttonGrid);
+            }
+            
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function handleChoiceClick(element, isCorrect) {
+            const feedback = document.getElementById('feedback');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            if (element.classList.contains('correct-pick') || element.classList.contains('wrong-pick')) {
+                return; 
+            }
+            
+            feedback.classList.remove('hidden', 'shake');
+            void feedback.offsetWidth; 
+            
+            if (isCorrect) {
+                element.classList.add('correct-pick');
+                feedback.innerText = currentStep === 1 ? "🎯 Outstanding! You counted the decimal spots perfectly!" : "🔥 Superb Multiplication! You nailed it!";
+                feedback.className = 'feedback correct-msg';
+                
+                if (firstAttemptForStep) {
+                    score++;
+                    streak++;
+                    document.getElementById('score').innerText = score;
+                    document.getElementById('streak').innerText = streak;
+                    document.getElementById('streakBox').classList.add('pulse');
+                    setTimeout(() => document.getElementById('streakBox').classList.remove('pulse'), 400);
+                }
+                
+                const siblings = element.parentNode.querySelectorAll('.option-btn');
+                siblings.forEach(sib => {
+                    if (sib !== element) sib.style.opacity = '0.4';
+                });
+                
+                nextBtn.style.display = 'inline-block';
+            } else {
+                element.classList.add('wrong-pick');
+                feedback.innerText = currentStep === 1 ? "❌ Look again! Add up all the decimal places in BOTH numbers." : "❌ Not quite right! Check your multiplication values or double check the table above.";
+                feedback.className = 'feedback wrong-msg shake';
+                streak = 0;
+                document.getElementById('streak').innerText = streak;
+                firstAttemptForStep = false;
+            }
+        }
+
+        function handleNext() {
+            if (currentStep === 1) {
+                currentStep = 2;
+                loadStep();
+            } else {
+                currentIdx++;
+                updateProgress();
+                if (currentIdx < basePairs.length) {
+                    currentStep = 1;
+                    loadStep();
+                } else {
+                    showEndScreen();
+                }
+            }
+        }
+
+        function updateProgress() {
+            let pct = (currentIdx / basePairs.length) * 100;
+            const fill = document.getElementById('progressFill');
+            const arrow = document.getElementById('progressArrow');
+            
+            fill.style.width = pct + '%';
+            arrow.style.left = pct + '%';
+            
+            if (pct >= 85) {
+                fill.style.background = 'linear-gradient(90deg, #11998e, #38ef7d)'; 
+                arrow.innerHTML = '🔥';
+            } else if (pct >= 45) {
+                fill.style.background = 'linear-gradient(90deg, #f12711, #f5af19)'; 
+                arrow.innerHTML = '⚡';
+            } else {
+                fill.style.background = 'linear-gradient(90deg, #ff7e5f, #feb47b)'; 
+                arrow.innerHTML = '🏹';
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById('quiz-card').innerHTML = `
+                <div class="end-screen">
+                    <h2>🏆 Challenge Complete! 🏆</h2>
+                    <div class="final-status">YOU ARE A DECIMALS MASTER! 🔥🔥🔥</div>
+                    <div class="final-score-box">
+                        <p style="margin:0; font-size:1.2rem; color:#4a5568; font-weight:700;">Your Grand Total Score</p>
+                        <h1>${score} / 60</h1>
+                        <p style="margin:0; color:#718096;">Flawlessly completed all 30 mental multiplication sets!</p>
+                    </div>
+                    <div class="screenshot-zone">
+                        <p style="margin:0 0 15px 0; font-weight:700; color:#c05621; font-size:1.1rem;">
+                            📸 Awesome Job! Take a screenshot of this page now, then click the submission button to upload your work to your teacher!
+                        </p>
+                        <button class="btn-prime" style="background:#dd6b20; box-shadow:0 4px 6px rgba(221,107,32,0.3);" onclick="window.open('https://tinyurl.com/mathscreenshot', '_blank')">
+                            🚀 Upload Screenshot Here
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Build grid on startup
+        buildHelperGrid();
+        loadStep();
+    </script>
+</body>
+</html>
