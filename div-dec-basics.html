@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decimal Shift Master</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --bg-color: #f0f4f8;
@@ -198,16 +199,35 @@
         }
         .action-btn:hover { background: #357abd; }
 
-        /* SCREENSHOT BANNER */
+        /* SCREENSHOT BANNER WITH DOWNLOAD ACTION */
         .screenshot-banner {
             margin-top: 25px;
             background: #fff3cd;
             border: 1px solid #ffeeba;
             color: #856404;
-            padding: 12px;
+            padding: 16px;
             border-radius: 10px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
+        }
+        .download-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 0;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            transition: background 0.2s, transform 0.1s;
+        }
+        .download-btn:hover {
+            background-color: #219653;
+        }
+        .download-btn:active {
+            transform: scale(0.98);
         }
         .screenshot-banner a {
             color: #533f03;
@@ -247,6 +267,50 @@
             text-transform: uppercase;
         }
 
+        /* CHROMEBOOK SCREENSHOT PROGRESS MODAL OVERLAY */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-box {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.25);
+            text-align: center;
+            width: 85%;
+            max-width: 340px;
+            box-sizing: border-box;
+        }
+        .loading-text {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .progress-container {
+            width: 100%;
+            background: #e2e8f0;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.1s linear;
+        }
+
         @keyframes popIn {
             0% { transform: scale(0.2); opacity: 0; }
             70% { transform: scale(1.1); opacity: 0.9; }
@@ -255,6 +319,15 @@
     </style>
 </head>
 <body>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-box">
+            <div class="loading-text">📸 Saving Workspace &amp; Score...</div>
+            <div class="progress-container">
+                <div id="screenshotProgressBar" class="progress-bar-fill"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <h1>Decimal Shift Challenge</h1>
@@ -303,8 +376,12 @@
         </div>
 
         <div class="screenshot-banner">
-            📸 Done with your attempt? Take a screenshot and turn it in here: 
-            <a href="https://tinyurl.com/mathscreenshot" target="_blank">tinyurl.com/mathscreenshot</a>
+            <div><strong>Need to turn your score in?</strong></div>
+            <button id="downloadBtn" class="download-btn" onclick="takeScreenshot()">Download Quiz Screenshot 📥</button>
+            <div style="margin-top: 6px;">
+                Then submit your file directly here: <br>
+                👉 <a href="https://tinyurl.com/mathscreenshot" target="_blank">tinyurl.com/mathscreenshot</a>
+            </div>
         </div>
     </div>
 
@@ -368,11 +445,7 @@
                 }
                 
                 const rightShiftAmount = decPlacesD;
-                
-                // Divisor is always cleared to an integer, so Math.round safe here
                 const correctDivisor = Math.round(parseFloat(divr) * Math.pow(10, rightShiftAmount));
-                
-                // GLITCH FIXED: Use safe float strings instead of Math.round to protect leftover decimal values!
                 const correctDividend = parseFloat((parseFloat(divd) * Math.pow(10, rightShiftAmount)).toFixed(4)).toString();
                 
                 const corr = `${correctDivisor})${correctDividend}`;
@@ -387,7 +460,6 @@
                 const altDividend = parseFloat((parseFloat(divd) * Math.pow(10, alternateShift)).toFixed(4)).toString();
                 choicesSet.add(`${altDivisor})${altDividend}`);
                 
-                // Dynamic clean distractor variants
                 const overShiftedDiv = parseFloat((parseFloat(correctDividend) * 10).toFixed(4)).toString();
                 choicesSet.add(`${correctDivisor})${overShiftedDiv}`);
                 
@@ -506,7 +578,6 @@
             const harvardBox = document.getElementById('harvardCelebration');
             rankLabel.className = 'final-rank'; 
             
-            // Check for perfect score
             if (score === 10) {
                 harvardBox.style.display = 'block';
             } else {
@@ -526,6 +597,53 @@
                 rankLabel.innerText = "Rank Status: Lit! Absolutely flawless! 🔥";
                 rankLabel.classList.add('rank-lit');
             }
+        }
+
+        /* AUTO-SCREENSHOT GENERATION WITH ANIMATED LOADING METER FOR CHROMEBOOKS */
+        function takeScreenshot() {
+            const overlay = document.getElementById('loadingOverlay');
+            const progressBar = document.getElementById('screenshotProgressBar');
+            
+            // Activate the progress bar overlay window
+            overlay.style.display = 'flex';
+            progressBar.style.width = '0%';
+            
+            let mockProgress = 0;
+            // Increments progress quickly at first, slows down near 90% while the canvas handles compression
+            const progressTimer = setInterval(() => {
+                if (mockProgress < 90) {
+                    mockProgress += Math.random() * 14;
+                    if (mockProgress > 90) mockProgress = 90;
+                    progressBar.style.width = `${mockProgress}%`;
+                }
+            }, 90);
+            
+            // Slight timeout delay allows slow hardware screens to complete processing seamlessly
+            setTimeout(() => {
+                html2canvas(document.querySelector('.container'), {
+                    useCORS: true, // Enables fetching GitHub custom award images safely across domains
+                    scale: 2       // Enhances snapshot visual crispness for grading submissions
+                }).then(canvas => {
+                    clearInterval(progressTimer);
+                    progressBar.style.width = '100%';
+                    
+                    // Provides short aesthetic pause at 100% full bar before download triggers
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        
+                        const imageData = canvas.toDataURL('image/png');
+                        const downloadLink = document.createElement('a');
+                        downloadLink.download = `Decimal_Shift_Challenge_Score_${score}_of_10.png`;
+                        downloadLink.href = imageData;
+                        downloadLink.click();
+                    }, 250);
+                }).catch(error => {
+                    clearInterval(progressTimer);
+                    overlay.style.display = 'none';
+                    alert('Automated capture error. Please capture your Chromebook screen manually using Ctrl + Window Shift keys.');
+                    console.error('Screenshot engine error:', error);
+                });
+            }, 350);
         }
     </script>
 </body>
