@@ -227,19 +227,19 @@
         .rank-good { color: var(--tier-good); }
         .rank-lit { color: var(--tier-lit); }
 
-        /* HARVARD CELEBRATION BLOCK */
+        /* CELEBRATION BLOCK */
         .harvard-container {
             display: none;
             margin: 25px auto;
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .harvard-logo {
-            width: 130px;
+            width: 140px;
             height: auto;
             filter: drop-shadow(0px 6px 12px rgba(0,0,0,0.15));
         }
         .harvard-congrats {
-            color: #A51C30; /* Official Harvard Crimson */
+            color: #A51C30;
             font-size: 15px;
             font-weight: 800;
             letter-spacing: 1px;
@@ -294,7 +294,7 @@
             <p>Your final score is <strong id="finalScoreText">0 out of 10</strong>.</p>
             
             <div id="harvardCelebration" class="harvard-container">
-                <img class="harvard-logo" src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Harvard_University_shield.svg" alt="Harvard University Shield">
+                <img class="harvard-logo" src="https://mr-chen-k12.github.io/math/IMG_0232.png" alt="Celebration Shield">
                 <div class="harvard-congrats">🎓 Harvard Level Performance! 🎓</div>
             </div>
 
@@ -368,8 +368,13 @@
                 }
                 
                 const rightShiftAmount = decPlacesD;
+                
+                // Divisor is always cleared to an integer, so Math.round safe here
                 const correctDivisor = Math.round(parseFloat(divr) * Math.pow(10, rightShiftAmount));
-                const correctDividend = Math.round(parseFloat(divd) * Math.pow(10, rightShiftAmount));
+                
+                // GLITCH FIXED: Use safe float strings instead of Math.round to protect leftover decimal values!
+                const correctDividend = parseFloat((parseFloat(divd) * Math.pow(10, rightShiftAmount)).toFixed(4)).toString();
+                
                 const corr = `${correctDivisor})${correctDividend}`;
                 
                 const choicesSet = new Set();
@@ -378,10 +383,13 @@
                 choicesSet.add(`${correctDivisor})${divd}`);
                 
                 const alternateShift = decPlacesA > 0 ? decPlacesA : 1;
-                const altDivisor = Math.round(parseFloat(divr) * Math.pow(10, alternateShift));
-                const altDividend = Math.round(parseFloat(divd) * Math.pow(10, alternateShift));
+                const altDivisor = parseFloat((parseFloat(divr) * Math.pow(10, alternateShift)).toFixed(4)).toString();
+                const altDividend = parseFloat((parseFloat(divd) * Math.pow(10, alternateShift)).toFixed(4)).toString();
                 choicesSet.add(`${altDivisor})${altDividend}`);
-                choicesSet.add(`${correctDivisor})${correctDividend * 10}`);
+                
+                // Dynamic clean distractor variants
+                const overShiftedDiv = parseFloat((parseFloat(correctDividend) * 10).toFixed(4)).toString();
+                choicesSet.add(`${correctDivisor})${overShiftedDiv}`);
                 
                 while (choicesSet.size < 4) {
                     choicesSet.add(`${correctDivisor * 10})${correctDividend}`);
@@ -498,7 +506,7 @@
             const harvardBox = document.getElementById('harvardCelebration');
             rankLabel.className = 'final-rank'; 
             
-            // Trigger Logo Pop Up strictly on a perfect 10/10 setup
+            // Check for perfect score
             if (score === 10) {
                 harvardBox.style.display = 'block';
             } else {
