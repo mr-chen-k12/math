@@ -446,6 +446,8 @@
                 
                 const rightShiftAmount = decPlacesD;
                 const correctDivisor = Math.round(parseFloat(divr) * Math.pow(10, rightShiftAmount));
+                
+                // NO MORE LINGERING ROUNDING BUGS: Floating point strings safely formatted
                 const correctDividend = parseFloat((parseFloat(divd) * Math.pow(10, rightShiftAmount)).toFixed(4)).toString();
                 
                 const corr = `${correctDivisor})${correctDividend}`;
@@ -604,12 +606,10 @@
             const overlay = document.getElementById('loadingOverlay');
             const progressBar = document.getElementById('screenshotProgressBar');
             
-            // Activate the progress bar overlay window
             overlay.style.display = 'flex';
             progressBar.style.width = '0%';
             
             let mockProgress = 0;
-            // Increments progress quickly at first, slows down near 90% while the canvas handles compression
             const progressTimer = setInterval(() => {
                 if (mockProgress < 90) {
                     mockProgress += Math.random() * 14;
@@ -618,16 +618,14 @@
                 }
             }, 90);
             
-            // Slight timeout delay allows slow hardware screens to complete processing seamlessly
             setTimeout(() => {
                 html2canvas(document.querySelector('.container'), {
-                    useCORS: true, // Enables fetching GitHub custom award images safely across domains
-                    scale: 2       // Enhances snapshot visual crispness for grading submissions
+                    useCORS: true, 
+                    scale: 2       
                 }).then(canvas => {
                     clearInterval(progressTimer);
                     progressBar.style.width = '100%';
                     
-                    // Provides short aesthetic pause at 100% full bar before download triggers
                     setTimeout(() => {
                         overlay.style.display = 'none';
                         
