@@ -235,13 +235,38 @@
         .rank-effort { color: var(--tier-effort); }
         .rank-good { color: var(--tier-good); }
         .rank-lit { color: var(--tier-lit); }
+
+        /* HARVARD CELEBRATION BLOCK */
+        .harvard-container {
+            display: none;
+            margin: 25px auto;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .harvard-logo {
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.15));
+        }
+        .harvard-congrats {
+            color: #A51C30; /* Official Harvard Crimson */
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.4); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>Decimal Shift Challenge</h1>
-         
+        
         <div class="scoreboard">
             <div>Problem: <span id="qNum">1</span>/10</div>
             <div>Score: <span id="score">0</span></div>
@@ -276,6 +301,12 @@
         <div id="endScreen" class="end-screen">
             <h2>Quiz Complete!</h2>
             <p>Your final score is <strong id="finalScoreText">0 out of 10</strong>.</p>
+            
+            <div id="harvardCelebration" class="harvard-container">
+                <img class="harvard-logo" src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Harvard_University_shield.svg" alt="Harvard University Logo">
+                <div class="harvard-congrats">Harvard Level Performance!</div>
+            </div>
+
             <div id="finalRankDisplay" class="final-rank">Rank Status: Lit</div>
             <button class="action-btn" style="display:inline-block;" onclick="restartQuiz()">Try Again</button>
         </div>
@@ -287,7 +318,7 @@
     </div>
 
     <script>
-        // Predefined curated question matrix for crisp decimal-shifting metrics
+        // Problem pool mapping shifted long-division answers
         const questionPool = [
             { divd: "12", divr: "1.2", choices: ["12)120", "1.2)12", "12)12", "120)12"], corr: "12)120" },
             { divd: "3.6", divr: "0.6", choices: ["6)36", "0.6)3.6", "6)3.6", "60)36"], corr: "6)36" },
@@ -305,7 +336,6 @@
         let score = 0;
         let activeQuestions = [];
 
-        // Core Initialization
         window.onload = function() {
             restartQuiz();
         };
@@ -313,11 +343,11 @@
         function restartQuiz() {
             currentIdx = 0;
             score = 0;
-            // Fisher-Yates array shuffling optimization
             activeQuestions = [...questionPool].sort(() => Math.random() - 0.5);
             
             document.getElementById('quizWorkspace').style.display = 'block';
             document.getElementById('endScreen').style.display = 'none';
+            document.getElementById('harvardCelebration').style.display = 'none';
             document.getElementById('score').innerText = score;
             
             updateGauge();
@@ -334,7 +364,6 @@
             const container = document.getElementById('optionsContainer');
             container.innerHTML = '';
 
-            // Shuffle choice presentation variants locally
             const mixedChoices = [...qData.choices].sort(() => Math.random() - 0.5);
 
             mixedChoices.forEach(choiceString => {
@@ -346,7 +375,6 @@
             });
         }
 
-        // Deconstruct string expression format "A)B" to specialized styled CSS layout structures
         function convertToLongDivisionHTML(str) {
             const parts = str.split(')');
             return `
@@ -358,7 +386,6 @@
         }
 
         function checkAnswer(selectedBtn, chosenStr, correctStr) {
-            // Freeze inputs across all adjacent choice blocks immediately
             const allButtons = document.querySelectorAll('.option-btn');
             allButtons.forEach(b => b.disabled = true);
 
@@ -368,7 +395,6 @@
                 document.getElementById('score').innerText = score;
             } else {
                 selectedBtn.classList.add('wrong');
-                // Flag out the true answer path transparently for student review
                 allButtons.forEach(b => {
                     if(b.innerHTML.includes(`>${correctStr.split(')')[1]}<`) && b.innerHTML.includes(`>${correctStr.split(')')[0]}<`)) {
                         b.classList.add('correct');
@@ -382,15 +408,11 @@
 
         function updateGauge() {
             const pointer = document.getElementById('gaugePointer');
-            
-            // Calculate positioning ratio (0% to 100%) mapped directly to precision marks
             let percentage = 0;
             if (currentIdx > 0 || score > 0) {
-                // Pin scale to active accurate performance metrics
                 percentage = (score / 10) * 100;
             }
             
-            // Safe bounds clipping protection 
             if(percentage < 5) percentage = 5;
             if(percentage > 95) percentage = 95;
 
@@ -414,9 +436,17 @@
             document.getElementById('finalScoreText').innerText = `${score} out of 10`;
             
             const rankLabel = document.getElementById('finalRankDisplay');
-            rankLabel.className = 'final-rank'; // Clear out states
+            const harvardBox = document.getElementById('harvardCelebration');
+            rankLabel.className = 'final-rank'; 
             
-            // Allocate performance tiers based on aggregate thresholds
+            // Check for perfect score to display the Harvard Shield logo
+            if (score === 10) {
+                harvardBox.style.display = 'block';
+            } else {
+                harvardBox.style.display = 'none';
+            }
+
+            // Allocate ranks
             if (score <= 3) {
                 rankLabel.innerText = "Rank Status: Trying! Keep practicing!";
                 rankLabel.classList.add('rank-trying');
