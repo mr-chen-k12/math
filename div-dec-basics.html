@@ -62,10 +62,6 @@
             border: 1px solid #e9ecef;
         }
 
-        .score-val {
-            color: var(--primary);
-        }
-
         /* GAUGE / PROGRESS BAR */
         .gauge-container {
             position: relative;
@@ -93,11 +89,6 @@
 
         .gauge-segment {
             flex: 1;
-            text-align: center;
-            color: white;
-            font-size: 10px;
-            line-height: 14px;
-            font-weight: bold;
         }
         .seg-trying { background-color: var(--tier-trying); }
         .seg-effort { background-color: var(--tier-effort); }
@@ -243,21 +234,22 @@
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .harvard-logo {
-            width: 120px;
+            width: 130px;
             height: auto;
-            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.15));
+            filter: drop-shadow(0px 6px 12px rgba(0,0,0,0.15));
         }
         .harvard-congrats {
             color: #A51C30; /* Official Harvard Crimson */
-            font-size: 14px;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: 800;
             letter-spacing: 1px;
-            margin-top: 8px;
+            margin-top: 12px;
             text-transform: uppercase;
         }
 
         @keyframes popIn {
-            0% { transform: scale(0.4); opacity: 0; }
+            0% { transform: scale(0.2); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 0.9; }
             100% { transform: scale(1); opacity: 1; }
         }
     </style>
@@ -290,10 +282,9 @@
 
         <div id="quizWorkspace">
             <div class="prompt-text">Which long division structure correctly matches the problem after eliminating all decimals from the divisor?</div>
-            <div id="problemDisplay" class="problem-box">12 &div; 1.2</div>
+            <div id="problemDisplay" class="problem-box">Loading...</div>
             
-            <div id="optionsContainer" class="options-grid">
-                </div>
+            <div id="optionsContainer" class="options-grid"></div>
 
             <button id="nextBtn" class="action-btn" onclick="loadNextQuestion()">Next Problem</button>
         </div>
@@ -303,8 +294,8 @@
             <p>Your final score is <strong id="finalScoreText">0 out of 10</strong>.</p>
             
             <div id="harvardCelebration" class="harvard-container">
-                <img class="harvard-logo" src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Harvard_University_shield.svg" alt="Harvard University Logo">
-                <div class="harvard-congrats">Harvard Level Performance!</div>
+                <img class="harvard-logo" src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Harvard_University_shield.svg" alt="Harvard University Shield">
+                <div class="harvard-congrats">🎓 Harvard Level Performance! 🎓</div>
             </div>
 
             <div id="finalRankDisplay" class="final-rank">Rank Status: Lit</div>
@@ -318,20 +309,6 @@
     </div>
 
     <script>
-        // Problem pool mapping shifted long-division answers
-        const questionPool = [
-            { divd: "12", divr: "1.2", choices: ["12)120", "1.2)12", "12)12", "120)12"], corr: "12)120" },
-            { divd: "3.6", divr: "0.6", choices: ["6)36", "0.6)3.6", "6)3.6", "60)36"], corr: "6)36" },
-            { divd: "0.45", divr: "0.09", choices: ["9)45", "9)4.5", "0.9)45", "90)450"], corr: "9)45" },
-            { divd: "7", divr: "0.1", choices: ["1)70", "1)7", "0.1)7", "10)7"], corr: "1)70" },
-            { divd: "0.24", divr: "0.4", choices: ["4)2.4", "4)24", "4)0.24", "40)2.4"], corr: "4)2.4" },
-            { divd: "1.5", divr: "0.05", choices: ["5)150", "5)15", "50)150", "0.5)15"], corr: "5)150" },
-            { divd: "6.4", divr: "0.8", choices: ["8)64", "8)6.4", "80)640", "0.8)6.4"], corr: "8)64" },
-            { divd: "0.09", divr: "0.03", choices: ["3)9", "3)0.9", "3)90", "30)90"], corr: "3)9" },
-            { divd: "4.8", divr: "1.2", choices: ["12)48", "12)4.8", "1.2)48", "120)48"], corr: "12)48" },
-            { divd: "0.5", divr: "0.25", choices: ["25)50", "25)5", "2.5)5", "25)500"], corr: "25)50" }
-        ];
-
         let currentIdx = 0;
         let score = 0;
         let activeQuestions = [];
@@ -340,10 +317,92 @@
             restartQuiz();
         };
 
+        function generateDynamicQuestions() {
+            const dynamicSet = [];
+            const cleanPairs = [
+                {d: 12, a: 12},  {d: 6, a: 36},   {d: 9, a: 45},   {d: 4, a: 24},
+                {d: 5, a: 15},   {d: 8, a: 64},   {d: 3, a: 9},    {d: 12, a: 48},
+                {d: 25, a: 50},  {d: 15, a: 45},  {d: 2, a: 14},   {d: 7, a: 21},
+                {d: 11, a: 55},  {d: 20, a: 60},  {d: 5, a: 35},   {d: 8, a: 32},
+                {d: 6, a: 18},   {d: 13, a: 26},  {d: 14, a: 42},  {d: 16, a: 48}
+            ];
+            
+            const shuffledPairs = cleanPairs.sort(() => Math.random() - 0.5);
+            
+            for (let i = 0; i < 10; i++) {
+                const target = shuffledPairs[i % shuffledPairs.length];
+                let baseDivisor = target.d;
+                let baseDividend = target.a;
+                
+                const mode = Math.floor(Math.random() * 5);
+                let dNum, aNum;
+                
+                if (mode === 0) {
+                    dNum = baseDivisor / 10;
+                    aNum = baseDividend;
+                } else if (mode === 1) {
+                    dNum = baseDivisor / 10;
+                    aNum = baseDividend / 10;
+                } else if (mode === 2) {
+                    dNum = baseDivisor / 100;
+                    aNum = baseDividend / 100;
+                } else if (mode === 3) {
+                    dNum = baseDivisor / 100;
+                    aNum = baseDividend / 10;
+                } else {
+                    dNum = baseDivisor / 10;
+                    aNum = baseDividend / 100;
+                }
+                
+                const divr = parseFloat(dNum.toFixed(2)).toString();
+                const divd = parseFloat(aNum.toFixed(2)).toString();
+                
+                const decPlacesD = divr.includes('.') ? divr.split('.')[1].length : 0;
+                const decPlacesA = divd.includes('.') ? divd.split('.')[1].length : 0;
+                
+                if (decPlacesD === 0) {
+                    baseDivisor += 3;
+                    dNum = baseDivisor / 10;
+                    const fallbackDivr = parseFloat(dNum.toFixed(2)).toString();
+                    if (!fallbackDivr.includes('.')) { i--; continue; } 
+                }
+                
+                const rightShiftAmount = decPlacesD;
+                const correctDivisor = Math.round(parseFloat(divr) * Math.pow(10, rightShiftAmount));
+                const correctDividend = Math.round(parseFloat(divd) * Math.pow(10, rightShiftAmount));
+                const corr = `${correctDivisor})${correctDividend}`;
+                
+                const choicesSet = new Set();
+                choicesSet.add(corr);
+                choicesSet.add(`${divr})${divd}`);
+                choicesSet.add(`${correctDivisor})${divd}`);
+                
+                const alternateShift = decPlacesA > 0 ? decPlacesA : 1;
+                const altDivisor = Math.round(parseFloat(divr) * Math.pow(10, alternateShift));
+                const altDividend = Math.round(parseFloat(divd) * Math.pow(10, alternateShift));
+                choicesSet.add(`${altDivisor})${altDividend}`);
+                choicesSet.add(`${correctDivisor})${correctDividend * 10}`);
+                
+                while (choicesSet.size < 4) {
+                    choicesSet.add(`${correctDivisor * 10})${correctDividend}`);
+                }
+                
+                const finalChoicesArray = Array.from(choicesSet).slice(0, 4);
+                
+                dynamicSet.push({
+                    divd: divd,
+                    divr: divr,
+                    choices: finalChoicesArray,
+                    corr: corr
+                });
+            }
+            return dynamicSet;
+        }
+
         function restartQuiz() {
             currentIdx = 0;
             score = 0;
-            activeQuestions = [...questionPool].sort(() => Math.random() - 0.5);
+            activeQuestions = generateDynamicQuestions();
             
             document.getElementById('quizWorkspace').style.display = 'block';
             document.getElementById('endScreen').style.display = 'none';
@@ -439,14 +498,13 @@
             const harvardBox = document.getElementById('harvardCelebration');
             rankLabel.className = 'final-rank'; 
             
-            // Check for perfect score to display the Harvard Shield logo
+            // Trigger Logo Pop Up strictly on a perfect 10/10 setup
             if (score === 10) {
                 harvardBox.style.display = 'block';
             } else {
                 harvardBox.style.display = 'none';
             }
 
-            // Allocate ranks
             if (score <= 3) {
                 rankLabel.innerText = "Rank Status: Trying! Keep practicing!";
                 rankLabel.classList.add('rank-trying');
