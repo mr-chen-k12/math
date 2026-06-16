@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decimal Division Worksheet Studio</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --primary-color: #4a90e2;
+            --accent-color: #27ae60;
+            --text-color: #333;
+            --cell-size: 22px;
+            --font-size: 16px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            margin: 0;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 { margin: 5px 0; font-size: 1.8rem; }
+        p { margin: 0; color: #666; }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #357abd; }
+        button.print-btn { background-color: #7f8c8d; }
+        button.print-btn:hover { background-color: #6c7a7d; }
+        button.reveal-btn { background-color: var(--accent-color); padding: 6px 12px; font-size: 12px; }
+        button.reveal-btn:hover { background-color: #219150; }
+
+        /* WORKSHEET GRID Layout */
+        .worksheet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .problem-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            border: 1px solid #eef2f5;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .problem-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .problem-num {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+
+        .math-display {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .hint-text {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.3;
+            border: 1px solid #ffeeba;
+            display: none;
+        }
+        
+        .hint-text strong { color: #d35400; }
+
+        /* LONG DIVISION GRID */
+        .grid-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            display: none; /* Hidden until explicitly revealed */
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #eee;
+        }
+
+        .long-division-grid {
+            display: grid;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: var(--font-size);
+            font-weight: bold;
+            line-height: var(--cell-size);
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* STYLING CLASSES FROM ORIGINAL */
+        .txt-q { color: #2980b9; } 
+        .txt-sub { color: #c0392b; } 
+        .txt-std { color: #333; }    
+        .border-right { border-right: 2px solid #333; }
+        .border-top { border-top: 2px solid #333; }
+        .border-bottom { border-bottom: 1px solid #333; }
+
+        /* PRINT EXCLUSIVE WORKSPACE BOX */
+        .print-workspace {
+            display: none;
+            border: 1px dashed #bdc3c7;
+            border-radius: 6px;
+            flex-grow: 1;
+            min-height: 180px;
+            margin-top: 10px;
+        }
+
+        /* --- PRINTER FRIENDLY STYLES --- */
+        @media print {
+            body {
+                background-color: white;
+                color: black;
+                padding: 0;
+            }
+            header, .controls, .reveal-btn, .hint-text, .grid-wrapper {
+                display: none !important; /* Hides answers and web controls completely */
+            }
+            .worksheet-grid {
+                grid-template-columns: repeat(2, 1fr) !important; /* Locks into a clean 2-column page layout */
+                gap: 15px;
+            }
+            .problem-card {
+                box-shadow: none !important;
+                border: 1px solid #bdc3c7 !important;
+                page-break-inside: avoid;
+                height: 260px; /* Forces uniform size for matching workspace blocks */
+            }
+            .print-workspace {
+                display: block !important; /* Shows empty block area on paper for tracking student work */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Decimal Division Worksheet</h1>
+        <p>Show your work in the spaces provided below.</p>
+    </header>
+    
+    <div class="controls">
+        <button onclick="generateWorksheet()">New Worksheet</button>
+        <button class="print-btn" onclick="window.print()">Print Worksheet</button>
+    </div>
+
+    <div id="worksheetContainer" class="worksheet-grid"></div>
+
+    <script>
+        // Store states for all 10 problems
+        let worksheetProblems = [];
+
+        window.onload = generateWorksheet;
+
+        function generateWorksheet() {
+            const container = document.getElementById('worksheetContainer');
+            container.innerHTML = '';
+            worksheetProblems = [];
+
+            for (let i = 0; i < 10; i++) {
+                const problemState = createProblemState();
+                worksheetProblems.push(problemState);
+                
+                // Create problem card layout structure
+                const card = document.createElement('div');
+                card.className = 'problem-card';
+                card.innerHTML = `
+                    <div class="problem-header">
+                        <span class="problem-num">Problem ${i + 1}</span>
+                        <button class="reveal-btn" id="btn-${i}" onclick="revealProblemAnswer(${i})">Reveal Answer</button>
+                    </div>
+                    <div class="math-display">${problemState.displayDividend} &div; ${problemState.displayDivisor} = </div>
+                    <div class="hint-text" id="hint-${i}"></div>
+                    <div class="print-workspace"></div>
+                    <div class="grid-wrapper" id="wrapper-${i}">
+                        <div id="grid-${i}" class="long-division-grid"></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        function createProblemState() {
+            // Replicates problem math logic safely 
+            const gDivisor = Math.floor(Math.random() * 13) + 3;
+            const base = Math.floor(Math.random() * 200) + 20;
+            const scale = [1, 2, 4, 5, 8, 10][Math.floor(Math.random() * 6)];
+            const quotient = base / scale;
+            const gDividend = parseFloat((quotient * gDivisor).toFixed(4));
+
+            const shift = Math.floor(Math.random() * 2) + 1; 
+            const denominator = Math.pow(10, shift);
+
+            let dDivisor = parseFloat((gDivisor / denominator).toFixed(shift));
+            let dDividend = parseFloat((gDividend / denominator).toFixed(shift + 3));
+
+            let sQuot = quotient.toString();
+            let qDecimals = sQuot.includes('.') ? sQuot.split('.')[1].length : 0;
+            let sGridDividend = gDividend.toFixed(qDecimals);
+
+            return {
+                displayDivisor: dDivisor,
+                displayDividend: dDividend,
+                gridDivisor: gDivisor,
+                gridDividendString: sGridDividend,
+                shiftAmount: shift
+            };
+        }
+
+        function revealProblemAnswer(index) {
+            const state = worksheetProblems[index];
+            const hint = document.getElementById(`hint-${index}`);
+            const wrapper = document.getElementById(`wrapper-${index}`);
+            const btn = document.getElementById(`btn-${index}`);
+
+            if (wrapper.style.display === 'block') {
+                wrapper.style.display = 'none';
+                hint.style.display = 'none';
+                btn.innerText = "Reveal Answer";
+                return;
+            }
+
+            const placesText = state.shiftAmount === 1 ? "1 place" : `${state.shiftAmount} places`;
+            hint.innerHTML = `
+                Move decimal <strong>${placesText}</strong> right:<br>
+                ${state.displayDividend} &div; ${state.displayDivisor} &rarr; <strong>${state.gridDividendString} &div; ${state.gridDivisor}</strong>
+            `;
+            hint.style.display = 'block';
+            wrapper.style.display = 'block';
+            btn.innerText = "Hide Answer";
+
+            renderGridSolution(index, state.gridDivisor, state.gridDividendString);
+        }
+
+        // --- CORE MATH RENDERING CORE ---
+        function renderGridSolution(index, divisor, sDend) {
+            const grid = document.getElementById(`grid-${index}`);
+            grid.innerHTML = '';
+
+            const sDiv = divisor.toString();
+            let colMap = [];
+            let divStartCol = sDiv.length + 1;
+            
+            for(let i=0; i<sDend.length; i++) {
+                colMap.push(divStartCol + i);
+            }
+            
+            let totalCols = divStartCol + sDend.length;
+            grid.style.gridTemplateColumns = `repeat(${totalCols}, var(--cell-size))`;
+
+            let vGrid = {}; 
+
+            function plot(r, c, text, cls, bdr='') {
+                vGrid[`${r},${c}`] = { text, cls, bdr };
+            }
+
+            // Setup Layout Structure
+            for(let i=0; i<sDiv.length; i++) plot(1, i, sDiv[i], 'txt-std');
+            plot(1, sDiv.length, '', '', 'border-right'); 
+            
+            for(let i=0; i<sDend.length; i++) {
+                plot(1, colMap[i], sDend[i], 'txt-std', 'border-top');
+            }
+
+            let rawDend = sDend.replace('.', '');
+            let mathIndices = []; 
+            for(let i=0; i<sDend.length; i++) {
+                if(sDend[i] !== '.') mathIndices.push(colMap[i]);
+            }
+
+            let dotCol = sDend.indexOf('.') !== -1 ? colMap[sDend.indexOf('.')] : -1;
+            if(dotCol !== -1) plot(0, dotCol, '.', 'txt-q');
+
+            let workingVal = 0;
+            let row = 2;
+            let leadingZeros = true;
+
+            for(let i=0; i<rawDend.length; i++) {
+                let digit = parseInt(rawDend[i]);
+                workingVal = (workingVal * 10) + digit;
+                
+                let q = Math.floor(workingVal / divisor);
+                let qCol = mathIndices[i];
+                if (q > 0 || !leadingZeros || i === rawDend.length - 1) {
+                    leadingZeros = false;
+                    plot(0, qCol, q, 'txt-q');
+                }
+
+                if (!leadingZeros) {
+                    let product = q * divisor;
+                    let rem = workingVal - product;
+                    let sProd = product.toString();
+                    
+                    for(let p=0; p<sProd.length; p++) {
+                        let pDigit = sProd[sProd.length - 1 - p];
+                        let mIdx = i - p;
+                        if(mIdx >= 0) {
+                            let vCol = mathIndices[mIdx];
+                            plot(row, vCol, pDigit, 'txt-sub', 'border-bottom');
+                        }
+                    }
+                    row++;
+
+                    let sRem = rem.toString();
+                    for(let r=0; r<sRem.length; r++) {
+                        let rDigit = sRem[sRem.length - 1 - r];
+                        let mIdx = i - r; 
+                        if (mIdx >= 0) {
+                            if (sRem !== "0" || i === rawDend.length - 1) {
+                                plot(row, mathIndices[mIdx], rDigit, 'txt-std');
+                            }
+                        }
+                    }
+
+                    if (i < rawDend.length - 1) {
+                        let nextVal = rawDend[i+1];
+                        let nextCol = mathIndices[i+1];
+                        plot(row, nextCol, nextVal, 'txt-std');
+                        row++; 
+                    }
+                    
+                    workingVal = rem;
+                }
+            }
+
+            // Render Output Matrix Elements
+            let maxR = row;
+            for(let r=0; r<=maxR; r++) {
+                for(let c=0; c<totalCols; c++) {
+                    let cellData = vGrid[`${r},${c}`];
+                    let div = document.createElement('div');
+                    div.className = 'cell';
+                    div.style.gridRow = r + 1;
+                    div.style.gridColumn = c + 1;
+                    if(cellData) {
+                        div.innerText = cellData.text;
+                        div.className += ` ${cellData.cls} ${cellData.bdr}`;
+                    }
+                    grid.appendChild(div);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
