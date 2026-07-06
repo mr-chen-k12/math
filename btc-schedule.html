@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge to Physics 2026 — Study Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --correct: #22c55e;
+            --incorrect: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--bg-secondary);
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--accent);
+            letter-spacing: 0.5px;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 2rem;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            flex: 1;
+            max-width: 320px;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+            border: 1px solid #334155;
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 0.5rem;
+        }
+
+        .date-selector {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            border: 1px solid #475569;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+        }
+
+        .canvas-container {
+            text-align: center;
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+
+        .canvas-container p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Main Content Panel */
+        .main-panel {
+            flex: 2.5;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topic-header {
+            margin-bottom: 2rem;
+        }
+
+        .topic-header h2 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+        }
+
+        .topic-header p {
+            color: var(--accent);
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+
+        /* Quiz UI Elements */
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .question-card {
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+            transition: transform 0.2s ease;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .options-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-item {
+            padding: 0.75rem 1rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid #475569;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-item:hover {
+            border-color: var(--accent);
+            background-color: rgba(56, 189, 248, 0.05);
+        }
+
+        .option-item.correct {
+            background-color: rgba(34, 197, 94, 0.15) !important;
+            border-color: var(--correct) !important;
+            color: #4ade80;
+        }
+
+        .option-item.incorrect {
+            background-color: rgba(239, 68, 68, 0.15) !important;
+            border-color: var(--incorrect) !important;
+            color: #f87171;
+        }
+
+        .explanation {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: #1e293b;
+            border-left: 4px solid var(--accent);
+            border-radius: 0 4px 4px 0;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Bridge to Physics (B2P) Portal</h1>
+        <div style="text-align: right">
+            <span id="current-display-date" style="font-weight: bold; color: var(--accent);">2026-07-06</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <h2>Review Schedule</h2>
+            <label for="date-select" style="font-size: 0.85rem; color: var(--text-muted);">Select Day to Review:</label>
+            <select id="date-select" class="date-selector" onchange="loadQuizForDate(this.value)">
+                <option value="2026-07-06">Week 2: Mon 7-6 (Gravity & Pendulum)</option>
+            </select>
+
+            <div class="canvas-container">
+                <canvas id="pendulumCanvas" width="240" height="220"></canvas>
+                <p>Interactive Pendulum System<br>\(T = 2\pi\sqrt{\frac{L}{g}}\)</p>
+            </div>
+        </div>
+
+        <div class="main-panel">
+            <div class="topic-header">
+                <h2 id="topic-title">Gravitation and Gravity</h2>
+                <p id="topic-sub">Lab focus: Measuring \(g\) with a Pendulum</p>
+            </div>
+
+            <div id="quiz-space" class="quiz-container">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Dynamic Question Bank
+         * Simply copy-paste more keys mapped to upcoming dates from your schedule 
+         * matching the structure below to instantly scale up your web app!
+         */
+        const b2pDatabase = {
+            "2026-07-06": {
+                "title": "Gravitation and Gravity",
+                "subtitle": "Lab focus: Measuring g with a Pendulum",
+                "questions": [
+                    {
+                        "question": "Newton's Universal Law of Gravitation states that the force between two masses is proportional to the product of their masses and inversely proportional to what metric?",
+                        "options": [
+                            "The distance between their centers.",
+                            "The square of the distance between their centers.",
+                            "The square root of the distance between their centers.",
+                            "The sum of their radii."
+                        ],
+                        "correct": 1,
+                        "explanation": "According to the formula \\(F = G\\frac{m_1 m_2}{r^2}\\), the gravitational force falls off with the square of the distance (inverse-square law)."
+                    },
+                    {
+                        "question": "If you quadruple the length \\(L\\) of a simple pendulum, how does its operational period \\(T\\) shift?",
+                        "options": [
+                            "The period quadruples.",
+                            "The period stays exactly the same.",
+                            "The period doubles.",
+                            "The period drops to half of its original value."
+                        ],
+                        "correct": 2,
+                        "explanation": "Because the period is modeled by \\(T = 2\\pi\\sqrt{\\frac{L}{g}}\\), quadrupling length \\(L\\) yields a scale factor of \\(\\sqrt{4} = 2\\)."
+                    },
+                    {
+                        "question": "Which of the following factors has NO measurable effect on the period of an ideal simple pendulum swinging at small angles?",
+                        "options": [
+                            "The mass of the heavy pendulum bob.",
+                            "The structural length of the string.",
+                            "The local acceleration due to gravity.",
+                            "The geographic planet it is deployed on."
+                        ],
+                        "correct": 0,
+                        "explanation": "Mass cancels out entirely in equations of motion for basic gravitational pendulums; acceleration is purely dependent on gravity and length."
+                    },
+                    {
+                        "question": "What is the standard value of acceleration due to gravity (\\(g\\)) typically calculated at sea-level on Earth?",
+                        "options": [
+                            "\\(1.62 \\text{ m/s}^2\\)",
+                            "\\(3.14 \\text{ m/s}^2\\)",
+                            "\\(9.81 \\text{ m/s}^2\\)",
+                            "\\(29.9 \\text{ m/s}^2\\)"
+                        ],
+                        "correct": 2,
+                        "explanation": "Standard surface gravity on Earth averages to roughly \\(9.81 \\text{ m/s}^2\\)."
+                    },
+                    {
+                        "question": "If you take a functional pendulum clock to the Moon (where gravity is roughly \\(1/6\\)th of Earth's), how will the clock behave?",
+                        "options": [
+                            "It will tick much faster because resistance is lower.",
+                            "It will tick much slower because the period decreases.",
+                            "It will tick much slower because the period increases.",
+                            "It will stop working entirely."
+                        ],
+                        "correct": 2,
+                        "explanation": "A smaller structural value of \\(g\\) increases the total period \\(T\\), which means each swing takes longer. The clock ticks slower."
+                    },
+                    {
+                        "question": "Why do physics experiments utilizing a pendulum require small angular displacements (typically \\(< 15^\\circ\\))?",
+                        "options": [
+                            "To stop air friction entirely.",
+                            "To ensure the Small-Angle Approximation holds true where \\(\\sin(\\theta) \\approx \\theta\\).",
+                            "To prevent structural breaking of the cord.",
+                            "To ensure the string does not stretch out under load."
+                        ],
+                        "correct": 1,
+                        "explanation": "The linear simple harmonic motion equation depends on \\(\\sin(\\theta) \\approx \\theta\\), which is structurally sound only for small angles."
+                    },
+                    {
+                        "question": "An astronaut's mass is measured at 80 kg on Earth. What will their total mass evaluate to on the surface of Mars?",
+                        "options": [
+                            "80 kg",
+                            "Roughly 30 kg",
+                            "0 kg",
+                            "Approximately 210 kg"
+                        ],
+                        "correct": 0,
+                        "explanation": "Mass measures the innate quantity of matter and does not change based on local gravity fields. Only weight shifts."
+                    },
+                    {
+                        "question": "What balances the gravitational pull of the Earth to keep a satellite in a stable, uniform circular orbit?",
+                        "options": [
+                            "Rocket thrust constantly firing forward.",
+                            "The high atmospheric pressure gradient.",
+                            "Its forward inertia acting as centripetal acceleration matching gravity.",
+                            "Solar winds pushing against its arrays."
+                        ],
+                        "correct": 2,
+                        "explanation": "An orbit is essentially permanent free-fall where the tangential velocity creates a path matching the curvature of the body below."
+                    },
+                    {
+                        "question": "If the center-to-center distance separating two astronomical bodies is halved, the force of gravity between them scales up by what factor?",
+                        "options": [
+                            "2 times",
+                            "4 times",
+                            "8 times",
+                            "It is reduced by half"
+                        ],
+                        "correct": 1,
+                        "explanation": "Halving the distance means dividing \\(r\\) by 2. Squaring that inversion yields a force increase of \\(2^2 = 4\\) times."
+                    },
+                    {
+                        "question": "Which dynamic component provides the restoring force that pulls a displaced pendulum back toward its equilibrium point?",
+                        "options": [
+                            "The full structural tension of the string.",
+                            "The component of gravity acting perpendicular to the string path (\\(mg \\sin\\theta\\)).",
+                            "Centrifugal upward forces.",
+                            "The component of gravity parallel to the string alignment (\\(mg \\cos\\theta\\))."
+                        ],
+                        "correct": 1,
+                        "explanation": "The perpendicular vector constraint \\(mg \\sin(\\theta)\\) acts directly along the path back toward the center rest point."
+                    }
+                ]
+            }
+            /* You can append future dates here easily like:
+            ,"2026-07-07": {
+                "title": "The Force, Types of Force",
+                "subtitle": "Measuring the Force of Jedi",
+                "questions": [ ... ]
+            }
+            */
+        };
+
+        // UI Management Logic
+        function loadQuizForDate(dateStr) {
+            const data = b2pDatabase[dateStr];
+            if (!data) return;
+
+            document.getElementById('current-display-date').innerText = dateStr;
+            document.getElementById('topic-title').innerText = data.title;
+            document.getElementById('topic-sub').innerText = data.subtitle;
+
+            const quizSpace = document.getElementById('quiz-space');
+            quizSpace.innerHTML = ''; // Reset UI
+
+            data.questions.forEach((q, qIndex) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerHTML = `<strong>Q${qIndex + 1}:</strong> ${q.question}`;
+                card.appendChild(qText);
+
+                const optList = document.createElement('ul');
+                optList.className = 'options-list';
+
+                q.options.forEach((opt, oIndex) => {
+                    const li = document.createElement('li');
+                    li.className = 'option-item';
+                    li.innerText = opt;
+                    li.onclick = function() {
+                        checkAnswer(li, oIndex, q.correct, card);
+                    };
+                    optList.appendChild(li);
+                });
+
+                card.appendChild(optList);
+
+                const exp = document.createElement('div');
+                exp.className = 'explanation';
+                exp.innerHTML = q.explanation;
+                card.appendChild(exp);
+
+                quizSpace.appendChild(card);
+            });
+
+            // Re-run MathJax processing on newly added HTML strings
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function checkAnswer(selectedOptionElement, selectedIdx, correctIdx, cardElement) {
+            const items = cardElement.querySelectorAll('.option-item');
+            
+            // Lock out clicking other questions once chosen
+            items.forEach(item => item.removeAttribute('onclick'));
+
+            if (selectedIdx === correctIdx) {
+                selectedOptionElement.classList.add('correct');
+            } else {
+                selectedOptionElement.classList.add('incorrect');
+                items[correctIdx].classList.add('correct'); // reveal correct
+            }
+
+            // Reveal step-by-step mathematical explanation
+            const explanationDiv = cardElement.querySelector('.explanation');
+            explanationDiv.style.display = 'block';
+        }
+
+        // Initialize Canvas Simulation for Pendulum Physics
+        const canvas = document.getElementById('pendulumCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let angle = Math.PI / 4; 
+        let angleVelocity = 0.0;
+        let angleAcceleration = 0.0;
+        
+        const originX = 120;
+        const originY = 20;
+        const length = 140;
+        const gravity = 0.4; // Scaled down for visual fluid framework
+
+        function updateAndRenderPendulum() {
+            // Formula: alpha = -g / L * sin(theta)
+            angleAcceleration = (-gravity / length) * Math.sin(angle);
+            angleVelocity += angleAcceleration;
+            angle += angleVelocity;
+
+            // Apply light damping friction to stabilize visual over time
+            angleVelocity *= 0.999; 
+
+            // Clear Screen
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Compute structural endpoint coordinates
+            const bobX = originX + length * Math.sin(angle);
+            const bobY = originY + length * Math.cos(angle);
+
+            // Draw Suspension Support Line
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(bobX, bobY);
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw Anchor Ceiling block
+            ctx.beginPath();
+            ctx.arc(originX, originY, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fill();
+
+            // Draw Bob weight mass
+            ctx.beginPath();
+            ctx.arc(bobX, bobY, 14, 0, 2 * Math.PI);
+            ctx.fillStyle = '#38bdf8';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#38bdf8';
+            ctx.fill();
+            ctx.shadowBlur = 0; // reset shadow glow
+
+            requestAnimationFrame(updateAndRenderPendulum);
+        }
+
+        // Initialize app on viewport window load
+        window.onload = function() {
+            loadQuizForDate("2026-07-06");
+            updateAndRenderPendulum();
+        };
+    </script>
+</body>
+</html>
