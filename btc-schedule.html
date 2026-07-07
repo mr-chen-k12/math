@@ -358,7 +358,126 @@
                         "explanation": "The perpendicular vector constraint \\(mg \\sin(\\theta)\\) acts directly along the path back toward the center rest point."
                     }
                 ]
-            }
+            },
+            
+            "2026-07-05": {
+    "title": "Free Fall Experiment Analysis",
+    "subtitle": "Lab focus: Video Analysis, Mean, Standard Deviation, and Error Propagation",
+    "questions": [
+        {
+            "question": "What is the primary experimental advantage of using a secondary slow-motion camera to record a running digital timer rather than a manual stopwatch?",
+            "options": [
+                "It eliminates air resistance errors completely.",
+                "It eliminates human reaction time variations from the recorded time interval.",
+                "It automatically calculates the acceleration due to gravity.",
+                "It increases the terminal velocity of the dropped object."
+            ],
+            "correct": 1,
+            "explanation": "Human reflex limitations introduce a typical variance of \\(\\pm 0.15\\) seconds. Capturing a running timer frame-by-frame on a slow-motion video allows you to pinpoint the exact release and impact moments visually."
+        },
+        {
+            "question": "According to the whiteboard formulas, how is the Standard Error (\\(\\delta x\\)) derived from the Standard Deviation (\\(S\\))?",
+            "options": [
+                "\\(\\delta x = S \\times n\\)",
+                "\\(\\delta x = \\frac{S}{n - 1}\\)",
+                "\\(\\delta x = \\frac{S}{\\sqrt{n}}\\)",
+                "\\(\\delta x = \\sqrt{\\frac{\\sum(x-\\bar{x})^2}{n-1}}\\)"
+            ],
+            "correct": 2,
+            "explanation": "Standard error is calculated as \\(\\delta x = \\frac{S}{\\sqrt{n}}\\). It represents the precision of your sample mean estimate relative to the true population mean."
+        },
+        {
+            "question": "Why does a lightweight cork ball exhibit a higher standard deviation (\\(S\\)) across multiple drop trials than a heavier tennis ball?",
+            "options": [
+                "The cork ball experiences zero aerodynamic drag forces.",
+                "The lower mass of the cork ball makes its motion highly sensitive to random air currents and release discrepancies.",
+                "The tennis ball accelerates much faster due to heavier mass.",
+                "The cork ball's material composition alters the local value of \\(g\\)."
+            ],
+            "correct": 1,
+            "explanation": "Because a cork ball has lower mass and density, the unpredictable forces of air resistance and microscopic release variations have a much larger relative impact on its flight, increasing data spread (higher \\(S\\))."
+        },
+        {
+            "question": "Look at the class whiteboard data. Group 1 calculated a mean acceleration of \\(10.7 \\text{ m/s}^2\\). Using the board's formula, what is their approximate percent error?",
+            "options": [
+                "1%",
+                "5%",
+                "9%",
+                "0%"
+            ],
+            "correct": 2,
+            "explanation": "Using the formula on the board: \\(\\%\\text{Error} = \\frac{|10.7 - 9.81|}{9.81} \\times 100 \\approx 9.07\\%\\), which rounds closely to the recorded 9%."
+        },
+        {
+            "question": "When pooling the data of all 7 lab groups together (the 'All' row), the percent error dropped to 0%. What statistical principle does this demonstrate?",
+            "options": [
+                "Bessel's Correction Exception",
+                "The Law of Large Numbers (random errors average out with more data)",
+                "The Absolute Certainty Principle",
+                "Systematic Calibration Elimination"
+            ],
+            "correct": 1,
+            "explanation": "While individual groups had values ranging from 9.3 to 10.7 due to random experimental noise, pooling all trials together allows positive and negative variations to cancel out, steering the average to the real value."
+        },
+        {
+            "question": "In the standard deviation formula \\(S = \\sqrt{\\frac{\\sum(x-\\bar{x})^2}{n-1}}\\), why do we divide by \\(n-1\\) instead of just \\(n\\)?",
+            "options": [
+                "To adjust for the 2-meter ruler calibration error.",
+                "To account for Bessel's correction because we are working with a small sample size, not the entire universe.",
+                "To convert the units from seconds to meters squared.",
+                "To remove the influence of gravity."
+            ],
+            "correct": 1,
+            "explanation": "Dividing by \\(n-1\\) (Bessel's correction) corrects the bias in the estimation of a population standard deviation when calculated from a limited sample set."
+        },
+        {
+            "question": "If you calculate your final acceleration interval as \\(\\bar{X} \\pm \\delta x = 9.5 \\pm 0.3 \\text{ m/s}^2\\), what does this tell an observer?",
+            "options": [
+                "The ball definitely traveled between 9.2 and 9.8 meters.",
+                "The true value of gravity changed during the experiment.",
+                "Our calculated sample average is 9.5, and our statistical uncertainty boundary spans 0.3 above and below it.",
+                "The experiment was completely flawless."
+            ],
+            "correct": 2,
+            "explanation": "The expression \\(\\bar{X} \\pm \\delta x\\) displays the experimental mean along with the standard error window, indicating the reliability range of the measurement."
+        },
+        {
+            "question": "If a group systematically misread the 2-meter wall ruler, counting 2.0 meters as 2.1 meters for every trial, what kind of error does this create?",
+            "options": [
+                "Random human error that increases standard deviation.",
+                "Systematic error (bias) that skews the calculated mean but keeps standard deviation low.",
+                "An error that drops percent error to zero.",
+                "A non-linear differential error."
+            ],
+            "correct": 1,
+            "explanation": "A constant measurement flaw is a systematic error. It shifts the calculated mean consistently away from reality without necessarily increasing the trial-to-trial volatility (standard deviation)."
+        },
+        {
+            "question": "Based on the kinematics formula \\(d = \\frac{1}{2}gt^2\\), if your slow-motion video clock stops *before* the ball physically hits the ground, your time data (\\(t\\)) is too low. How will this alter your calculated value of \\(g\\)?",
+            "options": [
+                "It will cause an artificially inflated, high value of \\(g\\).",
+                "It will cause an artificially depressed, low value of \\(g\\).",
+                "It will have no mathematical effect on \\(g\\).",
+                "It will cause the standard deviation to drop to zero."
+            ],
+            "correct": 0,
+            "explanation": "Since \\(g = \\frac{2d}{t^2}\\), a smaller value in the denominator (underestimated time \\(t\\)) mathematically blows up the calculated value of \\(g\\), making it appear much higher than \\(9.81 \\text{ m/s}^2\\)."
+        },
+        {
+            "question": "The whiteboard shows a rough sketch of a bar graph on the right side. What type of statistical chart is this, and what is its shape approaching as data counts grow?",
+            "options": [
+                "A scatter plot; approaching a linear function.",
+                "A histogram; approaching a normal distribution (bell curve).",
+                "A pie chart; approaching an equilibrium circle.",
+                "A log-log graph; approaching an exponential drop."
+            ],
+            "correct": 1,
+            "explanation": "It is a histogram showing the frequency distribution of data. According to the Central Limit Theorem, as sample sets expand, the distribution of averages takes on a symmetrical normal distribution shape."
+        }
+    ]
+}
+
+            
             /* You can append future dates here easily like:
             ,"2026-07-07": {
                 "title": "The Force, Types of Force",
