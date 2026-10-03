@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Limit Proof Visualized: lim(x→2⁻) 1/(x−2)³ = −∞</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.13.3/distrib/jsxgraph.css">
+<script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.13.3/distrib/jsxgraphcore.js"></script>
+<style>
+  body { font-family: Georgia, serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f7f5f0; color: #222; }
+  h1 { text-align: center; }
+  .subtitle { text-align: center; color: #555; margin-bottom: 24px; }
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; }
+  .card h2 { margin-top: 0; color: #2a6496; border-bottom: 2px solid #2a6496; padding-bottom: 6px; }
+  #jxgbox { width: 100%; height: 480px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; background: #fff; }
+  .controls { background: #f0f7ff; border: 1px solid #bcd3ea; border-radius: 8px; padding: 14px 16px; margin: 12px 0; }
+  .slider-row { display: flex; align-items: center; gap: 12px; margin: 10px 0; flex-wrap: wrap; }
+  .slider-row label { min-width: 210px; font-weight: bold; }
+  .slider-row output { min-width: 70px; font-weight: bold; color: #1a5fb4; }
+  input[type="range"] { flex: 1; min-width: 200px; accent-color: #2a6496; }
+  .btn { background: #2a6496; color: #fff; border: none; border-radius: 5px; padding: 7px 14px; cursor: pointer; font-size: 0.9em; margin: 4px 6px 4px 0; }
+  .btn:hover { background: #1d4a73; }
+  .btn.orange { background: #e67e22; }
+  .btn.orange:hover { background: #c96a17; }
+  ol.steps li { margin-bottom: 10px; line-height: 1.55; }
+  table.sample { border-collapse: collapse; margin: 10px 0; width: 100%; max-width: 560px; }
+  table.sample th, table.sample td { border: 1px solid #999; padding: 5px 10px; text-align: center; }
+  table.sample th { background: #dbe7f3; }
+  .verdict { font-weight: bold; padding: 10px 14px; border-radius: 6px; margin-top: 10px; }
+  .verdict.ok { background: #e6f7e6; border: 1px solid #4caf50; color: #1e6b22; }
+  .verdict.fail { background: #fdecea; border: 1px solid #e74c3c; color: #a93226; }
+  .readout { font-size: 1.05em; background: #fff8e6; border: 1px solid #e0c96a; border-radius: 6px; padding: 8px 12px; display: inline-block; margin-top: 8px; }
+  .note { background: #fef9ef; border-left: 4px solid #e67e22; padding: 8px 12px; margin: 10px 0; border-radius: 0 6px 6px 0; }
+  .proofbox { background: #f6f8fb; border: 1px solid #ccd6e0; border-radius: 8px; padding: 14px 18px; margin-top: 10px; line-height: 1.7; }
+  code.math { font-family: Georgia, serif; }
+</style>
+</head>
+<body>
+<h1>\(\displaystyle \lim_{x\to 2^-}\frac{1}{(x-2)^3} = -\infty\)</h1>
+<p class="subtitle">An \(M\)–\(\delta\) proof of an infinite limit, visualized step by step &bull; October 3</p>
+
+<div class="card">
+  <h2>1. What does &ldquo;the limit is \(-\infty\)&rdquo; mean?</h2>
+  <p>We say \(\displaystyle\lim_{x\to 2^-} f(x) = -\infty\) when the following holds:</p>
+  <div class="proofbox">
+    For <strong>every</strong> negative number \(M\) there exists a \(\delta &gt; 0\) such that<br>
+    \[x &lt; 2 \quad\text{and}\quad 0 &lt; |x-2| &lt; \delta \quad\Longrightarrow\quad f(x) &lt; M.\]
+  </div>
+  <p>In plain words: <strong>no matter how far down you set the bar \(M\)</strong>, the function dives below that bar whenever \(x\) gets close enough to 2 <em>from the left</em>. The proof below builds the \(\delta\) that works for any \(M\) you choose — and the interactive demo lets you test it.</p>
+</div>
+
+<div class="card">
+  <h2>2. Watch the function dive</h2>
+  <p>Here is \(f(x) = \dfrac{1}{(x-2)^3}\). The red dashed line is the vertical asymptote \(x = 2\). <strong>Drag the red point \(P\)</strong> left or right along the curve and watch \(f(x)\) as \(x\) approaches 2 from the left. You can also scroll to zoom and drag the background to pan.</p>
+  <div id="jxgbox"></div>
+  <div>
+    <button class="btn orange" onclick="zoomDelta()">Zoom to the &delta;-window</button>
+    <button class="btn" onclick="resetView()">Reset view</button>
+  </div>
+  <div class="readout">Point \(P\): &nbsp; \(x =\) <span id="gx">1.5000</span> &nbsp;&nbsp; \(f(x) =\) <span id="gf">-8.00</span></div>
+  <p style="margin-top:10px">Notice: as \(x\) creeps toward 2 from the left, \((x-2)^3\) is a <em>tiny negative</em> number, so \(\frac{1}{(x-2)^3}\) is a <em>huge negative</em> number. That is the whole idea the proof below makes rigorous.</p>
+</div>
+
+<div class="card">
+  <h2>3. Emulate the proof with sliders</h2>
+  <p>Pick any negative \(M\) with the slider. The proof chooses \(\delta = \min\left(1, \frac{1}{|M|}\right)\) — shown on the graph as the <strong style="color:#e67e22">orange interval</strong> \((2-\delta,\,2)\) and the <strong style="color:#1e8449">green line</strong> \(y = M\). The thick orange curve is the graph restricted to that interval: the proof claims it lies <em>entirely below</em> the green line.</p>
+
+  <div class="controls">
+    <div class="slider-row">
+      <label for="mSlider">Challenge value \(M\) (negative):</label>
+      <input type="range" id="mSlider" min="-200" max="-1" step="1" value="-10">
+      <output id="mVal">−10</output>
+    </div>
+    <div class="slider-row">
+      <label><input type="checkbox" id="autoDelta" checked> Use the proof&rsquo;s choice \(\delta = \min(1,\,1/|M|)\)</label>
+    </div>
+    <div class="slider-row" id="manualRow" style="display:none">
+      <label for="dSlider">Your own \(\delta\):</label>
+      <input type="range" id="dSlider" min="0.001" max="2" step="0.001" value="0.1">
+      <output id="dVal">0.1</output>
+    </div>
+    <div>
+      <button class="btn orange" onclick="zoomDelta()">Zoom to the &delta;-window</button>
+      <button class="btn" onclick="resetView()">Reset view</button>
+    </div>
+  </div>
+
+  <h3>The proof, with your numbers filled in</h3>
+  <ol class="steps" id="proofSteps"></ol>
+
+  <div class="note" id="deltaNote"></div>
+
+  <h3>Spot-check: is \(f(x) &lt; M\) really true on the whole interval?</h3>
+  <p>Sample points inside \((2-\delta,\, 2)\):</p>
+  <table class="sample">
+    <thead><tr><th>\(x\)</th><th>\(f(x) = \dfrac{1}{(x-2)^3}\)</th><th>\(f(x) &lt; M\)?</th></tr></thead>
+    <tbody id="sampleBody"></tbody>
+  </table>
+  <div class="verdict" id="verdict"></div>
+  <p><em>Experiment:</em> uncheck the automatic \(\delta\) and try a \(\delta\) that is far too big (say \(\delta = 2\)). The table will catch the failure — that is exactly why the proof&rsquo;s careful choice of \(\delta\) matters.</p>
+</div>
+
+<div class="card">
+  <h2>4. The complete formal proof</h2>
+  <div class="proofbox">
+    <p><strong>Theorem.</strong> \(\displaystyle\lim_{x\to 2^-}\frac{1}{(x-2)^3} = -\infty\).</p>
+    <p><strong>Proof.</strong> Let \(M\) be any negative number. Choose \(\delta\) positive and equal to the minimum of \(1\) and \(\dfrac{1}{|M|}\). Assume \(x &lt; 2\) and \(0 &lt; |x-2| &lt; \delta\). Then \(|x-2|^3 &lt; \delta^3 \le \delta \le \dfrac{1}{|M|}\). Hence, \(\dfrac{1}{|x-2|^3} &gt; |M| = -M\). But \((x-2)^3 &lt; 0\). Therefore,
+    \[\frac{1}{(x-2)^3} = -\frac{1}{|x-2|^3} &lt; M.\]
+    Since \(M\) was arbitrary, this holds for every negative \(M\), which is precisely the definition of the limit being \(-\infty\). ∎</p>
+  </div>
+  <p>Each move in this proof is exactly what the sliders above let you test: the choice of \(\delta\), the cubing step (which is why \(\delta \le 1\) is needed), and the sign flip from \((x-2)^3 &lt; 0\).</p>
+</div>
+
+<div class="card">
+  <h2>5. So the (finite) limit does not exist</h2>
+  <p>&ldquo;Equals \(-\infty\)&rdquo; is the precise way of saying <strong>no finite number can be the limit</strong>. Here is why, by contradiction:</p>
+  <div class="proofbox">
+    Suppose, to the contrary, that \(\displaystyle\lim_{x\to 2^-}\frac{1}{(x-2)^3} = L\) for some finite number \(L\).
+    Take \(\varepsilon = 1\) in the ordinary \(\varepsilon\)–\(\delta\) definition: there must be a \(\delta_1 &gt; 0\) with
+    \[|f(x) - L| &lt; 1 \quad\text{hence}\quad f(x) &gt; L - 1\]
+    whenever \(x &lt; 2\) and \(0 &lt; |x-2| &lt; \delta_1\).
+    But \(M = -|L| - 2\) is a negative number, so the theorem above gives a \(\delta_2 &gt; 0\) with \(f(x) &lt; M\) whenever \(x &lt; 2\) and \(0 &lt; |x-2| &lt; \delta_2\).
+    For \(x\) satisfying <em>both</em> (take \(\delta = \min(\delta_1,\delta_2)\)), we would need
+    \[L - 1 &lt; f(x) &lt; -|L| - 2 \le L - 2 &lt; L - 1,\]
+    an impossibility. Hence no finite \(L\) works — the finite limit does not exist, and we write the limit as \(-\infty\). ∎
+  </div>
+</div>
+
+<script>
+// ---------- state ----------
+let M = -10;
+let autoDelta = true;
+let manualDelta = 0.1;
+const f = x => 1 / Math.pow(x - 2, 3);
+function deltaNow() { return autoDelta ? Math.min(1, 1 / Math.abs(M)) : manualDelta; }
+
+// ---------- number formatting ----------
+function fmtNum(n) {
+  if (!isFinite(n)) return n < 0 ? '−∞' : '∞';
+  if (n === 0) return '0';
+  const a = Math.abs(n);
+  if (a >= 1e7 || a < 1e-4) {
+    const e = Math.floor(Math.log10(a));
+    const m = n / Math.pow(10, e);
+    return (Math.round(m * 10) / 10) + '×10<sup>' + e + '</sup>';
+  }
+  return String(parseFloat(n.toPrecision(6)));
+}
+function fmtPlain(n) { // plain text version for slider outputs
+  return String(M).replace('-', '−');
+}
+
+// ---------- JSXGraph board ----------
+const board = JXG.JSXGraph.initBoard('jxgbox', {
+  boundingbox: [-1.2, 14, 5.2, -14],
+  axis: true,
+  showCopyright: false,
+  showNavigation: true,
+  pan: { enabled: true },
+  zoom: { wheel: true }
+});
+const leftBranch = board.create('functiongraph', [f, -1.2, 1.999],
+  { strokeWidth: 2.5, strokeColor: '#1a5fb4' });
+const rightBranch = board.create('functiongraph', [f, 2.001, 5.2],
+  { strokeWidth: 2.5, strokeColor: '#1a5fb4' });
+board.create('line', [[2, -14], [2, 14]],
+  { straightFirst: false, straightLast: false, dash: 2, strokeColor: '#c0392b', strokeWidth: 1.5, fixed: true });
+board.create('text', [2.08, 12.4, 'x = 2'], { fontSize: 14, color: '#c0392b', fixed: true });
+
+// y = M (green, follows the slider)
+const mLine = board.create('line', [
+  board.create('point', [() => -1.2, () => M], { visible: false, fixed: true }),
+  board.create('point', [() => 5.2, () => M], { visible: false, fixed: true })
+], { straightFirst: false, straightLast: false, dash: 3, strokeColor: '#27ae60', strokeWidth: 2, fixed: true });
+board.create('text', [() => 3.1, () => M + 0.7, () => 'y = M = ' + M],
+  { fontSize: 13, color: '#1e8449', fixed: true });
+
+// δ-interval on the x-axis (orange, follows δ)
+board.create('segment', [
+  board.create('point', [() => 2 - deltaNow(), () => 0], { visible: false, fixed: true }),
+  board.create('point', [() => 2, () => 0], { visible: false, fixed: true })
+], { strokeColor: '#e67e22', strokeWidth: 7, fixed: true, name: '' });
+
+// bold curve restricted to (2−δ, 2)
+let boldCurve = null;
+function refreshBold() {
+  if (boldCurve) board.removeObject(boldCurve);
+  const d = deltaNow();
+  boldCurve = board.create('functiongraph', [f, Math.max(2 - d, -1.2), 1.9995],
+    { strokeWidth: 5, strokeColor: '#e67e22' });
+}
+
+// draggable glider on the left branch
+const glider = board.create('glider', [1.5, f(1.5), leftBranch],
+  { name: 'P', color: '#c0392b', size: 4 });
+function updateReadout() {
+  const x = glider.X(), y = glider.Y();
+  document.getElementById('gx').textContent = x.toFixed(4);
+  document.getElementById('gf').textContent =
+    Math.abs(y) > 1e6 ? y.toExponential(2) : y.toFixed(2);
+}
+glider.on('drag', updateReadout);
+
+function zoomDelta() {
+  const d = deltaNow();
+  board.setBoundingBox([2 - d - 0.6, 3, 2 + 0.6, 2 * M], false);
+}
+function resetView() {
+  board.setBoundingBox([-1.2, 14, 5.2, -14], false);
+}
+
+// ---------- live proof text ----------
+function renderProof() {
+  const d = deltaNow(), absM = Math.abs(M), d3 = Math.pow(d, 3);
+  const inv = 1 / d3;
+  const steps = [];
+  steps.push('<b>Step 1.</b> Let <i>M</i> = ' + M + ' — any negative number (you chose it with the slider).');
+  if (autoDelta) {
+    steps.push('<b>Step 2.</b> Choose <i>δ</i> = min(1, 1/|<i>M</i>|) = min(1, 1/' + absM + ') = min(1, ' +
+      fmtNum(1 / absM) + ') = <b>' + fmtNum(d) + '</b>.');
+  } else {
+    steps.push('<b>Step 2.</b> You chose <i>δ</i> = <b>' + fmtNum(d) + '</b> yourself ' +
+      '(the proof would use min(1, 1/' + absM + ') = ' + fmtNum(Math.min(1, 1 / absM)) + ').');
+  }
+  steps.push('<b>Step 3.</b> Assume <i>x</i> &lt; 2 and 0 &lt; |<i>x</i>−2| &lt; ' + fmtNum(d) +
+    ' — that is, <i>x</i> ∈ (' + fmtNum(2 - d) + ', 2), the orange interval on the axis.');
+  steps.push('<b>Step 4.</b> Cubing (all quantities positive): |<i>x</i>−2|<sup>3</sup> &lt; <i>δ</i><sup>3</sup> = ' + fmtNum(d3) + '.');
+  const chainOk = d <= 1 + 1e-12;
+  let s5 = '<b>Step 5.</b> ';
+  if (chainOk) {
+    s5 += 'Since <i>δ</i> = ' + fmtNum(d) + ' ≤ 1, we have <i>δ</i><sup>3</sup> ≤ <i>δ</i>, so ' +
+      '|<i>x</i>−2|<sup>3</sup> &lt; <i>δ</i><sup>3</sup> ≤ <i>δ</i> ≤ 1/|<i>M</i>| = ' + fmtNum(1 / absM) + '. ' +
+      'Taking reciprocals flips the inequality: 1/|<i>x</i>−2|<sup>3</sup> &gt; 1/<i>δ</i><sup>3</sup> = ' +
+      fmtNum(inv) + ' ≥ ' + absM + ' = |<i>M</i>|.';
+  } else {
+    s5 += 'Here <i>δ</i> = ' + fmtNum(d) + ' &gt; 1, so <i>δ</i><sup>3</sup> &gt; <i>δ</i> — the chain ' +
+      '<i>δ</i><sup>3</sup> ≤ <i>δ</i> ≤ 1/|<i>M</i>| <b>breaks</b>. We only get 1/|<i>x</i>−2|<sup>3</sup> &gt; 1/<i>δ</i><sup>3</sup> = ' +
+      fmtNum(inv) + ', which is ' + (inv >= absM ? '≥' : '&lt;') + ' |<i>M</i>| = ' + absM + '.';
+  }
+  steps.push(s5);
+  let s6 = '<b>Step 6.</b> But <i>x</i> &lt; 2, so (<i>x</i>−2)<sup>3</sup> &lt; 0, and therefore ' +
+    '<i>f</i>(<i>x</i>) = 1/(<i>x</i>−2)<sup>3</sup> = −1/|<i>x</i>−2|<sup>3</sup> &lt; −' + fmtNum(inv);
+  if (chainOk && inv >= absM - 1e-9) {
+    s6 += ' ≤ −' + absM + ' = ' + M + ' = <i>M</i>. <b>✓ Done</b> — every <i>x</i> in the orange interval lands strictly below the green line.';
+  } else {
+    s6 += ', but −' + fmtNum(inv) + ' is <b>not</b> ≤ <i>M</i> = ' + M + ' — the conclusion <b>fails</b>.';
+  }
+  steps.push(s6);
+  document.getElementById('proofSteps').innerHTML = steps.map(s => '<li>' + s + '</li>').join('');
+
+  document.getElementById('deltaNote').innerHTML =
+    '<b>Why the &ldquo;min with 1&rdquo;?</b> The step <i>δ</i><sup>3</sup> ≤ <i>δ</i> is true exactly when 0 &lt; <i>δ</i> ≤ 1. ' +
+    'With your numbers: ' + fmtNum(d) + '<sup>3</sup> = ' + fmtNum(d3) + (chainOk ? ' ≤ ' : ' &gt; ') + fmtNum(d) +
+    (chainOk ? ' ✓' : ' ✗') + '. Taking the minimum with 1 guarantees this link in the chain, ' +
+    'while 1/|<i>M</i>| = ' + fmtNum(1 / absM) + ' guarantees the link <i>δ</i> ≤ 1/|<i>M</i>|.';
+}
+
+// ---------- sample table + verdict ----------
+function renderTable() {
+  const d = deltaNow();
+  const fracs = [1/2, 1/4, 1/8, 1/16, 1/32];
+  let allOk = true, html = '';
+  fracs.forEach(fr => {
+    const x = 2 - d * fr;
+    const fx = -1 / Math.pow(d * fr, 3);
+    const ok = fx < M;
+    if (!ok) allOk = false;
+    html += '<tr><td>' + x.toPrecision(6) + '</td><td>' + fmtNum(fx) +
+      '</td><td>' + (ok ? '<b style="color:#1e6b22">✓</b>' : '<b style="color:#a93226">✗</b>') + '</td></tr>';
+  });
+  document.getElementById('sampleBody').innerHTML = html;
+  const v = document.getElementById('verdict');
+  if (allOk) {
+    v.className = 'verdict ok';
+    v.innerHTML = '✓ The M–δ condition holds: every sampled x in (2−δ, 2) satisfies f(x) &lt; M = ' + M + '.';
+  } else {
+    v.className = 'verdict fail';
+    v.innerHTML = '✗ The condition FAILS for this δ — some x in the interval gives f(x) ≥ M = ' + M +
+      '. This δ is too big; the proof&rsquo;s δ = min(1, 1/|M|) = ' + fmtNum(Math.min(1, 1 / Math.abs(M))) + ' is what makes it work.';
+  }
+}
+
+function updateAll() {
+  refreshBold();
+  renderProof();
+  renderTable();
+  board.update();
+}
+
+// ---------- controls ----------
+const mSlider = document.getElementById('mSlider');
+mSlider.addEventListener('input', () => {
+  M = parseInt(mSlider.value, 10);
+  document.getElementById('mVal').textContent = String(M).replace('-', '−');
+  updateAll();
+});
+const autoBox = document.getElementById('autoDelta');
+autoBox.addEventListener('change', () => {
+  autoDelta = autoBox.checked;
+  document.getElementById('manualRow').style.display = autoDelta ? 'none' : 'flex';
+  updateAll();
+});
+const dSlider = document.getElementById('dSlider');
+dSlider.addEventListener('input', () => {
+  manualDelta = parseFloat(dSlider.value);
+  document.getElementById('dVal').textContent = manualDelta;
+  updateAll();
+});
+
+// ---------- init ----------
+document.getElementById('mVal').textContent = '−10';
+updateReadout();
+updateAll();
+</script>
+</body>
+</html>
