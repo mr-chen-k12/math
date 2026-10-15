@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- saved from url=(0077)file:///C:/Users/Chen/Downloads/Murphy_IM_Lesson_15_3D_Expression_Studio.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Murphy Thunder · Lesson 15 | 3D Shape Expression Studio</title>
 <meta name="description" content="Grade 6 Imagine IM Lesson 15 practice: surface area and volume expressions for prisms and pyramids.">
 <style>
@@ -26,53 +26,13 @@ button,input,a{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cur
 <section class="lesson"><div class="lesson-tab"><span>LESSON</span><strong>15</strong></div><div class="lessonhead">3D Shape Expression Studio</div><div class="lessonintro"><b>Learning goal:</b> Identify the shapes and dimensions needed to build correct surface-area expressions. Optional volume practice extends this thinking to three-dimensional space.</div></section>
 <section class="top">
 <div class="panel"><div class="heading"><span class="num">1</span> Student information</div><label for="studentName" class="bold">First and last name</label><input class="nameinput" id="studentName" type="text" maxlength="80" autocomplete="name" placeholder="Enter your name for the submission"><p class="small">Your name and progress will appear on the downloaded PNG.</p></div>
-<div class="panel"><div class="heading purple"><span class="num">2</span> Progress toward LIT! 🔥</div><div class="progressTop"><span id="levelLabel" class="level">🌱 Keep exploring</span><span id="litCount" class="bold">0 / 10 correct</span></div><div class="track"><div id="progressFill" class="fill" style="width: 0%;"></div></div><div class="milestones"><span>🌱 Start</span><span>⚡ 3</span><span>⭐ 6</span><span>🔥 LIT! 10</span></div><div class="metrics"><div class="metric"><b id="correctCount">0</b><small>Correct</small></div><div class="metric"><b id="attemptCount">0</b><small>Attempted</small></div><div class="metric"><b id="accuracy">0%</b><small>Accuracy</small></div><div class="metric"><b id="streakCount">0</b><small>Streak</small></div></div></div>
+<div class="panel"><div class="heading purple"><span class="num">2</span> Progress toward LIT! 🔥</div><div class="progressTop"><span id="levelLabel" class="level">🌱 Let's begin!</span><span id="litCount" class="bold">0 / 10 correct</span></div><div class="track"><div id="progressFill" class="fill"></div></div><div class="milestones"><span>🌱 Start</span><span>⚡ 3</span><span>⭐ 6</span><span>🔥 LIT! 10</span></div><div class="metrics"><div class="metric"><b id="correctCount">0</b><small>Correct</small></div><div class="metric"><b id="attemptCount">0</b><small>Attempted</small></div><div class="metric"><b id="accuracy">0%</b><small>Accuracy</small></div><div class="metric"><b id="streakCount">0</b><small>Streak</small></div></div></div>
 </section>
 <section class="mainGrid">
-<div class="panel"><div class="heading"><span class="num">3</span> Explore the 3D shape</div><div class="modes"><button class="mode" data-mode="mixed" type="button" aria-pressed="false">🔀 Mixed</button><button class="mode selected" data-mode="surface_area" type="button" aria-pressed="true">📐 Surface Area</button><button class="mode" data-mode="volume" type="button" aria-pressed="false">📦 Volume</button></div><div class="shapeinfo"><span id="shapeName" class="shapeTitle">Right Triangular Prism</span><span id="cardTag" class="cardTag">CARD B</span></div><div class="view"><div id="svg-container" aria-live="polite">
-                    <svg viewBox="0 0 360 250" class="w-full max-w-[340px] h-auto max-h-[250px] select-none">
-                        <!-- Shading -->
-                        <polygon points="40,200 130,200 40,110" fill="rgba(16, 185, 129, 0.15)"></polygon>
-                        <polygon points="40,110 130,200 310,100 220,10" fill="rgba(52, 211, 153, 0.2)"></polygon>
-                        <polygon points="40,200 130,200 310,100 220,100" fill="rgba(5, 150, 105, 0.1)"></polygon>
-
-                        <!-- Hidden Lines -->
-                        <line x1="40" y1="200" x2="220" y2="100" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"></line>
-                        <line x1="220" y1="10" x2="220" y2="100" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"></line>
-                        <line x1="220" y1="100" x2="310" y2="100" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4"></line>
-
-                        <!-- Front Right Triangle -->
-                        <polygon points="40,200 130,200 40,110" stroke="#1e293b" stroke-width="2.5" fill="none"></polygon>
-                        <!-- Top Slant Face & Connections -->
-                        <line x1="40" y1="110" x2="220" y2="10" stroke="#1e293b" stroke-width="2.5"></line>
-                        <line x1="130" y1="200" x2="310" y2="100" stroke="#1e293b" stroke-width="2.5"></line>
-                        <line x1="220" y1="10" x2="310" y2="100" stroke="#1e293b" stroke-width="2.5"></line>
-
-                        <!-- Right Angle Square on Front Triangle -->
-                        <polyline points="40,188 52,188 52,200" stroke="#1e293b" stroke-width="1.5" fill="none"></polyline>
-
-                        <!-- Labels -->
-                        <g font-size="14" font-weight="800" font-family="Plus Jakarta Sans">
-                            <!-- Base Leg 6 -->
-                            <rect x="75" y="210" width="24" height="20" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1"></rect>
-                            <text x="87" y="225" text-anchor="middle" fill="#0f172a">6</text>
-
-                            <!-- Vertical Leg 8 -->
-                            <rect x="10" y="150" width="24" height="20" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1"></rect>
-                            <text x="22" y="165" text-anchor="middle" fill="#0f172a">8</text>
-
-                            <!-- Hypotenuse 10 -->
-                            <rect x="270" y="45" width="28" height="20" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1"></rect>
-                            <text x="284" y="60" text-anchor="middle" fill="#0f172a">10</text>
-
-                            <!-- Prism Length 15 -->
-                            <rect x="210" y="160" width="28" height="20" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1"></rect>
-                            <text x="224" y="175" text-anchor="middle" fill="#0f172a">15</text>
-                        </g>
-                    </svg></div><img class="viewer-mark" alt="" src="data:image/png;base64,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"><span class="viewer-tag">Dimension labels in units</span></div><p class="small">Purple and green illustrations show the solids. For pyramids: <b>h</b> is vertical height; <b>ℓ</b> is slant height along a triangular face.</p><div id="cardProgress" class="mini">Card 1 of 9 · Surface Area mode</div></div>
-<div class="panel"><div class="heading purple"><span class="num">4</span> Choose the correct expression</div><div id="modeLabel" class="mini">SURFACE AREA</div><div id="question" class="question">Which expression gives the correct setup to find the TOTAL SURFACE AREA of Card B?</div><div id="options" class="options"><button type="button" class="option" data-index="0"><span>A</span><span class="math">2·(½ · 6 · 8) + (6 · 15) + (8 · 15) + (10 · 15)</span></button><button type="button" class="option" data-index="2"><span>B</span><span class="math">(½ · 6 · 8) + (6 · 15) + (8 · 15) + (10 · 15)</span></button><button type="button" class="option" data-index="1"><span>C</span><span class="math">2·(6 · 8) + (6 · 15) + (8 · 15) + (10 · 15)</span></button><button type="button" class="option" data-index="3"><span>D</span><span class="math">2·(½ · 6 · 10) + (6 · 15) + (8 · 15) + (10 · 15)</span></button></div><div id="feedback" class="feedback" hidden=""></div><p id="hint" class="hint" hidden=""></p><div class="actions"><button id="hintBtn" class="btn secondary" type="button">💡 Hint</button><button id="nextBtn" class="btn primary" type="button" disabled="">Next shape →</button><button id="restartBtn" class="btn" type="button">↻ New round</button></div><div id="completion" class="completion" style="display: none;"></div></div>
+<div class="panel"><div class="heading"><span class="num">3</span> Explore the 3D shape</div><div class="modes"><button class="mode" data-mode="mixed" type="button">🔀 Mixed</button><button class="mode selected" data-mode="surface_area" type="button">📐 Surface Area</button><button class="mode" data-mode="volume" type="button">📦 Volume</button></div><div class="shapeinfo"><span id="shapeName" class="shapeTitle">Loading…</span><span id="cardTag" class="cardTag">CARD A</span></div><div class="view"><div id="svg-container" aria-live="polite"></div><img class="viewer-mark" alt="" src="data:image/png;base64,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"><span class="viewer-tag">Dimension labels in units</span></div><p class="small">Purple and green illustrations show the solids. For pyramids: <b>h</b> is vertical height; <b>ℓ</b> is slant height along a triangular face.</p><div id="cardProgress" class="mini">Card 1 of 17</div></div>
+<div class="panel"><div class="heading purple"><span class="num">4</span> Choose the correct expression</div><div id="modeLabel" class="mini">SURFACE AREA</div><div id="question" class="question">Choose the expression that matches the figure.</div><div id="options" class="options"></div><div id="feedback" class="feedback" hidden></div><p id="hint" class="hint" hidden></p><div class="actions"><button id="hintBtn" class="btn secondary" type="button">💡 Hint</button><button id="nextBtn" class="btn primary" type="button" disabled>Next shape →</button><button id="restartBtn" class="btn" type="button">↻ New round</button></div><div id="completion" class="completion"></div></div>
 </section>
-<section class="panel submission"><div class="heading purple"><span class="num">5</span> Download &amp; submit your work</div><p>After checking at least one answer, you can download a PNG with your name, achievement level, recent checked shape, and progress. Keep going until you reach <b>🔥 LIT! at 10 correct answers.</b></p><div class="submitbuttons"><button id="downloadBtn" class="btn primary" type="button" disabled="">📸 Download my screenshot</button><a class="btn green" target="_blank" rel="noopener noreferrer" href="https://forms.gle/dWZVMU2Ke8dbvBnL9">📨 Open Google Form</a></div><p class="small">1. Type your name. 2. Check an answer and download your PNG. 3. Open the Google Form and upload the image. The page does not automatically send your work.</p><p id="submissionStatus" class="notice" aria-live="polite"></p></section>
+<section class="panel submission"><div class="heading purple"><span class="num">5</span> Download &amp; submit your work</div><p>After checking at least one answer, you can download a PNG with your name, achievement level, recent checked shape, and progress. Keep going until you reach <b>🔥 LIT! at 10 correct answers.</b></p><div class="submitbuttons"><button id="downloadBtn" class="btn primary" type="button" disabled>📸 Download my screenshot</button><a class="btn green" target="_blank" rel="noopener noreferrer" href="https://forms.gle/dWZVMU2Ke8dbvBnL9">📨 Open Google Form</a></div><p class="small">1. Type your name. 2. Check an answer and download your PNG. 3. Open the Google Form and upload the image. The page does not automatically send your work.</p><p id="submissionStatus" class="notice" aria-live="polite"></p></section>
 <div class="footer">MURPHY THUNDER · Imagine IM textbook-inspired design · Grade 6 · Lesson 15 · No student data is sent until you upload it through Google Forms</div>
 </main>
 <script>
@@ -112,7 +72,7 @@ const PROBLEM_BANK = [
                 options: [
                     '5 · 8 · 10',
                     '2·(5 · 8) + 10',
-                    '½ · 5 · 8 · 10',
+                    '(1/2) · 5 · 8 · 10',
                     '(5 + 8) · 10'
                 ],
                 correctIndex: 0,
@@ -134,21 +94,21 @@ const PROBLEM_BANK = [
                 svgType: 'tri_prism_b',
                 question: 'Which expression gives the correct setup to find the TOTAL SURFACE AREA of Card B?',
                 options: [
-                    '2·(½ · 6 · 8) + (6 · 15) + (8 · 15) + (10 · 15)',
+                    '2·((1/2) · 6 · 8) + (6 · 15) + (8 · 15) + (10 · 15)',
                     '2·(6 · 8) + (6 · 15) + (8 · 15) + (10 · 15)',
-                    '(½ · 6 · 8) + (6 · 15) + (8 · 15) + (10 · 15)',
-                    '2·(½ · 6 · 10) + (6 · 15) + (8 · 15) + (10 · 15)'
+                    '((1/2) · 6 · 8) + (6 · 15) + (8 · 15) + (10 · 15)',
+                    '2·((1/2) · 6 · 10) + (6 · 15) + (8 · 15) + (10 · 15)'
                 ],
                 correctIndex: 0,
-                hint: 'Add 2 triangular bases (½ · base · height) plus 3 distinct rectangular sides (each side length × prism length 15).',
+                hint: 'Add 2 triangular bases ((1/2) · base · height) plus 3 distinct rectangular sides (each side length × prism length 15).',
                 breakdown: {
                     title: 'Surface Area Breakdown (Card B)',
                     steps: [
-                        '2 Triangular Bases: 2 · (½ · 6 · 8) = 48',
+                        '2 Triangular Bases: 2 · ((1/2) · 6 · 8) = 48',
                         'Bottom Rectangular Face: 6 · 15 = 90',
                         'Vertical Rectangular Face: 8 · 15 = 120',
                         'Slanted Top Face: 10 · 15 = 150',
-                        'Total Expression = 2·(½ · 6 · 8) + (6 · 15) + (8 · 15) + (10 · 15) = 408 sq units'
+                        'Total Expression = 2·((1/2) · 6 · 8) + (6 · 15) + (8 · 15) + (10 · 15) = 408 sq units'
                     ]
                 }
             },
@@ -160,19 +120,19 @@ const PROBLEM_BANK = [
                 svgType: 'tri_prism_b',
                 question: 'Which expression gives the correct setup to find the VOLUME of Card B?',
                 options: [
-                    '(½ · 6 · 8) · 15',
+                    '((1/2) · 6 · 8) · 15',
                     '(6 · 8) · 15',
-                    '(½ · 6 · 10) · 15',
-                    '2·(½ · 6 · 8) + 15'
+                    '((1/2) · 6 · 10) · 15',
+                    '2·((1/2) · 6 · 8) + 15'
                 ],
                 correctIndex: 0,
-                hint: 'Volume = Base Area of the triangle (½ · 6 · 8) multiplied by the prism length (15).',
+                hint: 'Volume = Base Area of the triangle ((1/2) · 6 · 8) multiplied by the prism length (15).',
                 breakdown: {
                     title: 'Volume Breakdown (Card B)',
                     steps: [
-                        'Triangular Base Area (B) = ½ · 6 · 8 = 24',
+                        'Triangular Base Area (B) = (1/2) · 6 · 8 = 24',
                         'Prism Length (L) = 15',
-                        'Volume Expression = (½ · 6 · 8) · 15 = 360 cubic units'
+                        'Volume Expression = ((1/2) · 6 · 8) · 15 = 360 cubic units'
                     ]
                 }
             },
@@ -209,21 +169,21 @@ const PROBLEM_BANK = [
                 svgType: 'tri_prism_d',
                 question: 'Which expression gives the correct setup to find the TOTAL SURFACE AREA of Card D?',
                 options: [
-                    '2·(½ · 5 · 12) + (5 · 8) + (12 · 8) + (13 · 8)',
+                    '2·((1/2) · 5 · 12) + (5 · 8) + (12 · 8) + (13 · 8)',
                     '2·(5 · 12) + (5 · 8) + (12 · 8) + (13 · 8)',
-                    '2·(½ · 5 · 13) + (5 · 8) + (12 · 8) + (13 · 8)',
-                    '(½ · 5 · 12) + (5 · 8) + (12 · 8) + (13 · 8)'
+                    '2·((1/2) · 5 · 13) + (5 · 8) + (12 · 8) + (13 · 8)',
+                    '((1/2) · 5 · 12) + (5 · 8) + (12 · 8) + (13 · 8)'
                 ],
                 correctIndex: 0,
                 hint: 'The perpendicular legs of the right triangle are 5 and 12 (hypotenuse is 13). Height of prism is 8.',
                 breakdown: {
                     title: 'Surface Area Breakdown (Card D)',
                     steps: [
-                        '2 Triangular Bases: 2 · (½ · 5 · 12) = 60',
+                        '2 Triangular Bases: 2 · ((1/2) · 5 · 12) = 60',
                         'Front Rectangle: 5 · 8 = 40',
                         'Side Rectangle: 12 · 8 = 96',
                         'Slanted Back Rectangle: 13 · 8 = 104',
-                        'Total Expression = 2·(½ · 5 · 12) + (5 · 8) + (12 · 8) + (13 · 8) = 300 sq units'
+                        'Total Expression = 2·((1/2) · 5 · 12) + (5 · 8) + (12 · 8) + (13 · 8) = 300 sq units'
                     ]
                 }
             },
@@ -235,19 +195,19 @@ const PROBLEM_BANK = [
                 svgType: 'tri_prism_d',
                 question: 'Which expression gives the correct setup to find the VOLUME of Card D?',
                 options: [
-                    '(½ · 5 · 12) · 8',
+                    '((1/2) · 5 · 12) · 8',
                     '(5 · 12) · 8',
-                    '(½ · 5 · 13) · 8',
-                    '2·(½ · 5 · 12) · 8'
+                    '((1/2) · 5 · 13) · 8',
+                    '2·((1/2) · 5 · 12) · 8'
                 ],
                 correctIndex: 0,
-                hint: 'Volume = Base Area (½ · leg₁ · leg₂) × Height.',
+                hint: 'Volume = Base Area ((1/2) · leg₁ · leg₂) × Height.',
                 breakdown: {
                     title: 'Volume Breakdown (Card D)',
                     steps: [
-                        'Base Area = ½ · 5 · 12 = 30',
+                        'Base Area = (1/2) · 5 · 12 = 30',
                         'Prism Height = 8',
-                        'Volume Expression = (½ · 5 · 12) · 8 = 240 cubic units'
+                        'Volume Expression = ((1/2) · 5 · 12) · 8 = 240 cubic units'
                     ]
                 }
             },
@@ -259,9 +219,9 @@ const PROBLEM_BANK = [
                 svgType: 'tri_prism_e',
                 question: 'Which expression gives the correct setup to find the TOTAL SURFACE AREA of Card E?',
                 options: [
-                    '2·(½ · 6 · 4) + (6 · 12) + 2·(5 · 12)',
-                    '2·(½ · 6 · 5) + (6 · 12) + 2·(5 · 12)',
-                    '(½ · 6 · 4) + (6 · 12) + (5 · 12)',
+                    '2·((1/2) · 6 · 4) + (6 · 12) + 2·(5 · 12)',
+                    '2·((1/2) · 6 · 5) + (6 · 12) + 2·(5 · 12)',
+                    '((1/2) · 6 · 4) + (6 · 12) + (5 · 12)',
                     '2·(6 · 4) + (6 · 12) + 2·(5 · 12)'
                 ],
                 correctIndex: 0,
@@ -269,10 +229,10 @@ const PROBLEM_BANK = [
                 breakdown: {
                     title: 'Surface Area Breakdown (Card E)',
                     steps: [
-                        '2 Triangular Bases: 2 · (½ · 6 · 4) = 24',
+                        '2 Triangular Bases: 2 · ((1/2) · 6 · 4) = 24',
                         'Bottom Rectangular Base: 6 · 12 = 72',
                         '2 Slanted Side Rectangles: 2 · (5 · 12) = 120',
-                        'Total Expression = 2·(½ · 6 · 4) + (6 · 12) + 2·(5 · 12) = 216 sq units'
+                        'Total Expression = 2·((1/2) · 6 · 4) + (6 · 12) + 2·(5 · 12) = 216 sq units'
                     ]
                 }
             },
@@ -284,19 +244,19 @@ const PROBLEM_BANK = [
                 svgType: 'tri_prism_e',
                 question: 'Which expression gives the correct setup to find the VOLUME of Card E?',
                 options: [
-                    '(½ · 6 · 4) · 12',
-                    '(½ · 6 · 5) · 12',
+                    '((1/2) · 6 · 4) · 12',
+                    '((1/2) · 6 · 5) · 12',
                     '(6 · 4) · 12',
-                    '2·(½ · 6 · 4) · 12'
+                    '2·((1/2) · 6 · 4) · 12'
                 ],
                 correctIndex: 0,
                 hint: 'Use triangle height 4 (not the side leg 5) to compute the base area, then multiply by prism length 12.',
                 breakdown: {
                     title: 'Volume Breakdown (Card E)',
                     steps: [
-                        'Triangular Base Area = ½ · 6 · 4 = 12',
+                        'Triangular Base Area = (1/2) · 6 · 4 = 12',
                         'Prism Length = 12',
-                        'Volume Expression = (½ · 6 · 4) · 12 = 144 cubic units'
+                        'Volume Expression = ((1/2) · 6 · 4) · 12 = 144 cubic units'
                     ]
                 }
             }
@@ -317,39 +277,39 @@ const EXTRA_PROBLEMS = [
 },
 {
  id:'sq_g_sa',cardLabel:'CARD G',shapeName:'Square Pyramid (base 6, slant height 5)',mode:'surface_area',svgType:'pyramid_g',question:'Which expression gives the TOTAL SURFACE AREA of this square pyramid?',
- options:['6 · 6 + 4 · (½ · 6 · 5)','6 · 6 + 4 · (½ · 6 · 4)','4 · (½ · 6 · 5)','6 · 6 + 4 · (6 · 5)'],correctIndex:0,
+ options:['6 · 6 + 4 · ((1/2) · 6 · 5)','6 · 6 + 4 · ((1/2) · 6 · 4)','4 · ((1/2) · 6 · 5)','6 · 6 + 4 · (6 · 5)'],correctIndex:0,
  hint:'Add the square base and 4 triangular faces. Each triangle uses the slant height 5, not the vertical height 4.',
- breakdown:{title:'Square base + four triangles',steps:['Base area: 6 · 6 = 36.','One triangular face: ½ · 6 · 5 = 15.','Four faces: 4 · 15 = 60.','Total surface area: 36 + 60 = 96 square units.']}
+ breakdown:{title:'Square base + four triangles',steps:['Base area: 6 · 6 = 36.','One triangular face: (1/2) · 6 · 5 = 15.','Four faces: 4 · 15 = 60.','Total surface area: 36 + 60 = 96 square units.']}
 },
 {
  id:'sq_g_vol',cardLabel:'CARD G',shapeName:'Square Pyramid (base 6, vertical height 4)',mode:'volume',svgType:'pyramid_g',question:'Which expression gives the VOLUME of this square pyramid?',
- options:['⅓ · (6 · 6) · 4','½ · (6 · 6) · 4','6 · 6 · 4','⅓ · (6 · 6) · 5'],correctIndex:0,
+ options:['(1/3) · (6 · 6) · 4','(1/2) · (6 · 6) · 4','6 · 6 · 4','(1/3) · (6 · 6) · 5'],correctIndex:0,
  hint:'Pyramid volume is one third of base area times the perpendicular vertical height 4—not the slant height 5.',
- breakdown:{title:'Pyramid volume',steps:['Square base area: 6 · 6 = 36.','Vertical height: 4.','Volume: ⅓ · 36 · 4 = 48 cubic units.']}
+ breakdown:{title:'Pyramid volume',steps:['Square base area: 6 · 6 = 36.','Vertical height: 4.','Volume: (1/3) · 36 · 4 = 48 cubic units.']}
 },
 {
  id:'sq_h_sa',cardLabel:'CARD H',shapeName:'Square Pyramid (base 10, slant height 13)',mode:'surface_area',svgType:'pyramid_h',question:'Which expression represents the TOTAL SURFACE AREA of this square pyramid?',
- options:['10 · 10 + 4 · (½ · 10 · 13)','10 · 10 + 4 · (½ · 10 · 12)','4 · (½ · 10 · 13)','10 · 10 + 4 · (10 · 13)'],correctIndex:0,
+ options:['10 · 10 + 4 · ((1/2) · 10 · 13)','10 · 10 + 4 · ((1/2) · 10 · 12)','4 · ((1/2) · 10 · 13)','10 · 10 + 4 · (10 · 13)'],correctIndex:0,
  hint:'Count the square base and all 4 triangular faces. Use slant height 13 for each triangular face.',
- breakdown:{title:'Square base + four triangles',steps:['Base area: 10 · 10 = 100.','One triangular face: ½ · 10 · 13 = 65.','Four triangular faces: 4 · 65 = 260.','Total surface area: 100 + 260 = 360 square units.']}
+ breakdown:{title:'Square base + four triangles',steps:['Base area: 10 · 10 = 100.','One triangular face: (1/2) · 10 · 13 = 65.','Four triangular faces: 4 · 65 = 260.','Total surface area: 100 + 260 = 360 square units.']}
 },
 {
  id:'sq_h_vol',cardLabel:'CARD H',shapeName:'Square Pyramid (base 10, vertical height 12)',mode:'volume',svgType:'pyramid_h',question:'Which expression represents the VOLUME of this square pyramid?',
- options:['⅓ · (10 · 10) · 12','⅓ · (10 · 10) · 13','(10 · 10) · 12','½ · (10 · 10) · 12'],correctIndex:0,
- hint:'Volume is ⅓ × square base area × perpendicular height 12. The slant height 13 is for surface area.',
- breakdown:{title:'Pyramid volume',steps:['Square base area: 10 · 10 = 100.','Vertical height: 12.','Volume: ⅓ · 100 · 12 = 400 cubic units.']}
+ options:['(1/3) · (10 · 10) · 12','(1/3) · (10 · 10) · 13','(10 · 10) · 12','(1/2) · (10 · 10) · 12'],correctIndex:0,
+ hint:'Volume is (1/3) × square base area × perpendicular height 12. The slant height 13 is for surface area.',
+ breakdown:{title:'Pyramid volume',steps:['Square base area: 10 · 10 = 100.','Vertical height: 12.','Volume: (1/3) · 100 · 12 = 400 cubic units.']}
 },
 {
  id:'tri_i_sa',cardLabel:'CARD I',shapeName:'Right Triangular Prism (9–12–15 triangle)',mode:'surface_area',svgType:'tri_prism_i',question:'Which expression gives the TOTAL SURFACE AREA of this triangular prism?',
- options:['2 · (½ · 9 · 12) + (9 + 12 + 15) · 7','(½ · 9 · 12) + (9 + 12 + 15) · 7','2 · (9 · 12) + (9 + 12 + 15) · 7','2 · (½ · 9 · 15) + (9 + 12 + 15) · 7'],correctIndex:0,
+ options:['2 · ((1/2) · 9 · 12) + (9 + 12 + 15) · 7','((1/2) · 9 · 12) + (9 + 12 + 15) · 7','2 · (9 · 12) + (9 + 12 + 15) · 7','2 · ((1/2) · 9 · 15) + (9 + 12 + 15) · 7'],correctIndex:0,
  hint:'There are 2 triangular bases and 3 rectangular sides; use triangle perpendicular legs 9 and 12.',
- breakdown:{title:'Two triangles + three rectangles',steps:['Two triangles: 2 · (½ · 9 · 12) = 108.','Three rectangles: (9 + 12 + 15) · 7 = 252.','Surface area: 108 + 252 = 360 square units.']}
+ breakdown:{title:'Two triangles + three rectangles',steps:['Two triangles: 2 · ((1/2) · 9 · 12) = 108.','Three rectangles: (9 + 12 + 15) · 7 = 252.','Surface area: 108 + 252 = 360 square units.']}
 },
 {
  id:'tri_i_vol',cardLabel:'CARD I',shapeName:'Right Triangular Prism (9–12–15 triangle)',mode:'volume',svgType:'tri_prism_i',question:'Which expression gives the VOLUME of this triangular prism?',
- options:['(½ · 9 · 12) · 7','(9 · 12) · 7','(½ · 9 · 15) · 7','2 · (½ · 9 · 12) + 7'],correctIndex:0,
- hint:'Multiply the triangular base area, ½ · 9 · 12, by the prism length 7.',
- breakdown:{title:'Triangular base area times length',steps:['Triangular base: ½ · 9 · 12 = 54.','Length of prism: 7.','Volume: 54 · 7 = 378 cubic units.']}
+ options:['((1/2) · 9 · 12) · 7','(9 · 12) · 7','((1/2) · 9 · 15) · 7','2 · ((1/2) · 9 · 12) + 7'],correctIndex:0,
+ hint:'Multiply the triangular base area, (1/2) · 9 · 12, by the prism length 7.',
+ breakdown:{title:'Triangular base area times length',steps:['Triangular base: (1/2) · 9 · 12 = 54.','Length of prism: 7.','Volume: 54 · 7 = 378 cubic units.']}
 }
 ];
 PROBLEM_BANK.push(...EXTRA_PROBLEMS);
@@ -491,10 +451,7 @@ function renderPrismSVG(svgType) {
                         <polygon points="70,50 200,100 270,30" fill="${isDark ? 'rgba(252, 211, 77, 0.3)' : 'rgba(252, 211, 77, 0.25)'}" />
 
                         <!-- Hidden Lines -->
-                        <line x1="70" y1="180" x2="140" y2="110" stroke="${dashColor}" stroke-width="2" stroke-dasharray="4 4"/>
-                        <line x1="140" y1="110" x2="200" y2="230" stroke="${dashColor}" stroke-width="2" stroke-dasharray="4 4"/>
-                        <line x1="140" y1="110" x2="270" y2="160" stroke="${dashColor}" stroke-width="2" stroke-dasharray="4 4"/>
-                        <line x1="140" y1="110" x2="140" y2="30" stroke="${dashColor}" stroke-width="2" stroke-dasharray="4 4"/>
+                        <line x1="70" y1="180" x2="270" y2="160" stroke="${dashColor}" stroke-width="2" stroke-dasharray="4 4"/>
 
                         <!-- Front Edges -->
                         <polygon points="70,50 200,100 270,30" stroke="${strokeColor}" stroke-width="2.5" fill="none" />
@@ -505,21 +462,21 @@ function renderPrismSVG(svgType) {
                         <line x1="200" y1="230" x2="270" y2="160" stroke="${strokeColor}" stroke-width="2.5"/>
 
                         <!-- Right angle indicator at top triangle corner -->
-                        <polyline points="100,61 106,75 94,80" stroke="${strokeColor}" stroke-width="1.5" fill="none"/>
+                        <polyline points="81.2,54.3 93.1,53.1 81.9,48.8" stroke="${strokeColor}" stroke-width="1.5" fill="none"/>
 
                         <!-- Labels -->
                         <g font-size="14" font-weight="800" font-family="Plus Jakarta Sans">
-                            <!-- Leg 5 -->
-                            <rect x="40" y="200" width="24" height="20" rx="4" fill="${labelBg}" stroke="${strokeColor}" stroke-width="1"/>
-                            <text x="52" y="215" text-anchor="middle" fill="${labelText}">5</text>
+                            <!-- Hypotenuse 13 -->
+                            <rect x="221" y="52" width="28" height="20" rx="4" fill="${labelBg}" stroke="${strokeColor}" stroke-width="1"/>
+                            <text x="235" y="67" text-anchor="middle" fill="${labelText}">13</text>
 
                             <!-- Leg 12 -->
                             <rect x="125" y="75" width="28" height="20" rx="4" fill="${labelBg}" stroke="${strokeColor}" stroke-width="1"/>
                             <text x="139" y="90" text-anchor="middle" fill="${labelText}">12</text>
 
-                            <!-- Hypotenuse 13 -->
+                            <!-- Leg 5 -->
                             <rect x="160" y="20" width="28" height="20" rx="4" fill="${labelBg}" stroke="${strokeColor}" stroke-width="1"/>
-                            <text x="174" y="35" text-anchor="middle" fill="${labelText}">13</text>
+                            <text x="174" y="35" text-anchor="middle" fill="${labelText}">5</text>
 
                             <!-- Prism Height 8 -->
                             <rect x="280" y="90" width="24" height="20" rx="4" fill="${labelBg}" stroke="${strokeColor}" stroke-width="1"/>
@@ -531,6 +488,11 @@ function renderPrismSVG(svgType) {
                     // Card E: Isosceles Triangular Prism (base 6, height 4, sides 5, length 12)
                     return `
                     <svg viewBox="0 0 360 250" class="w-full max-w-[340px] h-auto max-h-[250px] select-none">
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="${strokeColor}"/>
+                            </marker>
+                        </defs>
                         <!-- Shading -->
                         <polygon points="50,200 150,200 100,120" fill="${isDark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(168, 85, 247, 0.15)'}" />
                         <polygon points="100,120 150,200 310,120 260,40" fill="${isDark ? 'rgba(192, 132, 252, 0.25)' : 'rgba(192, 132, 252, 0.2)'}" />
@@ -551,8 +513,8 @@ function renderPrismSVG(svgType) {
                         <line x1="260" y1="40" x2="310" y2="120" stroke="${strokeColor}" stroke-width="2.5"/>
 
                         <!-- Equality Hash Marks on Equal Legs (5) -->
-                        <line x1="72" y1="155" x2="78" y2="165" stroke="${strokeColor}" stroke-width="2"/>
-                        <line x1="122" y1="155" x2="128" y2="165" stroke="${strokeColor}" stroke-width="2"/>
+                        <line x1="62.4" y1="168.8" x2="72.6" y2="175.2" stroke="${strokeColor}" stroke-width="2"/>
+                        <line x1="127.4" y1="175.2" x2="137.6" y2="168.8" stroke="${strokeColor}" stroke-width="2"/>
 
                         <!-- Dimension Arrows & Labels -->
                         <g font-size="14" font-weight="800" font-family="Plus Jakarta Sans">
